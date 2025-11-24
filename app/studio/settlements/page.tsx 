@@ -1,0 +1,10 @@
+
+
+export default function StudioSettlementsPage() {
+  return (
+    <main className="card">
+      <h1 className="text-2xl font-bold mb-4">Settlements (Coming Soon)</h1>
+      <p>This will show unbatched orders and allow you to create, send, and manage printer settlements.</p>
+    </main>
+  );
+}

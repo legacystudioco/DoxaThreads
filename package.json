@@ -1,0 +1,38 @@
+{
+  "name": "doxa-threads",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@stripe/react-stripe-js": "^2.8.1",
+    "@stripe/stripe-js": "2.x",
+    "@supabase/ssr": "latest",
+    "@supabase/supabase-js": "2.x",
+    "@types/jsonwebtoken": "9.x",
+    "busboy": "^1.6.0",
+    "jsonwebtoken": "9.x",
+    "lucide-react": "0.452.0",
+    "next": "14.x",
+    "react": "18.x",
+    "react-dom": "18.x",
+    "resend": "2.x",
+    "shippo": "2.x",
+    "stripe": "16.x",
+    "zod": "3.x"
+  },
+  "devDependencies": {
+    "@types/node": "20.x",
+    "@types/react": "18.x",
+    "@types/react-dom": "18.x",
+    "autoprefixer": "^10.4.21",
+    "eslint": "8.x",
+    "eslint-config-next": "14.x",
+    "postcss": "^8.5.6",
+    "tailwindcss": "3.x",
+    "typescript": "5.x"
+  }
+}

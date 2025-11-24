@@ -1,0 +1,228 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase-client";
+import Link from "next/link";
+import Image from "next/image";
+
+export default function StorePage() {
+  const [products, setProducts] = useState<any[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const categories = [
+    { id: "all", label: "All" },
+    { id: "tees", label: "Tees" },
+    { id: "hoodies", label: "Hoodies" },
+    { id: "crewnecks", label: "Crewnecks" },
+  ];
+
+  useEffect(() => {
+    async function fetchProducts() {
+      const supa = createClient();
+      
+      // Fetch products from Supabase
+      const { data, error } = await supa
+        .from("products")
+        .select(`
+          *,
+          product_images (
+            id,
+            url,
+            alt,
+            sort
+          ),
+          variants (
+            id,
+            size,
+            price_cents,
+            active
+          )
+        `)
+        .eq("active", true)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching products:", error);
+        setError(error.message);
+      } else {
+        setProducts(data || []);
+      }
+      
+      setLoading(false);
+    }
+
+    fetchProducts();
+  }, []);
+
+  const filteredProducts = products.filter((product: any) => {
+    if (selectedCategory === "all") return true;
+    const title = (product.title || "").toLowerCase();
+    if (selectedCategory === "hoodies") return title.includes("hoodie");
+    if (selectedCategory === "crewnecks") return title.includes("crewneck") || title.includes("crew neck");
+    if (selectedCategory === "tees") return title.includes("tee") || title.includes("t-shirt") || title.includes("shirt");
+    return true;
+  });
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-16">
+        <div className="flex justify-center">
+          <div className="spinner"></div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-12">
+      {/* Header */}
+      <div className="mb-12 text-center">
+        <h1 className="text-4xl lg:text-5xl font-bold tracking-tight mb-4">
+          Shop Collection
+        </h1>
+        <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
+          Black-and-white pieces built as quiet statements. Made to order with premium materials.
+        </p>
+        <div className="badge-outline mt-6">
+          Made to order in 7–10 business days
+        </div>
+      </div>
+
+      {/* Category Filter */}
+      <div className="flex flex-wrap justify-center gap-3 mb-10">
+        {categories.map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => setSelectedCategory(cat.id)}
+            className={`px-4 py-2 border-2 text-sm font-bold uppercase tracking-wider transition-colors ${
+              selectedCategory === cat.id ? "bg-black text-white border-black" : "border-black text-black hover:bg-black hover:text-white"
+            }`}
+          >
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="card bg-white border border-black mb-8 text-center py-8">
+          <h3 className="text-xl font-bold mb-2">Error Loading Products</h3>
+          <p className="text-neutral-700">{error}</p>
+        </div>
+      )}
+
+      {/* Products Grid */}
+      {filteredProducts && filteredProducts.length > 0 ? (
+        <div className="product-grid">
+          {filteredProducts.map((product: any) => {
+            const firstImage = product.product_images?.sort((a: any, b: any) => a.sort - b.sort)[0];
+            const activeVariants = product.variants?.filter((v: any) => v.active) || [];
+            const minPrice = activeVariants.length 
+              ? Math.min(...activeVariants.map((v: any) => v.price_cents))
+              : 0;
+
+            // Skip products with placeholder or invalid image URLs
+            const hasValidImage = firstImage && 
+              firstImage.url && 
+              !firstImage.url.includes('placeholder-url') &&
+              !firstImage.url.includes('example.com');
+
+            return (
+              <Link 
+                key={product.id} 
+                href={`/store/products/${product.slug}`}
+                className="product-card group"
+              >
+                <div className="product-image">
+                  {hasValidImage ? (
+                    <Image
+                      src={firstImage.url}
+                      alt={firstImage.alt || product.title}
+                      width={600}
+                      height={600}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Fallback if image fails to load
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <>
+                      {/* Placeholder until product imagery is uploaded */}
+                      <Image
+                        src="/placeholders/product-square.svg"
+                        alt="Placeholder for upcoming product imagery"
+                        width={600}
+                        height={600}
+                        className="w-full h-full object-cover"
+                      />
+                    </>
+                  )}
+                </div>
+                <h3 className="product-title">{product.title}</h3>
+                <p className="product-price">
+                  From ${(minPrice / 100).toFixed(2)}
+                </p>
+              </Link>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="card text-center py-16">
+          <svg className="w-20 h-20 mx-auto mb-6 text-neutral-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          </svg>
+          <h3 className="text-2xl font-bold mb-2">No products available yet</h3>
+          <p className="text-neutral-600 mb-6">The next monochrome drop is in production.</p>
+          <Link href="/" className="btn">
+            Back to Home
+          </Link>
+        </div>
+      )}
+
+      {/* Info Section */}
+      <div className="mt-20 py-12 border-t border-brand-accent">
+        <h2 className="text-2xl font-bold tracking-tight text-center mb-12">
+          Product Information
+        </h2>
+        <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-black mx-auto mb-4 flex items-center justify-center">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h4 className="font-bold text-sm uppercase tracking-wider mb-2">Premium Blanks</h4>
+              <p className="text-sm text-neutral-600">
+                Heavyweight blanks with crisp, lasting prints.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-black mx-auto mb-4 flex items-center justify-center">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h4 className="font-bold text-sm uppercase tracking-wider mb-2">Made Fresh</h4>
+              <p className="text-sm text-neutral-600">
+                Printed to order to stay lean and intentional.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-black mx-auto mb-4 flex items-center justify-center">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11" />
+                </svg>
+              </div>
+              <h4 className="font-bold text-sm uppercase tracking-wider mb-2">Easy Returns</h4>
+              <p className="text-sm text-neutral-600">
+                30-day returns with free size exchanges.
+              </p>
+            </div>
+          </div>
+        </div>
+    </div>
+  );
+}

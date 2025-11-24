@@ -1,0 +1,2 @@
+This is a test file to verify Claude has write access to the JoshWiley folder.
+Created at: Friday, November 07, 2025
