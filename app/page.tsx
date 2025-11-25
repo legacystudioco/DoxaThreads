@@ -49,33 +49,32 @@ export default function Home() {
   return (
     <>
       {/* Hero Section */}
-      <section className="hero relative overflow-visible min-h-[520px] bg-[radial-gradient(ellipse_at_center,rgba(110,90,60,0.05)_0%,rgba(0,0,0,0)_48%,rgba(0,0,0,0.15)_100%),linear-gradient(to_bottom,#F3E8D8_0%,#F3E8D8_52%,#24211B_52%,#1A1713_100%)] bg-no-repeat bg-cover border-b-4 border-[var(--mustard-gold)]">
-        <div className="relative container text-center flex flex-col items-center pt-6 pb-16 lg:pb-24">
-          <div className="relative z-20 -mb-10">
-            <Image
-              src="/assets/Doxa_Circle.png"
-              alt="DOXA Threads emblem"
-              width={220}
-              height={220}
-              className="w-[170px] h-[170px] lg:w-[200px] lg:h-[200px] object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.35)]"
-              priority
-            />
-          </div>
-
-          <div className="relative z-10 flex flex-col items-center gap-4 mt-24">
-            <h1 className="text-4xl lg:text-5xl font-black tracking-tight text-[rgba(243,232,216,0.95)]">
-              Greek for Glory. Worn with honor.
-            </h1>
-            <p className="text-lg lg:text-xl max-w-3xl mx-auto font-normal tracking-tight text-[rgba(243,232,216,0.82)]">
-              American Traditional art meets sacred symbolism. Premium streetwear built to honor the craft.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center mt-2">
-              <Link href="/store" className="btn px-6 py-3 text-sm sm:text-xs">
-                Shop the Collection
-              </Link>
-              <Link href="/about" className="btn-secondary px-6 py-3 text-sm sm:text-xs">
-                Our Story
-              </Link>
+      <section className="hero min-h-[18vh] overflow-hidden bg-[radial-gradient(ellipse_at_center,rgba(110,90,60,0.04)_0%,rgba(0,0,0,0)_55%,rgba(0,0,0,0.10)_100%),linear-gradient(to_bottom,#24211B,#1A1713)] bg-no-repeat bg-cover">
+        <div className="relative container text-center flex flex-col items-center gap-0 py-0 pt-1 pb-0">
+          <div className="relative z-10 flex flex-col items-center gap-0.5">
+            <div className="flex items-start justify-center w-full pt-0 -mb-1">
+              <Image
+                src="/assets/Doxa_Threads_Logo.png"
+                alt="DOXA Threads logo"
+                width={1200}
+                height={400}
+                className="w-[65%] max-w-[820px] h-auto object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.2)]"
+                priority
+              />
+            </div>
+            <h1 className="sr-only">DOXA THREADS</h1>
+            <div className="flex flex-col items-center">
+              <p className="text-lg lg:text-xl mb-0 mt-1 max-w-2xl mx-auto font-normal tracking-tight text-[rgba(243,232,216,0.92)]">
+                Greek for Glory. Worn with honor. Backed by faith.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-1 justify-center mt-0">
+                <Link href="/store" className="btn px-5 py-3 text-sm sm:text-xs">
+                  Shop the Collection
+                </Link>
+                <Link href="/about" className="btn-secondary px-5 py-3 text-sm sm:text-xs">
+                  Our Story
+                </Link>
+              </div>
             </div>
           </div>
         </div>
