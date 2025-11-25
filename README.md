@@ -2,10 +2,10 @@
 
 ## 🎯 Project Overview
 
-**DOXA Threads** is a black-and-white streetwear label built for quiet, confident expression. DOXA means “glory” in Greek—we reflect it without shouting. This is a fully-functional e-commerce platform built with Next.js, Supabase, Stripe, and Shippo.
+**DOXA Threads** is premium Christian streetwear merging American Traditional tattoo art with sacred symbolism. DOXA (δόξα) means "glory" in Greek—the visible presence of God. This is a fully-functional e-commerce platform built with Next.js, Supabase, Stripe, and Shippo.
 
 ### Brand Mission
-Craft monochrome pieces that carry weight with restraint. Premium materials, disciplined typography, and subtle references that nod to glory without claiming it.
+Create bold streetwear that honors faith and craftsmanship. American Traditional tattoo aesthetics meet sacred imagery in a modern luxury-minimal layout. Worn with honor. Backed by faith. Built to last.
 
 ---
 
@@ -79,6 +79,10 @@ SHIPPO_API_KEY=your_shippo_api_key
 # Resend (Email)
 RESEND_API_KEY=your_resend_api_key
 EMAIL_FROM=DOXA Threads <hello@doxathreads.com>
+
+# Admin
+ADMIN_EMAIL=your_admin_email@doxathreads.com
+PRINTER_EMAIL=your_printer_email@example.com
 
 # Studio Auth (Optional)
 STUDIO_JWT_SECRET=your_jwt_secret
@@ -179,33 +183,28 @@ http://localhost:3000
 
 ---
 
-## 🎨 Customization Guide
+## 🎨 Brand Identity
 
-### Updating Brand Colors
-Edit `tailwind.config.ts`:
-```typescript
-theme: {
-  extend: {
-    colors: {
-      // Add custom brand colors
-      brand: {
-        primary: '#000000',
-        secondary: '#FFFFFF',
-      }
-    }
-  }
-}
-```
+### Design Philosophy
+**Hybrid of:**
+1. American Traditional tattoo art
+2. Sacred symbolism (Byzantine, liturgical)
+3. Modern luxury-minimal layout
 
-### Modifying Styles
-Edit `styles/globals.css` for global styles and component classes.
+### Visual Rules
+- **UI Colors**: Black and white only (no gradients, no playful colors)
+- **Logo**: Dove with halo and roses (American Traditional style)
+- **Layout**: Clean and modern - decoration stays minimal
+- **Artwork**: Bold traditional tattoo palette carries the color
+- **Typography**: Bold, impactful, strategic uppercase
 
-### Adding Products
-1. Go to `/studio/products/new`
-2. Fill in product details
-3. Upload product images
-4. Add variants (sizes, colors)
-5. Publish product
+**Core Principle**: Let artwork carry color—UI stays black and white.
+
+### Brand Voice
+- **Bold**: Declarative, confident statements
+- **Faith-driven**: Rooted in conviction without being preachy
+- **Calm & Traditional**: Timeless, not trendy
+- **Masculine but Refined**: Strong yet sophisticated
 
 ---
 
@@ -267,7 +266,7 @@ Requires Auth: 4000 0025 0000 3155
 ## 📚 Documentation
 
 - [REBRANDING_CHANGELOG.md](./REBRANDING_CHANGELOG.md) - Complete list of all rebranding changes
-- [BRAND_GUIDELINES.md](./BRAND_GUIDELINES.md) - Brand voice, messaging, and identity
+- [BRAND_GUIDELINES.md](./BRAND_GUIDELINES.md) - Brand voice, messaging, and identity reference
 - [LAUNCH_CHECKLIST.md](./LAUNCH_CHECKLIST.md) - Pre-launch tasks and post-launch goals
 
 ---
@@ -351,13 +350,13 @@ Built with:
 ## 📈 Roadmap
 
 ### Phase 1: Launch (Current)
-- [x] Complete rebranding
-- [ ] Add initial product collection
+- [x] Complete rebranding to American Traditional aesthetic
+- [ ] Add initial product collection (tattoo-inspired designs)
 - [ ] Launch marketing campaign
 - [ ] Go live on doxathreads.com
 
 ### Phase 2: Growth
-- [ ] Add more product categories
+- [ ] Expand product categories (hoodies, crewnecks, accessories)
 - [ ] Implement customer reviews
 - [ ] Launch referral program
 - [ ] Add wishlists
@@ -365,8 +364,8 @@ Built with:
 
 ### Phase 3: Scale
 - [ ] Mobile app (React Native)
+- [ ] Limited edition artist collaborations
 - [ ] Subscription boxes
-- [ ] Limited edition drops
 - [ ] Wholesale program
 - [ ] Ministry partnerships
 
