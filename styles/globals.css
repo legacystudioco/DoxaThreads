@@ -128,7 +128,7 @@
            focus:outline-none focus:border-black
            placeholder:text-gray-400
            transition-colors duration-200
-           resize-vertical;
+           resize-y;
   }
 
   .select {
