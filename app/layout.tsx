@@ -30,7 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   width={140}
                   height={140}
                   priority
-                  className="h-16 w-auto"
+                  className="h-36 w-auto"
                 />
               </Link>
 
