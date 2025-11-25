@@ -202,7 +202,7 @@
   .hero {
     @apply relative overflow-hidden 
            py-6 lg:py-8;
-    background: var(--ink-black);
+    background: #1A1816;
     color: var(--paper);
     border-bottom: 2px solid var(--mustard-gold);
   }
