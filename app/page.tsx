@@ -49,22 +49,22 @@ export default function Home() {
   return (
     <>
       {/* Hero Section */}
-      <section className="hero min-h-[18vh] overflow-hidden bg-[radial-gradient(ellipse_at_center,rgba(110,90,60,0.06)_0%,rgba(0,0,0,0)_50%,rgba(0,0,0,0.12)_100%),linear-gradient(to_bottom,#1C1A16,#100F0D)] bg-no-repeat bg-cover">
+      <section className="hero min-h-[18vh] overflow-hidden bg-[radial-gradient(ellipse_at_center,rgba(110,90,60,0.04)_0%,rgba(0,0,0,0)_55%,rgba(0,0,0,0.10)_100%),linear-gradient(to_bottom,#24211B,#1A1713)] bg-no-repeat bg-cover">
         <div className="relative container text-center flex flex-col items-center gap-0 py-0 pt-1 pb-0">
           <div className="relative z-10 flex flex-col items-center gap-0.5">
-            <div className="flex items-start justify-center w-full pt-0 mb-0">
+            <div className="flex items-start justify-center w-full pt-0 -mb-1">
               <Image
                 src="/assets/Doxa_Threads_Logo.png"
                 alt="DOXA Threads logo"
                 width={1200}
                 height={400}
-                className="w-[65%] max-w-[820px] h-auto object-contain drop-shadow-[0_6px_14px_rgba(0,0,0,0.25)]"
+                className="w-[65%] max-w-[820px] h-auto object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.2)]"
                 priority
               />
             </div>
             <h1 className="sr-only">DOXA THREADS</h1>
             <div className="flex flex-col items-center">
-              <p className="text-lg lg:text-xl mb-0 mt-0 max-w-2xl mx-auto font-normal tracking-tight text-[rgba(243,232,216,0.9)]">
+              <p className="text-lg lg:text-xl mb-0 mt-1 max-w-2xl mx-auto font-normal tracking-tight text-[rgba(243,232,216,0.92)]">
                 Greek for Glory. Worn with honor. Backed by faith.
               </p>
               <div className="flex flex-col sm:flex-row gap-1 justify-center mt-0">
