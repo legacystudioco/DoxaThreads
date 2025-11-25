@@ -58,20 +58,20 @@ export default function Home() {
                 alt="DOXA Threads logo"
                 width={1200}
                 height={400}
-                className="w-[58%] max-w-[720px] h-auto object-contain"
+                className="w-[72%] max-w-[900px] h-auto object-contain"
                 priority
               />
             </div>
             <h1 className="sr-only">DOXA THREADS</h1>
             <div className="flex flex-col items-center">
-              <p className="text-xl lg:text-2xl mb-4 mt-0 max-w-2xl mx-auto font-normal tracking-tight text-[rgba(243,232,216,0.9)]">
+              <p className="text-lg lg:text-xl mb-4 mt-0 max-w-2xl mx-auto font-normal tracking-tight text-[rgba(243,232,216,0.9)]">
                 Greek for Glory. Worn with honor. Backed by faith.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Link href="/store" className="btn text-base">
+                <Link href="/store" className="btn px-5 py-3 text-sm">
                   Shop the Collection
                 </Link>
-                <Link href="/about" className="btn-secondary text-base">
+                <Link href="/about" className="btn-secondary px-5 py-3 text-sm">
                   Our Story
                 </Link>
               </div>
