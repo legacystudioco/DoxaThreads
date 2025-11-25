@@ -14,7 +14,7 @@ export default function ShippingPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-bold mb-4">Production Time</h2>
             <p>
-              All products are made to order with care and quality. Production typically takes 7–10 business days before your order ships.
+              All products are made to order. Quality built to honor the craft. Production typically takes 7–10 business days before your order ships.
             </p>
           </section>
 

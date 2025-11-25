@@ -80,10 +80,10 @@ export default function StorePage() {
       {/* Header */}
       <div className="mb-12 text-center">
         <h1 className="text-4xl lg:text-5xl font-bold tracking-tight mb-4">
-          Shop Collection
+          The Collection
         </h1>
         <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-          Black-and-white pieces built as quiet statements. Made to order with premium materials.
+          American Traditional art meets sacred symbolism. Built to honor the craft.
         </p>
         <div className="badge-outline mt-6">
           Made to order in 7–10 business days
@@ -174,8 +174,8 @@ export default function StorePage() {
           <svg className="w-20 h-20 mx-auto mb-6 text-neutral-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
           </svg>
-          <h3 className="text-2xl font-bold mb-2">No products available yet</h3>
-          <p className="text-neutral-600 mb-6">The next monochrome drop is in production.</p>
+          <h3 className="text-2xl font-bold mb-2">New pieces in production</h3>
+          <p className="text-neutral-600 mb-6">Check back soon.</p>
           <Link href="/" className="btn">
             Back to Home
           </Link>
@@ -185,7 +185,7 @@ export default function StorePage() {
       {/* Info Section */}
       <div className="mt-20 py-12 border-t border-brand-accent">
         <h2 className="text-2xl font-bold tracking-tight text-center mb-12">
-          Product Information
+          What You Get
         </h2>
         <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             <div className="text-center">
@@ -194,9 +194,9 @@ export default function StorePage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <h4 className="font-bold text-sm uppercase tracking-wider mb-2">Premium Blanks</h4>
+              <h4 className="font-bold text-sm uppercase tracking-wider mb-2">Premium Quality</h4>
               <p className="text-sm text-neutral-600">
-                Heavyweight blanks with crisp, lasting prints.
+                Heavyweight cotton. Professional printing.
               </p>
             </div>
             <div className="text-center">
@@ -205,9 +205,9 @@ export default function StorePage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h4 className="font-bold text-sm uppercase tracking-wider mb-2">Made Fresh</h4>
+              <h4 className="font-bold text-sm uppercase tracking-wider mb-2">Made to Order</h4>
               <p className="text-sm text-neutral-600">
-                Printed to order to stay lean and intentional.
+                Quality built to honor the craft.
               </p>
             </div>
             <div className="text-center">
@@ -218,7 +218,7 @@ export default function StorePage() {
               </div>
               <h4 className="font-bold text-sm uppercase tracking-wider mb-2">Easy Returns</h4>
               <p className="text-sm text-neutral-600">
-                30-day returns with free size exchanges.
+                30-day returns. Free size exchanges.
               </p>
             </div>
           </div>

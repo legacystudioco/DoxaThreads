@@ -6,7 +6,7 @@ export default function ContactPage() {
       <div className="max-w-2xl mx-auto">
         <h1 className="text-4xl font-bold mb-4">Get in Touch</h1>
         <p className="text-lg text-neutral-600 mb-12">
-          Questions, partnerships, or styling a shoot—reach out and we&apos;ll keep it straightforward.
+          Questions about orders or the brand? Reach out.
         </p>
 
         {/* Contact Cards */}
@@ -17,9 +17,9 @@ export default function ContactPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold mb-2">Email Us</h3>
+            <h3 className="text-xl font-bold mb-2">General Inquiries</h3>
             <p className="text-neutral-600 mb-4">
-              For general inquiries and customer support
+              For questions and support
             </p>
             <a 
               href="mailto:hello@doxathreads.com" 
@@ -37,7 +37,7 @@ export default function ContactPage() {
             </div>
             <h3 className="text-xl font-bold mb-2">Order Support</h3>
             <p className="text-neutral-600 mb-4">
-              Questions about your order or shipping
+              Questions about orders or shipping
             </p>
             <a 
               href="mailto:orders@doxathreads.com" 
@@ -50,70 +50,70 @@ export default function ContactPage() {
 
         {/* FAQ Section */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Frequently Asked Questions</h2>
+          <h2 className="text-2xl font-bold mb-6">Common Questions</h2>
           
           <details className="border border-brand-accent mb-4">
             <summary className="cursor-pointer font-bold uppercase text-sm tracking-wider py-3 px-4 hover:bg-neutral-50 transition-colors">
-              What is your production time?
+              Production time?
             </summary>
             <div className="p-4 border-t border-brand-accent text-sm text-neutral-600">
               <p>
-                All pieces are made to order with a production time of 7–10 business days. Shipping timing depends on your location and method.
+                All pieces are made to order. 7–10 business days, plus shipping time based on your location.
               </p>
             </div>
           </details>
 
           <details className="border border-brand-accent mb-4">
             <summary className="cursor-pointer font-bold uppercase text-sm tracking-wider py-3 px-4 hover:bg-neutral-50 transition-colors">
-              Do you offer international shipping?
+              International shipping?
             </summary>
             <div className="p-4 border-t border-brand-accent text-sm text-neutral-600">
               <p>
-                We currently ship within the United States only. International options are on the roadmap.
+                US only for now. International options coming soon.
               </p>
             </div>
           </details>
 
           <details className="border border-brand-accent mb-4">
             <summary className="cursor-pointer font-bold uppercase text-sm tracking-wider py-3 px-4 hover:bg-neutral-50 transition-colors">
-              What is your return policy?
+              Return policy?
             </summary>
             <div className="p-4 border-t border-brand-accent text-sm text-neutral-600">
               <p>
-                We offer a 30-day return policy with free size exchanges. Items must be unworn and in original condition. Because everything is made to order, we handle fit exchanges and any quality issues first.
+                30 days. Free size exchanges. Items must be unworn and in original condition.
               </p>
             </div>
           </details>
 
           <details className="border border-brand-accent mb-4">
             <summary className="cursor-pointer font-bold uppercase text-sm tracking-wider py-3 px-4 hover:bg-neutral-50 transition-colors">
-              How do I track my order?
+              Track my order?
             </summary>
             <div className="p-4 border-t border-brand-accent text-sm text-neutral-600">
               <p>
-                Once your order ships, you&apos;ll receive a tracking number via email. Use it to follow the package in real time.
+                You'll receive tracking via email once your order ships.
               </p>
             </div>
           </details>
 
           <details className="border border-brand-accent mb-4">
             <summary className="cursor-pointer font-bold uppercase text-sm tracking-wider py-3 px-4 hover:bg-neutral-50 transition-colors">
-              Are you hiring or looking for collaborations?
+              Collaborations?
             </summary>
             <div className="p-4 border-t border-brand-accent text-sm text-neutral-600">
               <p>
-                We&apos;re open to thoughtful collaborations and wholesale conversations. Reach us at <a href="mailto:hello@doxathreads.com" className="underline">hello@doxathreads.com</a>.
+                Open to wholesale and partnerships. Email <a href="mailto:hello@doxathreads.com" className="underline">hello@doxathreads.com</a>.
               </p>
             </div>
           </details>
 
           <details className="border border-brand-accent mb-4">
             <summary className="cursor-pointer font-bold uppercase text-sm tracking-wider py-3 px-4 hover:bg-neutral-50 transition-colors">
-              Where does my purchase go?
+              Where does my money go?
             </summary>
             <div className="p-4 border-t border-brand-accent text-sm text-neutral-600">
               <p>
-                DOXA means glory, so stewardship matters. We keep operations lean, source premium blanks, and invest back into the craft.
+                Premium materials and quality craftsmanship. Built to honor the work.
               </p>
             </div>
           </details>
@@ -121,15 +121,15 @@ export default function ContactPage() {
 
         {/* Call to Action */}
         <div className="card text-center bg-black text-white">
-          <h3 className="text-2xl font-bold mb-3">Still Have Questions?</h3>
+          <h3 className="text-2xl font-bold mb-3">Need More Info?</h3>
           <p className="mb-6">
-            If you need a real person, email us. We respond quickly and keep it direct.
+            Email us. We keep it direct.
           </p>
           <a 
             href="mailto:hello@doxathreads.com" 
             className="btn bg-white text-black border-white hover:bg-transparent hover:text-white"
           >
-            Email Us
+            Send Email
           </a>
         </div>
 

@@ -5,8 +5,8 @@ import Image from "next/image";
 import { CartBadge } from "@/components/CartBadge";
 
 export const metadata: Metadata = {
-  title: "DOXA Threads | Black & White Streetwear",
-  description: "Minimal black-and-white streetwear shaped by quiet confidence—DOXA means glory, and we reflect it without shouting.",
+  title: "DOXA Threads | Greek for Glory",
+  description: "Greek for Glory. Worn with honor. Backed by faith. American Traditional art meets sacred symbolism. Premium streetwear built to last.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -15,7 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {/* Top announcement bar */}
         <div className="bg-black text-white text-center py-2 text-[11px] font-semibold uppercase tracking-[0.16em]">
-          Black & White Essentials • Made to Order • Quietly Reflecting Glory
+          Made to Order • Designed to Honor the Craft • Built to Last
         </div>
 
         {/* Main header */}
@@ -91,7 +91,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   DOXA THREADS
                 </div>
                 <p className="text-sm text-neutral-600 leading-relaxed max-w-xs">
-                  Black-and-white streetwear with restrained graphics. DOXA means “glory” in Greek—we reflect it, we don’t claim it.
+                  Greek for Glory. Premium streetwear built with purpose. Worn with honor. Backed by faith.
                 </p>
               </div>
 
@@ -99,9 +99,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <div>
                 <h4 className="font-bold text-sm uppercase tracking-wider mb-4">Quick Links</h4>
                 <ul className="space-y-2 text-sm">
-                  <li><Link href="/store" className="hover:underline">Shop Collection</Link></li>
-                  <li><Link href="/about" className="hover:underline">Our Story</Link></li>
-                  <li><Link href="/contact" className="hover:underline">Contact Us</Link></li>
+                  <li><Link href="/store" className="hover:underline">Shop</Link></li>
+                  <li><Link href="/about" className="hover:underline">About</Link></li>
+                  <li><Link href="/contact" className="hover:underline">Contact</Link></li>
                 </ul>
               </div>
 
@@ -110,8 +110,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <h4 className="font-bold text-sm uppercase tracking-wider mb-4">Information</h4>
                 <ul className="space-y-2 text-sm text-neutral-600">
                   <li>Made to order</li>
-                  <li>Premium quality blanks</li>
-                  <li>Free shipping over $75</li>
+                  <li>Premium materials</li>
+                  <li>Free shipping $75+</li>
                   <li>30-day returns</li>
                 </ul>
               </div>

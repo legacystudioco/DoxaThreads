@@ -74,19 +74,15 @@ export default function Home() {
             </div>
             <h1 className="sr-only">DOXA THREADS</h1>
             <div className="flex flex-col items-center -translate-y-1 sm:-translate-y-5">
-              <p className="text-2xl lg:text-3xl mb-2 mt-0 max-w-2xl mx-auto font-extrabold tracking-tight">
-                Greek for “GLORY”
-              </p>
-              <p className="text-base lg:text-lg mb-10 max-w-xl mx-auto text-neutral-300 leading-relaxed">
-                It’s the visible presence of God. Representation, not Recognition.<br />
-                Built to reflect <strong><em>HIS</em></strong> presence
+              <p className="text-2xl lg:text-3xl mb-10 mt-0 max-w-2xl mx-auto font-normal tracking-tight text-neutral-200">
+                Greek for Glory. Worn with honor. Backed by faith.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/store" className="btn text-base px-8 py-4">
-                  Shop the Drop
+                  Shop the Collection
                 </Link>
                 <Link href="/about" className="btn-secondary bg-transparent text-white border-white hover:bg-white hover:text-black text-base px-8 py-4">
-                  Discover the Message
+                  Our Story
                 </Link>
               </div>
             </div>
@@ -103,9 +99,9 @@ export default function Home() {
             <span>?</span>
           </h2>
           <div className="max-w-4xl mx-auto space-y-4 text-center text-black">
-            <p>DOXA (pronounced doks-uh) is the Greek word for glory — the visible, tangible presence of God. It is the weight of His holiness made real.</p>
-            <p>DOXA Threads exists to shift attention away from self and toward Him. The goal is not attention, status, or image. The goal is reflection. To wear something that speaks before you do.</p>
-            <p className="text-neutral-700">DOXA is not about being seen. It is about Him being seen through you.</p>
+            <p>DOXA (δόξα) — Greek for glory. The visible presence of God.</p>
+            <p>American Traditional art meets sacred symbolism. Premium streetwear built to honor the craft.</p>
+            <p className="text-neutral-700">Designed to last. Made to mean something.</p>
           </div>
         </section>
 
@@ -114,14 +110,14 @@ export default function Home() {
           <div className="flex items-end justify-between mb-8">
             <div>
               <h2 className="text-3xl lg:text-4xl font-bold tracking-tight mb-2">
-                Featured Collection
+                Latest Drops
               </h2>
               <p className="text-neutral-600">
-                Monochrome staples for a quiet statement
+                Built to last. Made to mean something.
               </p>
             </div>
             <Link href="/store" className="btn-secondary text-xs">
-              Browse all
+              View All
             </Link>
           </div>
 
@@ -187,9 +183,9 @@ export default function Home() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-neutral-600 mb-4">New monochrome pieces are in production.</p>
+              <p className="text-neutral-600 mb-4">New pieces in production.</p>
               <Link href="/store" className="btn-secondary">
-                Visit Store
+                View Store
               </Link>
             </div>
           )}
@@ -209,11 +205,11 @@ export default function Home() {
                 What is DOXA?
               </h3>
               <p className="text-neutral-600 leading-relaxed mb-4">
-                “Doxa” (δόξα) is the Greek word for glory—weight, beauty, radiance. Our pieces are built to echo that quietly.
+                Worn with honor. Backed by faith. Quality built to honor the craft.
               </p>
             </div>
             <Link href="/about" className="btn-secondary w-full">
-              Learn Our Story
+              Read More
             </Link>
           </div>
 
@@ -226,10 +222,10 @@ export default function Home() {
                 </svg>
               </div>
               <h3 className="text-2xl font-bold tracking-tight mb-2">
-                Wear it quietly
+                Built to Last
               </h3>
               <p className="text-neutral-600 leading-relaxed mb-4">
-                Pieces meant to be lived in—clean shapes, black and white palettes, and subtle references that reveal themselves up close.
+                Heavyweight cotton. Bold traditional design. Made to last.
               </p>
             </div>
             <Link href="/contact" className="btn w-full">

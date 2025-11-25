@@ -1,86 +1,147 @@
-# DOXA Threads - Brand Quick Reference
+# DOXA Threads - Brand Guidelines
 
 ## Brand Identity
 
 ### Name & Meaning
 **DOXA Threads**
-- "Doxa" (δόξα) = Greek word for "glory"
-- Represents weight, beauty, and radiance—glory reflected, not claimed
-- A reminder to design with restraint and intention
+- "Doxa" (δόξα) = Greek word for "glory" — the visible presence of God
+- This clothing represents wearing God's glory, not self-glory
+- American Traditional tattoo art meets sacred symbolism
 
-### Tagline
-"Quiet streetwear. Reflecting glory without noise."
+### Official Tagline
+**"Greek for Glory. Worn with honor. Backed by faith."**
 
 ### Brand Positioning
-Minimal, black-and-white streetwear for people who prefer a confident but understated statement.
+Premium Christian streetwear that merges American Traditional tattoo aesthetics with sacred symbolism in a modern, luxury-minimal layout.
 
 ---
 
 ## Brand Pillars
 
-### 1. Meaningful, Not Loud
-References and symbolism are present but quiet—no slogans or clichés.
+### 1. Bold, Not Preachy
+Faith-driven messaging delivered with confidence and calm—no church language or hype.
 
-### 2. Premium Quality  
-Heavyweight blanks, precise printing, and disciplined layouts.
+### 2. Traditional Craftsmanship
+American Traditional tattoo art meets Byzantine sacred imagery—quality built to honor the craft.
 
-### 3. Reflect, Don&apos;t Claim
-DOXA means “glory.” We mirror it in tone and craft instead of making it about us.
+### 3. Masculine & Refined
+Strong, traditional masculinity with sophistication and restraint.
 
-### 4. Calm Confidence
-Black and white, generous spacing, and typography that feels deliberate.
+### 4. Timeless Design
+Rooted in meaning and heritage, not trends or influencer culture.
 
 ---
 
 ## Brand Voice
 
-### Characteristics
-- **Confident & Understated**: Strength without shouting
-- **Premium & Disciplined**: Excellence in materials and layout
-- **Minimal & Modern**: Black and white first, accent sparingly
-- **Meaningful & Subtle**: References reveal themselves up close
+### Tone Characteristics
+- **Bold**: Declarative, confident statements
+- **Faith-driven**: Rooted in conviction without being preachy
+- **Calm & Traditional**: Timeless, not trendy
+- **Masculine but Refined**: Strong yet sophisticated
 
-### Tone Examples
-✅ DO: "Made to order • Black and white only"
-✅ DO: "DOXA means glory. We reflect it quietly."
-✅ DO: "Calm, intentional streetwear."
+### Writing Style
+- Direct, declarative statements
+- Short, impactful sentences
+- Speaks to conviction and craftsmanship
+- Avoids emotion-driven or hype language
 
-❌ DON'T: Loud slogans or bright colors
-❌ DON'T: Busy layouts or playful gradients
-❌ DON'T: Overstuffed copy
+### What to Say
+✅ "Designed to last. Made to mean something."
+✅ "Quality built to honor the craft."
+✅ "Wear it with purpose."
+✅ "Greek for Glory. Worn with honor. Backed by faith."
+
+### What NOT to Say
+❌ Church language (blessed, anointed, walking in faith)
+❌ Cheesy faith phrases (God's got this!, Let your light shine!)
+❌ Hype/influencer speak (fire emoji, let's goooo, drip)
+❌ Overly emotional appeals
 
 ---
 
 ## Visual Identity
 
-### Colors
-- **Primary**: Black & White
-- **Style**: Minimal, bold, streetwear-inspired
-- **Aesthetic**: Modern, clean, premium
+### Design Philosophy
+**Hybrid of:**
+1. American Traditional tattoo art
+2. Sacred symbolism (Byzantine, liturgical)
+3. Modern luxury-minimal layout
 
-### Typography
-- Bold, uppercase headers
-- Tracking-tight for impact
-- Modern sans-serif font family (Inter)
+**Core Principle**: Let artwork carry color—UI stays black and white.
 
 ### Logo
-Text-based: "DOXA" in bold, tracking-tight typography
+Dove with halo and roses (American Traditional style)
+
+### Color Palette
+**UI Colors (Only):**
+- Black (#000000)
+- White / Bone (#FAFAF8)
+
+**Artwork Colors:**
+- Traditional tattoo palette (red, yellow, green, blue)
+- Used ONLY in product designs and artwork
+- Never in UI elements
+
+### Design Rules
+✅ Keep layout clean and modern
+✅ Use subtle ornamental dividers (tattoo flash inspired)
+✅ Let product artwork carry visual weight
+✅ Maintain generous white space
+
+❌ NO gradients
+❌ NO playful UI colors
+❌ NO excessive decoration in layout
+❌ NO busy backgrounds or patterns
+
+### Typography
+- Bold, impactful headers
+- Modern sans-serif (Inter or similar)
+- Strategic use of uppercase for emphasis
+- Clean, readable body copy
+
+### Visual References
+Think: **Supreme meets traditional tattoo flash meets Byzantine iconography**—but with restraint.
 
 ---
 
 ## Product Philosophy
 
 ### What We Make
-- Monochrome streetwear with subtle symbolism
-- Tees, hoodies, crewnecks
-- Quiet, meaning-first graphics
-- Made to order for quality and sustainability
+- Premium streetwear with American Traditional tattoo-inspired designs
+- Sacred symbolism (doves, roses, halos, crosses, crowns of thorns)
+- Heavyweight blanks with professional printing
+- Designs that honor faith and craftsmanship
 
-### What We Don't Make
-- Loud slogan merch
-- Busy or playful graphics
-- Fast fashion / disposable quality
-- Trend-chasing color drops
+### Design Approach
+- Bold, iconic imagery
+- Traditional tattoo color palette
+- Sacred Christian symbolism
+- Timeless aesthetic over trends
+
+### Quality Standards
+- Heavyweight blanks (6.5oz+)
+- Professional DTG or screen printing
+- Made to order for quality control
+- Built to last, made to mean something
+
+---
+
+## Target Audience
+
+### Primary
+- Ages 20-40
+- Men who value faith, tradition, and quality
+- Appreciate American Traditional art aesthetic
+- Seek meaningful streetwear over hype brands
+- Value craftsmanship and heritage
+
+### Values
+- Faith and conviction
+- Quality over quantity
+- Traditional masculinity
+- Timeless style over trends
+- Meaning and purpose in what they wear
 
 ---
 
@@ -88,14 +149,14 @@ Text-based: "DOXA" in bold, tracking-tight typography
 
 ### Production
 - Made to order (7-10 business days)
-- Premium blanks (Next Level, Bella+Canvas quality)
-- Professional DTG or screen printing
+- Premium heavyweight blanks
+- Professional printing
 - Quality control before shipping
 
 ### Shipping
 - Free shipping on orders over $75
 - Tracking provided for all orders
-- US shipping only (for now)
+- Currently US shipping only
 
 ### Returns & Exchanges
 - 30-day return policy
@@ -107,199 +168,114 @@ Text-based: "DOXA" in bold, tracking-tight typography
 ## Contact Information
 
 ### Email Addresses
-- **General Inquiries**: hello@doxathreads.com
-- **Order Support**: orders@doxathreads.com
-- **Shipping Questions**: shipping@doxathreads.com
-- **Privacy Concerns**: privacy@doxathreads.com
-- **General Support**: support@doxathreads.com
-
-### Social Media (Placeholder)
-- Instagram: @doxathreads
-- Facebook: /doxathreads
-- TikTok: @doxathreads
+- **General**: hello@doxathreads.com
+- **Orders**: orders@doxathreads.com
+- **Shipping**: shipping@doxathreads.com
+- **Support**: support@doxathreads.com
+- **Privacy**: privacy@doxathreads.com
 
 ---
 
 ## Mission Statement
 
-DOXA Threads creates monochrome streetwear that feels calm, intentional, and premium. DOXA means “glory”—we reflect it quietly through disciplined typography, generous spacing, and materials that last.
+DOXA Threads creates premium Christian streetwear that merges American Traditional tattoo art with sacred symbolism. We design clothing that honors God's glory through bold imagery and timeless craftsmanship—made to last, built to mean something.
 
-Each piece is made to order, avoiding noise and waste. The goal is a wardrobe of quiet statements rather than merch.
-
----
-
-## Target Audience
-
-### Primary
-- Ages 18-35
-- People who prefer minimal, premium streetwear
-- Values meaning and design discipline
-- Seeks quality over quantity
-- Prefers subtle references over loud slogans
-
-### Secondary  
-- Creatives and stylists building clean wardrobes
-- Photographers and art directors needing understated pieces
-- Anyone who wants monochrome apparel with intent
+Each piece is made to order with heavyweight materials and professional printing. We reject fast fashion and trendy hype in favor of designs rooted in faith, tradition, and quality.
 
 ---
 
 ## Key Differentiators
 
-### vs. Typical Faith-Based Apparel
-1. **Quiet by Design**: Meaningful cues without loud slogans
-2. **Monochrome Discipline**: Black, white, and a restrained accent only
-3. **Premium Builds**: Heavyweight blanks and precise printing
-4. **Intentional Spacing**: Clean layouts and confident typography
+### vs. Typical Christian Apparel
+1. **Bold Traditional Art**: American Traditional tattoo aesthetic
+2. **No Cheesy Slogans**: Faith-driven, not preachy
+3. **Premium Quality**: Heavyweight blanks and professional printing
+4. **Masculine & Refined**: Traditional strength with sophistication
 
-### vs. Generic Streetwear
-1. **Meaning Embedded**: DOXA references glory without shouting
-2. **No Trend Colors**: Black/white core with rare accent
-3. **Made to Order**: Lean production with focused drops
-4. **Calm Voice**: Copy stays concise, confident, and understated
+### vs. Streetwear Brands
+1. **Meaningful Design**: Every piece rooted in sacred symbolism
+2. **Traditional Aesthetic**: American Traditional tattoo art, not trends
+3. **Made to Order**: Quality over mass production
+4. **Faith Foundation**: Conviction without compromise
 
 ---
 
 ## Content Guidelines
 
 ### Headlines & CTAs
-- Direct, concise, and confident
-- Emphasize craft, material, and intention
-- Avoid exclamation points and hype language
+- Bold, direct, impactful
+- Emphasize craft, honor, and purpose
+- Short, declarative statements
 
 **Examples:**
-- "Shop the Drop"
-- "Black & White Essentials"
-- "Made to Order • 7–10 Days"
+- "Shop the Collection"
+- "Built to Last"
+- "Wear It with Purpose"
+- "Designed to Honor the Craft"
 
 ### Product Descriptions
-- Lead with material and fit
-- Note any subtle symbolism
-- Keep copy short and calm
+- Lead with design meaning and symbolism
+- Note material quality and craftsmanship
+- Keep copy confident and concise
+- Avoid emotional or preachy language
 
 ### Customer Communications
-- Professional and clear
-- Honest about timelines
-- Minimal, friendly, and helpful
+- Professional and direct
+- Clear about timelines and expectations
+- Respectful and helpful
+- Never apologetic about quality standards
 
 ---
 
-## Photography Style
+## Photography & Imagery Style
 
 ### Product Photos
 - Clean white or black backgrounds
-- High contrast, bold shadows
-- Lifestyle shots showing real wear
-- Detail shots of quality and print
+- Bold, clear product shots
+- Detail shots showing print quality
+- Flat lays showing American Traditional art
 
 ### Lifestyle Photos
-- Real people, authentic faith
-- Urban/streetwear settings
-- Bold, confident postures
+- Real people in authentic settings
+- Urban/street environments
+- Confident, masculine posing
 - Diverse representation
 
-### Brand Imagery
-- Black & white aesthetic
-- Bold typography overlays
-- Scripture-inspired graphics
-- Modern, minimal composition
-
----
-
-## Growth Roadmap
-
-### Phase 1: Launch (Current)
-- Core product line (tees, hoodies, crewnecks)
-- E-commerce platform live
-- Social media presence
-- Email marketing foundation
-
-### Phase 2: Expansion
-- Expand product categories
-- Limited edition drops
-- Collaborations with ministries
-- International shipping
-
-### Phase 3: Movement
-- Community events
-- Testimonial campaigns
-- Ambassador program
-- Wholesale partnerships
-
----
-
-## Legal & Compliance
-
-### Trademark
-- DOXA Threads™ (pending)
-- Logo design (protected)
-
-### Copyright
-- All designs © DOXA Threads
-- Scripture references properly attributed
-- Original artwork and typography
-
-### Privacy
-- GDPR compliant
-- Clear data collection policies
-- Secure payment processing (Stripe)
-
----
-
-## Stewardship (Future)
-
-We plan to support thoughtful initiatives aligned with the idea of reflecting glory. Specific partners will be announced once finalized.
+### Design Elements
+- Ornamental dividers (tattoo flash inspired)
+- Sacred symbolism accents
+- Black and white UI with artwork color pops
+- Clean, spacious layouts
 
 ---
 
 ## Brand Don'ts
 
-❌ Never add loud slogans or bright colors  
-❌ Never sacrifice quality for speed  
-❌ Never overpromise timelines  
-❌ Never clutter layouts or typography  
-❌ Never ignore customer concerns or feedback  
-❌ Never misrepresent production or materials  
+❌ Never use church language or clichés
+❌ Never add gradients or playful colors to UI
+❌ Never overload layouts with decoration
+❌ Never use hype or influencer language
+❌ Never sacrifice quality for speed
+❌ Never be preachy or emotionally manipulative
+❌ Never follow trends over timeless design
 
 ---
 
 ## Quick Messaging Examples
 
+### Homepage Hero
+"Greek for Glory. Worn with honor. Backed by faith."
+
 ### About Section
-"DOXA Threads builds black-and-white streetwear that reflects glory quietly."
+"American Traditional art meets sacred symbolism. Premium streetwear built to honor the craft."
 
 ### Product Pages
-"Made to order with heavyweight blanks and disciplined printing."
+"Heavyweight cotton. Bold traditional design. Made to last."
 
 ### Shipping Updates
-"Your order is in production. Expect 7–10 business days before it ships."
-
-### Customer Service
-"We keep responses clear and direct. How can we help?"
-
----
-
-## Success Metrics
-
-### Brand Health
-- Brand awareness in target demographic
-- Social media engagement and growth
-- Customer satisfaction scores
-- Repeat purchase rate
-
-### Business Metrics
-- Revenue growth
-- Average order value
-- Conversion rate
-- Customer acquisition cost
-
-### Kingdom Impact
-- Amount donated to ministries
-- Gospel conversations sparked (testimonials)
-- Lives impacted through partnerships
-- Community engagement
+"Your order is in production. Ships in 7-10 business days."
 
 ---
 
 *Last Updated: November 2024*
-*For internal use only - Brand Guidelines v1.0*
+*Brand Guidelines v2.0 - American Traditional Edition*
