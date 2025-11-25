@@ -50,9 +50,9 @@ export default function Home() {
     <>
       {/* Hero Section */}
       <section className="hero min-h-[22vh] overflow-hidden">
-        <div className="relative container text-center flex flex-col items-center gap-1">
-          <div className="relative z-10 flex flex-col items-center gap-1">
-            <div className="flex items-start justify-center w-full pt-0 mb-1">
+        <div className="relative container text-center flex flex-col items-center gap-1 py-0">
+          <div className="relative z-10 flex flex-col items-center gap-0.5">
+            <div className="flex items-start justify-center w-full pt-0 mb-0">
               <Image
                 src="/assets/Doxa_Threads_Logo.png"
                 alt="DOXA Threads logo"
@@ -64,10 +64,10 @@ export default function Home() {
             </div>
             <h1 className="sr-only">DOXA THREADS</h1>
             <div className="flex flex-col items-center">
-              <p className="text-lg lg:text-xl mb-2 mt-0 max-w-2xl mx-auto font-normal tracking-tight text-[rgba(243,232,216,0.9)]">
+              <p className="text-lg lg:text-xl mb-1 mt-0 max-w-2xl mx-auto font-normal tracking-tight text-[rgba(243,232,216,0.9)]">
                 Greek for Glory. Worn with honor. Backed by faith.
               </p>
-              <div className="flex flex-col sm:flex-row gap-2 justify-center">
+              <div className="flex flex-col sm:flex-row gap-1 justify-center">
                 <Link href="/store" className="btn px-5 py-3 text-sm sm:text-xs">
                   Shop the Collection
                 </Link>
