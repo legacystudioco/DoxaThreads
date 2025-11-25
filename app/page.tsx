@@ -50,28 +50,28 @@ export default function Home() {
     <>
       {/* Hero Section */}
       <section className="hero min-h-[22vh] overflow-hidden">
-        <div className="relative container text-center flex flex-col items-center">
-          <div className="relative z-10 flex flex-col items-center">
-            <div className="flex items-start justify-center w-full pt-0 mb-3">
+        <div className="relative container text-center flex flex-col items-center gap-2">
+          <div className="relative z-10 flex flex-col items-center gap-2">
+            <div className="flex items-start justify-center w-full pt-0 mb-2">
               <Image
                 src="/assets/Doxa_Threads_Logo.png"
                 alt="DOXA Threads logo"
                 width={1200}
                 height={400}
-                className="w-[72%] max-w-[900px] h-auto object-contain"
+                className="w-[80%] max-w-[1024px] h-auto object-contain"
                 priority
               />
             </div>
             <h1 className="sr-only">DOXA THREADS</h1>
             <div className="flex flex-col items-center">
-              <p className="text-lg lg:text-xl mb-4 mt-0 max-w-2xl mx-auto font-normal tracking-tight text-[rgba(243,232,216,0.9)]">
+              <p className="text-lg lg:text-xl mb-3 mt-0 max-w-2xl mx-auto font-normal tracking-tight text-[rgba(243,232,216,0.9)]">
                 Greek for Glory. Worn with honor. Backed by faith.
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Link href="/store" className="btn px-5 py-3 text-sm">
+              <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                <Link href="/store" className="btn px-5 py-3 text-sm sm:text-xs">
                   Shop the Collection
                 </Link>
-                <Link href="/about" className="btn-secondary px-5 py-3 text-sm">
+                <Link href="/about" className="btn-secondary px-5 py-3 text-sm sm:text-xs">
                   Our Story
                 </Link>
               </div>
