@@ -187,7 +187,6 @@
 
   .product-card {
     @apply cursor-pointer block 
-           group
            transition-all duration-300;
   }
 

@@ -145,7 +145,7 @@ export default function Home() {
                   <Link 
                     key={product.id} 
                     href={`/store/products/${product.slug}`} 
-                    className="product-card"
+                    className="product-card group"
                   >
                     <div className="product-image">
                       {hasValidImage ? (
