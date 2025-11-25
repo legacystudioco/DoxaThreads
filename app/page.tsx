@@ -49,8 +49,8 @@ export default function Home() {
   return (
     <>
       {/* Hero Section */}
-      <section className="hero min-h-[18vh] overflow-hidden bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0)_60%,rgba(0,0,0,0.18)_100%),linear-gradient(to_bottom,#1A1C1F,#0F1113)] bg-no-repeat bg-cover">
-        <div className="relative container text-center flex flex-col items-center gap-0 py-0 pt-2 pb-2">
+      <section className="hero min-h-[18vh] overflow-hidden bg-[radial-gradient(ellipse_at_center,rgba(110,90,60,0.06)_0%,rgba(0,0,0,0)_50%,rgba(0,0,0,0.12)_100%),linear-gradient(to_bottom,#1C1A16,#100F0D)] bg-no-repeat bg-cover">
+        <div className="relative container text-center flex flex-col items-center gap-0 py-0 pt-1 pb-0">
           <div className="relative z-10 flex flex-col items-center gap-0.5">
             <div className="flex items-start justify-center w-full pt-0 mb-0">
               <Image
@@ -58,7 +58,7 @@ export default function Home() {
                 alt="DOXA Threads logo"
                 width={1200}
                 height={400}
-                className="w-[65%] max-w-[820px] h-auto object-contain"
+                className="w-[65%] max-w-[820px] h-auto object-contain drop-shadow-[0_6px_14px_rgba(0,0,0,0.25)]"
                 priority
               />
             </div>
@@ -67,7 +67,7 @@ export default function Home() {
               <p className="text-lg lg:text-xl mb-0 mt-0 max-w-2xl mx-auto font-normal tracking-tight text-[rgba(243,232,216,0.9)]">
                 Greek for Glory. Worn with honor. Backed by faith.
               </p>
-              <div className="flex flex-col sm:flex-row gap-1 justify-center mt-1">
+              <div className="flex flex-col sm:flex-row gap-1 justify-center mt-0">
                 <Link href="/store" className="btn px-5 py-3 text-sm sm:text-xs">
                   Shop the Collection
                 </Link>
