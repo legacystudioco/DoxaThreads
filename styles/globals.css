@@ -201,7 +201,7 @@
   /* HERO SECTION */
   .hero {
     @apply relative overflow-hidden 
-           py-12 lg:py-16;
+           py-8 lg:py-12;
     background: var(--ink-black);
     color: var(--paper);
     border-bottom: 2px solid var(--mustard-gold);
