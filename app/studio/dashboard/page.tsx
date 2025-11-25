@@ -230,7 +230,7 @@ export default function StudioDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="mt-12 card bg-neutral-50">
+      <div className="mt-12 card">
         <h2 className="font-bold text-xl mb-4">Quick Actions</h2>
         <div className="flex flex-wrap gap-3">
           <Link href="/" className="btn-secondary text-sm">

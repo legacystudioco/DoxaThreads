@@ -107,7 +107,7 @@ export default function StorePage() {
 
       {/* Error Message */}
       {error && (
-        <div className="card bg-white border border-black mb-8 text-center py-8">
+        <div className="card border border-black/50 mb-8 text-center py-8">
           <h3 className="text-xl font-bold mb-2">Error Loading Products</h3>
           <p className="text-neutral-700">{error}</p>
         </div>

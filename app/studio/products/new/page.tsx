@@ -523,7 +523,7 @@ export default function NewProductPage() {
 
           {/* Submit */}
           {(submitting || progress) && (
-            <div className="card bg-neutral-50 border-dashed border-2 border-black/40">
+            <div className="card border-dashed border-2 border-black/40">
               <div className="flex items-center justify-between text-sm font-medium">
                 <span>{progress?.message || "Processing..."}</span>
                 <span>{progress ? `${Math.min(progress.percent, 100)}%` : ""}</span>

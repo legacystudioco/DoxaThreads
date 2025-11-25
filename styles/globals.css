@@ -9,12 +9,15 @@
   :root {
     --ink-black: #111111;
     --paper: #F3E8D8;
+    --bone: #F3E8D8;
     --blood-red: #9E1B24;
     --storm-blue: #1E2A44;
     --mustard-gold: #D4A017;
     --forest-green: #1F5F43;
     --line: #CBB89B;
     --ink-soft: #2D2620;
+    --panel-top: #24211B;
+    --panel-bottom: #1A1713;
   }
 
   body {
@@ -187,15 +190,19 @@
   .card {
     @apply border-2 
            p-10 
-           bg-white
            transition-all duration-300;
-    border-color: var(--line);
-    background: #fff;
+    border-color: rgba(243, 232, 216, 0.26);
+    background: linear-gradient(to bottom, var(--panel-top), var(--panel-bottom));
+    color: rgba(243, 232, 216, 0.92);
   }
 
   .card:hover {
-    border-color: var(--ink-black);
-    background: #f8efe2;
+    border-color: rgba(243, 232, 216, 0.45);
+    background: linear-gradient(to bottom, #2b261f, #1f1b17);
+  }
+
+  .card :is(h1, h2, h3, h4, h5, h6, p, li, span, small, strong, em) {
+    color: inherit !important;
   }
 
   /* HERO SECTION */

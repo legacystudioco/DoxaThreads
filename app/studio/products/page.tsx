@@ -412,7 +412,7 @@ export default function StudioProductsPage() {
         </div>
       )}
 
-      <div className="mt-8 card bg-white border border-brand-accent">
+      <div className="mt-8 card border border-brand-accent">
         <p className="text-sm">
           <strong>✅ Connected to Supabase:</strong> All changes sync with your database in real-time!
         </p>

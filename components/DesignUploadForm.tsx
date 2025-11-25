@@ -772,7 +772,7 @@ export default function DesignUploadForm({
         <div className="flex gap-4">
           {progress && (
             <div className="flex-1">
-              <div className="card bg-neutral-50 border-dashed border-2 border-black/40 mb-4">
+              <div className="card border-dashed border-2 border-black/40 mb-4">
                 <div className="flex items-center justify-between text-sm font-medium">
                   <span>{progress.message}</span>
                   <span>{Math.min(progress.percent, 100)}%</span>

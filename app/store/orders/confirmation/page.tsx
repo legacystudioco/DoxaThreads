@@ -111,7 +111,7 @@ function OrderConfirmationContent() {
           </p>
 
           {order?.order && (
-            <div className="card bg-neutral-50 text-left mb-8">
+            <div className="card text-left mb-8">
               <h3 className="font-bold uppercase tracking-wider mb-4">Order Details</h3>
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
@@ -156,7 +156,7 @@ function OrderConfirmationContent() {
           )}
 
           {/* Order Details */}
-          <div className="card bg-neutral-50 text-left mb-8">
+          <div className="card text-left mb-8">
             <h3 className="font-bold uppercase tracking-wider mb-4">What Happens Next?</h3>
             
             <div className="space-y-4">

@@ -119,7 +119,7 @@ export default function Cart({ onUpdate }: CartProps) {
         </div>
       ))}
 
-      <div className="card bg-neutral-50">
+      <div className="card">
         <div className="flex justify-between items-center mb-2">
           <span className="text-sm font-bold uppercase tracking-wider">Subtotal</span>
           <span className="text-xl font-bold">$XX.XX</span>

@@ -187,7 +187,7 @@ export default function AuthTestPage() {
 
         {/* Errors */}
         {(authData.sessionError || authData.userError) && (
-          <div className="card bg-white border border-black mb-6">
+          <div className="card border border-black mb-6">
             <h2 className="text-xl font-bold mb-4 text-neutral-900">Errors</h2>
             {authData.sessionError && (
               <div className="mb-4">
