@@ -19,18 +19,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </div>
 
         {/* Main header */}
-        <header className="border-b border-brand-accent bg-[var(--paper)] sticky top-0 z-50">
+        <header className="border-b border-brand-accent bg-[var(--paper)] sticky top-0 z-50 overflow-visible">
           <div className="container mx-auto py-4 lg:py-6">
             <div className="flex items-center justify-between">
               {/* Logo */}
-              <Link href="/" className="block hover:opacity-70 transition-opacity">
+              <Link
+                href="/"
+                className="block hover:opacity-70 transition-opacity relative translate-y-4 lg:translate-y-6 scale-125 lg:scale-150 origin-top-left"
+              >
                 <Image
                   src="/assets/Doxa_Circle.png"
                   alt="DOXA Threads circular logo"
                   width={140}
                   height={140}
                   priority
-                  className="h-36 w-auto"
+                  className="h-16 w-auto drop-shadow-[0_8px_16px_rgba(0,0,0,0.16)]"
                 />
               </Link>
 
