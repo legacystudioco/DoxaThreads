@@ -202,7 +202,9 @@
   .hero {
     @apply relative overflow-hidden 
            py-4 lg:py-6;
-    background: #23201d;
+    background:
+      radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.35) 100%),
+      linear-gradient(to bottom, #121417, #050607);
     color: var(--paper);
     border-bottom: 2px solid var(--mustard-gold);
   }
