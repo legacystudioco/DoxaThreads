@@ -51,16 +51,6 @@ export default function Home() {
       {/* Hero Section */}
       <section className="hero min-h-[22vh] overflow-hidden">
         <div className="relative container text-center flex flex-col items-center">
-          <div className="absolute inset-y-[-60%] left-[-35%] w-[120%] opacity-25 pointer-events-none">
-            <Image
-              src="/assets/X.png"
-              alt="DOXA hero graphic"
-              fill
-              className="object-contain scale-[1.4]"
-              priority
-            />
-          </div>
-
           <div className="relative z-10 flex flex-col items-center">
             <div className="flex items-start justify-center w-full pt-0 mb-6">
               <Image
@@ -68,7 +58,7 @@ export default function Home() {
                 alt="DOXA Threads logo"
                 width={1200}
                 height={400}
-                className="w-[68%] max-w-[880px] h-auto object-contain"
+                className="w-[92%] max-w-[1188px] h-auto object-contain"
                 priority
               />
             </div>
