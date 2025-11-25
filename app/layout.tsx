@@ -25,12 +25,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {/* Logo */}
               <Link href="/" className="block hover:opacity-70 transition-opacity">
                 <Image
-                  src="/assets/Doxa_Logo.png"
-                  alt="DOXA Threads"
-                  width={230}
-                  height={70}
+                  src="/assets/Doxa_Circle.png"
+                  alt="DOXA Threads circular logo"
+                  width={140}
+                  height={140}
                   priority
-                  className="h-12 w-auto"
+                  className="h-16 w-auto"
                 />
               </Link>
 
