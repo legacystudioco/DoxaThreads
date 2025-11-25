@@ -52,22 +52,22 @@ export default function Home() {
       <section className="hero min-h-[22vh] overflow-hidden">
         <div className="relative container text-center flex flex-col items-center">
           <div className="relative z-10 flex flex-col items-center">
-            <div className="flex items-start justify-center w-full pt-0 mb-6">
+            <div className="flex items-start justify-center w-full pt-0 mb-3">
               <Image
                 src="/assets/Doxa_Threads_Logo.png"
                 alt="DOXA Threads logo"
                 width={1200}
                 height={400}
-                className="w-[92%] max-w-[1188px] h-auto object-contain"
+                className="w-[58%] max-w-[720px] h-auto object-contain"
                 priority
               />
             </div>
             <h1 className="sr-only">DOXA THREADS</h1>
-            <div className="flex flex-col items-center -translate-y-1 sm:-translate-y-5">
-              <p className="text-2xl lg:text-3xl mb-10 mt-0 max-w-2xl mx-auto font-normal tracking-tight text-[rgba(243,232,216,0.9)]">
+            <div className="flex flex-col items-center">
+              <p className="text-xl lg:text-2xl mb-4 mt-0 max-w-2xl mx-auto font-normal tracking-tight text-[rgba(243,232,216,0.9)]">
                 Greek for Glory. Worn with honor. Backed by faith.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link href="/store" className="btn text-base">
                   Shop the Collection
                 </Link>
