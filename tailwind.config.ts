@@ -5,23 +5,24 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Core brand colors - black, white, subtle grays only
         brand: {
-          black: "#000000",
-          white: "#FFFFFF",
-          bone: "#FAFAF8",
-          accent: "#E5E5E5",
-          secondary: "#FFFFFF"
+          ink: "#111111",
+          paper: "#F3E8D8",
+          blood: "#9E1B24",
+          storm: "#1E2A44",
+          gold: "#D4A017",
+          forest: "#1F5F43",
+          accent: "#CBB89B"
         }
       },
       fontFamily: {
-        serif: ['Playfair Display', 'Georgia', 'serif'],
-        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif']
+        serif: ['Cinzel', 'Georgia', 'serif'],
+        sans: ['Manrope', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif']
       },
       letterSpacing: {
         tighter: '-0.03em',
         tight: '-0.02em',
-        normal: '-0.011em',
+        normal: '-0.01em',
         wide: '0.1em',
         wider: '0.15em',
         widest: '0.2em'

@@ -14,13 +14,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         {/* Top announcement bar */}
-        <div className="bg-black text-white text-center py-2 text-[11px] font-semibold uppercase tracking-[0.16em]">
+        <div className="bg-[var(--ink-black)] text-[var(--paper)] text-center py-2 text-[11px] font-semibold uppercase tracking-[0.16em] border-b border-brand-accent">
           Made to Order • Designed to Honor the Craft • Built to Last
         </div>
 
         {/* Main header */}
-        <header className="border-b border-brand-accent bg-white sticky top-0 z-50">
-          <div className="container mx-auto px-4 py-4 lg:py-6">
+        <header className="border-b border-brand-accent bg-[var(--paper)] sticky top-0 z-50">
+          <div className="container mx-auto py-4 lg:py-6">
             <div className="flex items-center justify-between">
               {/* Logo */}
               <Link href="/" className="block hover:opacity-70 transition-opacity">
@@ -82,15 +82,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </main>
 
         {/* Footer */}
-        <footer className="border-t border-brand-accent bg-white mt-20">
-          <div className="container mx-auto px-4 py-12">
+        <footer className="border-t border-brand-accent bg-[var(--paper)] mt-20">
+          <div className="container mx-auto py-12">
             <div className="grid md:grid-cols-3 gap-8 mb-8">
               {/* Brand column */}
               <div className="space-y-3">
                 <div className="text-2xl font-black tracking-tighter">
                   DOXA THREADS
                 </div>
-                <p className="text-sm text-neutral-600 leading-relaxed max-w-xs">
+                <p className="text-sm leading-relaxed max-w-xs text-[rgba(30,42,68,0.8)]">
                   Greek for Glory. Premium streetwear built with purpose. Worn with honor. Backed by faith.
                 </p>
               </div>
@@ -108,7 +108,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {/* Info */}
               <div>
                 <h4 className="font-bold text-sm uppercase tracking-wider mb-4">Information</h4>
-                <ul className="space-y-2 text-sm text-neutral-600">
+                <ul className="space-y-2 text-sm text-[rgba(30,42,68,0.8)]">
                   <li>Made to order</li>
                   <li>Premium materials</li>
                   <li>Free shipping $75+</li>
@@ -118,12 +118,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
 
             {/* Bottom bar */}
-            <div className="pt-8 border-t border-brand-accent flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-neutral-600">
+            <div className="pt-8 border-t border-brand-accent flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-[rgba(30,42,68,0.8)]">
               <p>© {new Date().getFullYear()} DOXA Threads. All rights reserved.</p>
               <div className="flex gap-4">
-                <Link href="/terms" className="hover:text-black">Terms</Link>
-                <Link href="/privacy" className="hover:text-black">Privacy</Link>
-                <Link href="/shipping" className="hover:text-black">Shipping</Link>
+                <Link href="/terms" className="hover:text-[var(--blood-red)]">Terms</Link>
+                <Link href="/privacy" className="hover:text-[var(--blood-red)]">Privacy</Link>
+                <Link href="/shipping" className="hover:text-[var(--blood-red)]">Shipping</Link>
               </div>
             </div>
           </div>

@@ -49,8 +49,8 @@ export default function Home() {
   return (
     <>
       {/* Hero Section */}
-      <section className="hero bg-black text-white py-4 lg:py-8 min-h-[18vh] overflow-hidden">
-        <div className="relative container mx-auto px-4 text-center flex flex-col items-center">
+      <section className="hero min-h-[22vh] overflow-hidden">
+        <div className="relative container text-center flex flex-col items-center">
           <div className="absolute inset-y-[-60%] left-[-35%] w-[120%] opacity-25 pointer-events-none">
             <Image
               src="/assets/X.png"
@@ -64,7 +64,7 @@ export default function Home() {
           <div className="relative z-10 flex flex-col items-center">
             <div className="flex items-start justify-center w-full pt-0 mb-6">
               <Image
-                src="/assets/Doxa_Threads_Logo_White.png"
+                src="/assets/Doxa_Threads_Logo.png"
                 alt="DOXA Threads logo"
                 width={1200}
                 height={400}
@@ -74,14 +74,14 @@ export default function Home() {
             </div>
             <h1 className="sr-only">DOXA THREADS</h1>
             <div className="flex flex-col items-center -translate-y-1 sm:-translate-y-5">
-              <p className="text-2xl lg:text-3xl mb-10 mt-0 max-w-2xl mx-auto font-normal tracking-tight text-neutral-200">
+              <p className="text-2xl lg:text-3xl mb-10 mt-0 max-w-2xl mx-auto font-normal tracking-tight text-[rgba(243,232,216,0.9)]">
                 Greek for Glory. Worn with honor. Backed by faith.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/store" className="btn text-base px-8 py-4">
+                <Link href="/store" className="btn text-base">
                   Shop the Collection
                 </Link>
-                <Link href="/about" className="btn-secondary bg-transparent text-white border-white hover:bg-white hover:text-black text-base px-8 py-4">
+                <Link href="/about" className="btn-secondary text-base">
                   Our Story
                 </Link>
               </div>
@@ -101,7 +101,7 @@ export default function Home() {
           <div className="max-w-4xl mx-auto space-y-4 text-center text-black">
             <p>DOXA (δόξα) — Greek for glory. The visible presence of God.</p>
             <p>American Traditional art meets sacred symbolism. Premium streetwear built to honor the craft.</p>
-            <p className="text-neutral-700">Designed to last. Made to mean something.</p>
+            <p className="text-[rgba(30,42,68,0.8)]">Designed to last. Made to mean something.</p>
           </div>
         </section>
 
@@ -183,7 +183,7 @@ export default function Home() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-neutral-600 mb-4">New pieces in production.</p>
+              <p className="text-[rgba(30,42,68,0.8)] mb-4">New pieces in production.</p>
               <Link href="/store" className="btn-secondary">
                 View Store
               </Link>
@@ -196,15 +196,15 @@ export default function Home() {
           {/* About Card */}
           <div className="card">
             <div className="mb-4">
-              <div className="w-12 h-12 bg-black flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-12 h-12 bg-[var(--ink-black)] text-[var(--paper)] flex items-center justify-center mb-4 border border-[var(--mustard-gold)]">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
               </div>
               <h3 className="text-2xl font-bold tracking-tight mb-2">
                 What is DOXA?
               </h3>
-              <p className="text-neutral-600 leading-relaxed mb-4">
+              <p className="text-[rgba(30,42,68,0.8)] leading-relaxed mb-4">
                 Worn with honor. Backed by faith. Quality built to honor the craft.
               </p>
             </div>
@@ -216,15 +216,15 @@ export default function Home() {
           {/* Mission Card */}
           <div className="card">
             <div className="mb-4">
-              <div className="w-12 h-12 bg-black flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-12 h-12 bg-[var(--storm-blue)] text-[var(--paper)] flex items-center justify-center mb-4 border border-[var(--mustard-gold)]">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </div>
               <h3 className="text-2xl font-bold tracking-tight mb-2">
                 Built to Last
               </h3>
-              <p className="text-neutral-600 leading-relaxed mb-4">
+              <p className="text-[rgba(30,42,68,0.8)] leading-relaxed mb-4">
                 Heavyweight cotton. Bold traditional design. Made to last.
               </p>
             </div>
