@@ -141,6 +141,8 @@ const createDefaultPositionMap = (): Record<PositionKey, DesignPosition> => ({
   combinedBack: createDefaultPosition(),
 });
 
+const createDefaultGroupOffset = () => ({ x: 0, y: 0 });
+
 interface DesignUploadFormProps {
   hideActions?: boolean;
   onDesignNameChange?: (name: string) => void;
@@ -192,6 +194,13 @@ export default function DesignUploadForm({
     tee: createDefaultPositionMap(),
     crewneck: createDefaultPositionMap(),
     hoodie: createDefaultPositionMap(),
+  });
+  const [groupOffsets, setGroupOffsets] = useState<
+    Record<ProductTypeKey, { front: { x: number; y: number }; back: { x: number; y: number } }>
+  >({
+    tee: { front: createDefaultGroupOffset(), back: createDefaultGroupOffset() },
+    crewneck: { front: createDefaultGroupOffset(), back: createDefaultGroupOffset() },
+    hoodie: { front: createDefaultGroupOffset(), back: createDefaultGroupOffset() },
   });
 
   const [currentEditingType, setCurrentEditingType] = useState<ProductTypeKey>("tee");
@@ -297,6 +306,24 @@ export default function DesignUploadForm({
       return backDesignImage || designImage;
     }
     return designImage;
+  };
+
+  const updateGroupOffset = (
+    productType: ProductTypeKey,
+    layer: "front" | "back",
+    axis: "x" | "y",
+    value: number
+  ) => {
+    setGroupOffsets((prev) => ({
+      ...prev,
+      [productType]: {
+        ...prev[productType],
+        [layer]: {
+          ...prev[productType][layer],
+          [axis]: value,
+        },
+      },
+    }));
   };
 
   const getPositionKeyForMode = (
@@ -414,6 +441,8 @@ export default function DesignUploadForm({
     backBasePath,
     frontPosition,
     backPosition,
+    frontGroupOffset,
+    backGroupOffset,
   }: {
     mode: PreviewMode;
     productType: ProductTypeKey;
@@ -422,6 +451,8 @@ export default function DesignUploadForm({
     backBasePath?: string;
     frontPosition: DesignPosition;
     backPosition?: DesignPosition;
+    frontGroupOffset?: { x: number; y: number };
+    backGroupOffset?: { x: number; y: number };
   }): Promise<string> => {
     if (!designImage) {
       throw new Error("Design image not available");
@@ -454,23 +485,18 @@ export default function DesignUploadForm({
         return {
           width,
           height,
-          x: cfg.x,
-          y: cfg.y,
+          x: cfg.x + (layer === "front" ? frontGroupOffset?.x || 0 : backGroupOffset?.x || 0),
+          y: cfg.y + (layer === "front" ? frontGroupOffset?.y || 0 : backGroupOffset?.y || 0),
         };
       };
 
       const frontRect = rectFor(frontBase, "front");
       const backRect = rectFor(backBase, "back");
-      const minX = Math.min(frontRect.x, backRect.x);
-      const minY = Math.min(frontRect.y, backRect.y);
-      const maxX = Math.max(frontRect.x + frontRect.width, backRect.x + backRect.width);
-      const maxY = Math.max(frontRect.y + frontRect.height, backRect.y + backRect.height);
-
-      canvas.width = maxX - minX;
-      canvas.height = maxY - minY;
-
-      const shiftX = -minX;
-      const shiftY = -minY;
+      canvas.width = frontBase.width;
+      canvas.height = frontBase.height;
+      ctx.save();
+      ctx.rect(0, 0, canvas.width, canvas.height);
+      ctx.clip();
 
       const drawLayer = (
         base: HTMLImageElement,
@@ -488,28 +514,16 @@ export default function DesignUploadForm({
       };
 
       // Layer order: Back base → back design → Front base → front design → (hoodie strings if applicable)
-      const backRectShifted = {
-        x: backRect.x + shiftX,
-        y: backRect.y + shiftY,
-        width: backRect.width,
-        height: backRect.height,
-      };
-      const frontRectShifted = {
-        x: frontRect.x + shiftX,
-        y: frontRect.y + shiftY,
-        width: frontRect.width,
-        height: frontRect.height,
-      };
-
-      drawLayer(backBase, backRectShifted, backDesignImage || designImage, backPosition);
-      drawLayer(frontBase, frontRectShifted, designImage, frontPosition);
+      drawLayer(backBase, backRect, backDesignImage || designImage, backPosition);
+      drawLayer(frontBase, frontRect, designImage, frontPosition);
 
       if (productType === "hoodie") {
         const colorPrefix = frontBasePath.match(/Hoodie-([^-]+)-/)?.[1] || "Black";
         const stringsImg = await loadImage(getHoodieStringsPath(colorPrefix));
-        ctx.drawImage(stringsImg, frontRectShifted.x, frontRectShifted.y, frontRectShifted.width, frontRectShifted.height);
+        ctx.drawImage(stringsImg, frontRect.x, frontRect.y, frontRect.width, frontRect.height);
       }
 
+      ctx.restore();
       return toBlobUrl(canvas);
     }
 
@@ -606,6 +620,8 @@ export default function DesignUploadForm({
           mode: modeForType,
           productType: type as ProductTypeKey,
           previewWidth: previewWidthValue,
+          frontGroupOffset: groupOffsets[type as ProductTypeKey].front,
+          backGroupOffset: groupOffsets[type as ProductTypeKey].back,
           frontBasePath: getBlankImagePath(
             type as ProductTypeKey,
             color.filePrefix,
@@ -641,6 +657,7 @@ export default function DesignUploadForm({
     designImage,
     designName,
     designPositions,
+    groupOffsets,
     previewWidth,
     selectedTypes,
     supabase,
@@ -743,6 +760,8 @@ export default function DesignUploadForm({
             mode: modeForType,
             productType: type as ProductTypeKey,
             previewWidth: previewWidthValue,
+            frontGroupOffset: groupOffsets[type as ProductTypeKey].front,
+            backGroupOffset: groupOffsets[type as ProductTypeKey].back,
             frontBasePath: getBlankImagePath(
               type as ProductTypeKey,
               color.filePrefix,
@@ -829,6 +848,7 @@ export default function DesignUploadForm({
       ? "Back layer"
       : "Front layer";
   const backDesignUsed = getDesignForLayer("back");
+  const currentGroupOffsets = groupOffsets[currentEditingType];
   
   useEffect(() => {
     if (effectivePreviewMode !== "combined") {
@@ -848,6 +868,8 @@ export default function DesignUploadForm({
           backBasePath: getBlankImagePath(currentEditingType, currentPreviewColor.filePrefix, "back"),
           frontPosition: positionMap.front,
           backPosition: positionMap.back,
+          frontGroupOffset: groupOffsets[currentEditingType].front,
+          backGroupOffset: groupOffsets[currentEditingType].back,
         });
         if (!cancelled) setCombinedPreviewUrl(url);
       } catch (err) {
@@ -868,6 +890,7 @@ export default function DesignUploadForm({
     currentEditingType,
     currentPreviewColor.filePrefix,
     positionMap,
+    groupOffsets,
   ]);
 
   return (
@@ -1181,6 +1204,61 @@ export default function DesignUploadForm({
                     <span className="text-sm text-brand-paper">{Math.round(currentPosition.scale * 100)}%</span>
                   </div>
                 </div>
+                {effectivePreviewMode === "combined" && (
+                  <div className="mt-6 border-t border-brand-accent/50 pt-4">
+                    <p className="text-xs text-brand-accent mb-3 font-bold uppercase tracking-wide">Combined Shirt Group Offsets</p>
+                    <div className="space-y-4">
+                      <div className="form-group">
+                        <label className="label text-brand-paper">Front group X</label>
+                        <input
+                          type="range"
+                          min="-400"
+                          max="400"
+                          value={currentGroupOffsets.front.x}
+                          onChange={(e) => updateGroupOffset(currentEditingType, "front", "x", parseInt(e.target.value))}
+                          className="w-full"
+                        />
+                        <span className="text-sm text-brand-paper">{currentGroupOffsets.front.x}px</span>
+                      </div>
+                      <div className="form-group">
+                        <label className="label text-brand-paper">Front group Y</label>
+                        <input
+                          type="range"
+                          min="-400"
+                          max="400"
+                          value={currentGroupOffsets.front.y}
+                          onChange={(e) => updateGroupOffset(currentEditingType, "front", "y", parseInt(e.target.value))}
+                          className="w-full"
+                        />
+                        <span className="text-sm text-brand-paper">{currentGroupOffsets.front.y}px</span>
+                      </div>
+                      <div className="form-group">
+                        <label className="label text-brand-paper">Back group X</label>
+                        <input
+                          type="range"
+                          min="-400"
+                          max="400"
+                          value={currentGroupOffsets.back.x}
+                          onChange={(e) => updateGroupOffset(currentEditingType, "back", "x", parseInt(e.target.value))}
+                          className="w-full"
+                        />
+                        <span className="text-sm text-brand-paper">{currentGroupOffsets.back.x}px</span>
+                      </div>
+                      <div className="form-group">
+                        <label className="label text-brand-paper">Back group Y</label>
+                        <input
+                          type="range"
+                          min="-400"
+                          max="400"
+                          value={currentGroupOffsets.back.y}
+                          onChange={(e) => updateGroupOffset(currentEditingType, "back", "y", parseInt(e.target.value))}
+                          className="w-full"
+                        />
+                        <span className="text-sm text-brand-paper">{currentGroupOffsets.back.y}px</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
