@@ -69,6 +69,7 @@ const PRODUCT_TYPES = {
       { size: "XL", price: 49.00, weight: 13.5 },
       { size: "2XL", price: 53.00, weight: 14.0 },
     ],
+    supportsAllPreviewModes: true, // Hoodies support all three preview modes
   },
 };
 
@@ -259,7 +260,7 @@ export default function DesignUploadForm({
 
   const updatePosition = (field: keyof DesignPosition, value: number) => {
     setDesignPositions(prev => {
-      const modeForType: PreviewMode = currentEditingType === "tee" ? activePreviewMode : "front";
+      const modeForType: PreviewMode = (currentEditingType === "tee" || currentEditingType === "hoodie") ? activePreviewMode : "front";
       const positionKey = getPositionKeyForMode(modeForType, activeLayer);
       const currentMap = prev[currentEditingType];
       const current = currentMap[positionKey];
@@ -319,16 +320,20 @@ export default function DesignUploadForm({
     } else if (type === "crewneck") {
       return `/assets/Blanks/${config.folder}/424Wx635H-63783-${colorPrefix}-12-NL9007${colorPrefix}FlatFront.jpg`;
     } else if (type === "hoodie") {
-      return `/assets/Blanks/${config.folder}/424Wx635H-11033-${colorPrefix}-12-NL9303${colorPrefix}FlatFront3.jpg`;
+      const base = `/assets/Blanks/${config.folder}/Hoodie-${encodedPrefix}-`;
+      if (view === "back") return `${base}Back.png`;
+      if (view === "frontCombined") return `${base}Front2.png`;
+      if (view === "backCombined") return `${base}Back2.png`;
+      return `${base}Front.png`;
     }
     return "";
   };
 
   const getHoodieStringsPath = (colorPrefix: string) => {
     if (colorPrefix === "BlkOnBlk") {
-      return `/assets/Blanks/BlankHoodies/black on black strings.png`;
+      return `/assets/Blanks/BlankHoodies/Hoodie-Black Sting.2png`;
     }
-    return `/assets/Blanks/BlankHoodies/black hoodie strings.png`;
+    return `/assets/Blanks/BlankHoodies/Hoodie-White String.png`;
   };
 
   const toBlobUrl = (canvas: HTMLCanvasElement): Promise<string> =>
@@ -409,14 +414,31 @@ export default function DesignUploadForm({
         ctx.drawImage(design, scaledX, scaledY, scaledWidth, scaledHeight);
       };
 
-      // Layer 1: Front base
-      ctx.drawImage(frontBase, 0, 0, frontBase.width, frontBase.height);
-      // Layer 2: Front design overlay
-      drawDesign(designImage, frontPosition);
-      // Layer 3: Back base
-      ctx.drawImage(backBase, 0, 0, backBase.width, backBase.height);
-      // Layer 4: Back design overlay
-      drawDesign(backDesignImage || designImage, backPosition);
+      if (productType === "hoodie") {
+        // Hoodie combined layering: Back2 base → back design → Front2 → front design → strings
+        // Layer 1: Back2 base (BOTTOM)
+        ctx.drawImage(backBase, 0, 0, backBase.width, backBase.height);
+        // Layer 2: Back design overlay
+        drawDesign(backDesignImage || designImage, backPosition);
+        // Layer 3: Front2
+        ctx.drawImage(frontBase, 0, 0, frontBase.width, frontBase.height);
+        // Layer 4: Front design overlay
+        drawDesign(designImage, frontPosition);
+        // Layer 5: Hoodie strings (TOP)
+        const colorPrefix = frontBasePath.match(/Hoodie-([^-]+)-/)?.[1] || "Black";
+        const stringsImg = await loadImage(getHoodieStringsPath(colorPrefix));
+        ctx.drawImage(stringsImg, 0, 0, canvas.width, canvas.height);
+      } else {
+        // T-shirt combined layering (existing logic)
+        // Layer 1: Front base
+        ctx.drawImage(frontBase, 0, 0, frontBase.width, frontBase.height);
+        // Layer 2: Front design overlay
+        drawDesign(designImage, frontPosition);
+        // Layer 3: Back base
+        ctx.drawImage(backBase, 0, 0, backBase.width, backBase.height);
+        // Layer 4: Back design overlay
+        drawDesign(backDesignImage || designImage, backPosition);
+      }
 
       return toBlobUrl(canvas);
     }
@@ -440,10 +462,9 @@ export default function DesignUploadForm({
       ctx.drawImage(design, scaledX, scaledY, scaledWidth, scaledHeight);
     }
 
-    if (productType === "hoodie") {
-      const stringsImg = await loadImage(
-        getHoodieStringsPath(basePath.includes("BlkOnBlk") ? "BlkOnBlk" : "Black")
-      );
+    if (productType === "hoodie" && mode !== "back") {
+      const colorPrefix = basePath.match(/Hoodie-([^-]+)-/)?.[1] || "Black";
+      const stringsImg = await loadImage(getHoodieStringsPath(colorPrefix));
       ctx.drawImage(stringsImg, 0, 0, canvas.width, canvas.height);
     }
 
@@ -509,7 +530,7 @@ export default function DesignUploadForm({
 
       for (let i = 0; i < colorsToProcess.length; i++) {
         const color = colorsToProcess[i];
-        const modeForType: PreviewMode = type === "tee" ? activePreviewMode : "front";
+        const modeForType: PreviewMode = (type === "tee" || type === "hoodie") ? activePreviewMode : "front";
         const compositedDataUrl = await compositeImage({
           mode: modeForType,
           productType: type as ProductTypeKey,
@@ -603,7 +624,7 @@ export default function DesignUploadForm({
 
       for (const type of selectedTypeList) {
         const config = PRODUCT_TYPES[type as ProductTypeKey];
-        const modeForProduct: PreviewMode = type === "tee" ? activePreviewMode : "front";
+        const modeForProduct: PreviewMode = (type === "tee" || type === "hoodie") ? activePreviewMode : "front";
         const positionMap = designPositions[type as ProductTypeKey];
         const selectedColors = colorSelections[type];
 
@@ -634,7 +655,7 @@ export default function DesignUploadForm({
         // Process colors and add them with proper color data
         for (let i = 0; i < colorsToProcess.length; i++) {
           const color = colorsToProcess[i];
-          const modeForType: PreviewMode = type === "tee" ? activePreviewMode : "front";
+          const modeForType: PreviewMode = (type === "tee" || type === "hoodie") ? activePreviewMode : "front";
           const compositedDataUrl = await compositeImage({
             mode: modeForType,
             productType: type as ProductTypeKey,
@@ -724,7 +745,7 @@ export default function DesignUploadForm({
   ]);
 
   const effectivePreviewMode: PreviewMode =
-    currentEditingType === "tee" ? activePreviewMode : "front";
+    currentEditingType === "tee" || currentEditingType === "hoodie" ? activePreviewMode : "front";
   const currentConfig = PRODUCT_TYPES[currentEditingType];
   const currentPreviewColor = currentConfig.colors[previewColorIndex];
   const currentPositionKey = getPositionKeyForMode(effectivePreviewMode, activeLayer);
@@ -824,7 +845,7 @@ export default function DesignUploadForm({
                   onClick={() => {
                     setCurrentEditingType(type as ProductTypeKey);
                     setPreviewColorIndex(0);
-                    if (type !== "tee" && effectivePreviewMode !== "front") {
+                    if (type !== "tee" && type !== "hoodie" && effectivePreviewMode !== "front") {
                       handlePreviewModeChange("front");
                     }
                   }} 
@@ -848,7 +869,7 @@ export default function DesignUploadForm({
                 <div className="flex items-center gap-2">
                   <label className="text-sm font-medium text-brand-accent">Preview Mode:</label>
                   {(["front", "back", "combined"] as PreviewMode[]).map((mode) => {
-                    const disabled = currentEditingType !== "tee" && mode !== "front";
+                    const disabled = currentEditingType !== "tee" && currentEditingType !== "hoodie" && mode !== "front";
                     return (
                       <button
                         key={mode}
@@ -887,51 +908,118 @@ export default function DesignUploadForm({
               <div className="relative bg-[rgba(36,33,27,0.55)] border border-brand-accent w-full md:w-auto max-w-xl mx-auto md:mx-0">
                 {effectivePreviewMode === "combined" ? (
                   <>
-                    <img
-                      src={getBlankImagePath(
-                        currentEditingType,
-                        currentPreviewColor.filePrefix,
-                        "frontCombined"
-                      )}
-                      alt={`${currentConfig.label} - ${currentPreviewColor.name} combined front`}
-                      className="block preview-blank-image"
-                      style={{ maxWidth: "100%", height: "auto" }}
-                    />
-                    {designImage && (
-                      <img
-                        src={designImage.src}
-                        alt="Your design front"
-                        className="absolute pointer-events-none"
-                        style={{
-                          left: `${combinedFrontPosition.x}px`,
-                          top: `${combinedFrontPosition.y}px`,
-                          width: `${combinedFrontPosition.width}px`,
-                          height: `${combinedFrontPosition.height}px`,
-                        }}
-                      />
-                    )}
-                    <img
-                      src={getBlankImagePath(
-                        currentEditingType,
-                        currentPreviewColor.filePrefix,
-                        "backCombined"
-                      )}
-                      alt={`${currentConfig.label} - ${currentPreviewColor.name} combined back`}
-                      className="absolute top-0 left-0 w-full h-auto pointer-events-none"
-                      style={{ maxWidth: "100%" }}
-                    />
-                    {backDesignUsed && (
-                      <img
-                        src={backDesignUsed.src}
-                        alt="Your design back"
-                        className="absolute pointer-events-none"
-                        style={{
-                          left: `${combinedBackPosition.x}px`,
-                          top: `${combinedBackPosition.y}px`,
-                          width: `${combinedBackPosition.width}px`,
-                          height: `${combinedBackPosition.height}px`,
-                        }}
-                      />
+                    {currentEditingType === "hoodie" ? (
+                      <>
+                        {/* Hoodie combined: Back2 base → back design → Front2 → front design → strings */}
+                        <img
+                          src={getBlankImagePath(
+                            currentEditingType,
+                            currentPreviewColor.filePrefix,
+                            "backCombined"
+                          )}
+                          alt={`${currentConfig.label} - ${currentPreviewColor.name} combined back base`}
+                          className="block preview-blank-image"
+                          style={{ maxWidth: "100%", height: "auto" }}
+                        />
+                        {backDesignUsed && (
+                          <img
+                            src={backDesignUsed.src}
+                            alt="Your design back"
+                            className="absolute pointer-events-none"
+                            style={{
+                              left: `${combinedBackPosition.x}px`,
+                              top: `${combinedBackPosition.y}px`,
+                              width: `${combinedBackPosition.width}px`,
+                              height: `${combinedBackPosition.height}px`,
+                            }}
+                          />
+                        )}
+                        <img
+                          src={getBlankImagePath(
+                            currentEditingType,
+                            currentPreviewColor.filePrefix,
+                            "frontCombined"
+                          )}
+                          alt={`${currentConfig.label} - ${currentPreviewColor.name} combined front`}
+                          className="absolute top-0 left-0 w-full h-auto pointer-events-none"
+                          style={{ maxWidth: "100%" }}
+                        />
+                        {designImage && (
+                          <img
+                            src={designImage.src}
+                            alt="Your design front"
+                            className="absolute pointer-events-none"
+                            style={{
+                              left: `${combinedFrontPosition.x}px`,
+                              top: `${combinedFrontPosition.y}px`,
+                              width: `${combinedFrontPosition.width}px`,
+                              height: `${combinedFrontPosition.height}px`,
+                            }}
+                          />
+                        )}
+                        <img
+                          src={getHoodieStringsPath(currentPreviewColor.filePrefix)}
+                          alt="Hoodie strings overlay"
+                          className="absolute top-0 left-0 pointer-events-none"
+                          style={{ 
+                            width: "100%", 
+                            height: "auto",
+                          }}
+                          onError={(e) => {
+                            console.warn("Failed to load hoodie strings overlay");
+                          }}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        {/* T-shirt combined: Front base → front design → Back base → back design */}
+                        <img
+                          src={getBlankImagePath(
+                            currentEditingType,
+                            currentPreviewColor.filePrefix,
+                            "frontCombined"
+                          )}
+                          alt={`${currentConfig.label} - ${currentPreviewColor.name} combined front`}
+                          className="block preview-blank-image"
+                          style={{ maxWidth: "100%", height: "auto" }}
+                        />
+                        {designImage && (
+                          <img
+                            src={designImage.src}
+                            alt="Your design front"
+                            className="absolute pointer-events-none"
+                            style={{
+                              left: `${combinedFrontPosition.x}px`,
+                              top: `${combinedFrontPosition.y}px`,
+                              width: `${combinedFrontPosition.width}px`,
+                              height: `${combinedFrontPosition.height}px`,
+                            }}
+                          />
+                        )}
+                        <img
+                          src={getBlankImagePath(
+                            currentEditingType,
+                            currentPreviewColor.filePrefix,
+                            "backCombined"
+                          )}
+                          alt={`${currentConfig.label} - ${currentPreviewColor.name} combined back`}
+                          className="absolute top-0 left-0 w-full h-auto pointer-events-none"
+                          style={{ maxWidth: "100%" }}
+                        />
+                        {backDesignUsed && (
+                          <img
+                            src={backDesignUsed.src}
+                            alt="Your design back"
+                            className="absolute pointer-events-none"
+                            style={{
+                              left: `${combinedBackPosition.x}px`,
+                              top: `${combinedBackPosition.y}px`,
+                              width: `${combinedBackPosition.width}px`,
+                              height: `${combinedBackPosition.height}px`,
+                            }}
+                          />
+                        )}
+                      </>
                     )}
                   </>
                 ) : (
@@ -971,8 +1059,8 @@ export default function DesignUploadForm({
                         }}
                       />
                     )}
-                    {/* Layer 3: Hoodie strings overlay (only for hoodies) */}
-                    {currentEditingType === "hoodie" && (
+                    {/* Hoodie strings overlay (only for hoodies on front or combined views) */}
+                    {currentEditingType === "hoodie" && effectivePreviewMode !== "back" && (
                       <img
                         src={getHoodieStringsPath(currentPreviewColor.filePrefix)}
                         alt="Hoodie strings overlay"
@@ -990,8 +1078,10 @@ export default function DesignUploadForm({
                 )}
                 <p className="text-xs text-brand-accent mt-2 px-3 py-2">
                   Adjust sliders to reposition your design. The preview updates in real-time.
-                  {currentEditingType === "hoodie" && effectivePreviewMode !== "combined" && " (Hoodie strings overlay shown on top)"}
-                  {effectivePreviewMode === "combined" &&
+                  {currentEditingType === "hoodie" && effectivePreviewMode === "front" && " (Hoodie strings overlay shown on top)"}
+                  {currentEditingType === "hoodie" && effectivePreviewMode === "combined" &&
+                    " Hoodie layer order: Back2 base → Back design → Front2 → Front design → Strings (top)."}
+                  {currentEditingType === "tee" && effectivePreviewMode === "combined" &&
                     " Layer order: Front base → Front design → Back base → Back design."}
                   {effectivePreviewMode !== "front" && !backDesignUsed && " Back design not uploaded—reusing front artwork."}
                 </p>
