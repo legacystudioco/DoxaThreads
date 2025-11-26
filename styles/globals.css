@@ -375,19 +375,25 @@
   /* STATS CARD - For dashboard */
   .stat-card {
     @apply card;
+    background: #0f172a;
+    color: #fff;
   }
 
   .stat-label {
     @apply text-xs font-bold 
            uppercase tracking-[0.1em] 
            mb-2;
-    color: var(--storm-blue);
+    color: #cbd5e1;
   }
 
   .stat-value {
     @apply text-4xl font-black 
            tracking-tight;
-    color: var(--ink-black);
+    color: #fff;
+  }
+
+  .stat-card p {
+    color: #e5e7eb;
   }
 
   /* DIVIDERS - Subtle, clean lines */

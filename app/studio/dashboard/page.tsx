@@ -25,18 +25,28 @@ export default function StudioDashboard() {
   useEffect(() => {
     let mounted = true;
     (async () => {
-      const [{ data: { user }, error: userErr }, { data: { session }, error: sessErr }] = await Promise.all([
-        supabase.auth.getUser(),
-        supabase.auth.getSession(),
-      ]);
-      if (!mounted) return;
-      console.debug('[dashboard] getUser', { user, userErr });
-      console.debug('[dashboard] getSession', { hasToken: !!session?.access_token, sessErr });
-      setDbg({
-        userId: user?.id ?? null,
-        hasAccessToken: !!session?.access_token,
-        authLoading: false,
-      });
+      try {
+        const [{ data: { user }, error: userErr }, { data: { session }, error: sessErr }] = await Promise.all([
+          supabase.auth.getUser(),
+          supabase.auth.getSession(),
+        ]);
+        if (!mounted) return;
+        console.debug('[dashboard] getUser', { user, userErr });
+        console.debug('[dashboard] getSession', { hasToken: !!session?.access_token, sessErr });
+        setDbg({
+          userId: user?.id ?? null,
+          hasAccessToken: !!session?.access_token,
+          authLoading: false,
+        });
+      } catch (err) {
+        console.error("[dashboard] auth bootstrap failed", err);
+        if (!mounted) return;
+        setDbg({
+          userId: null,
+          hasAccessToken: false,
+          authLoading: false,
+        });
+      }
     })();
 
     const { data: sub } = supabase.auth.onAuthStateChange((_evt, session) => {

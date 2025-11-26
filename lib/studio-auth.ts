@@ -12,21 +12,33 @@ export function useStudioAuth() {
   const supabase = createClient();
 
   useEffect(() => {
-    // Check active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    let isMounted = true;
+    const hydrate = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!isMounted) return;
+        setUser(session?.user ?? null);
+      } catch (err) {
+        console.error("[studio-auth] getSession failed", err);
+        if (!isMounted) return;
+        setUser(null);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    hydrate();
 
     // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       router.refresh();
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      data?.subscription?.unsubscribe();
+    };
   }, [router, supabase]);
 
   return { user, isAuthenticated: !!user, loading };
