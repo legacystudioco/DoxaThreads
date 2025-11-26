@@ -426,7 +426,7 @@ export default function DesignUploadForm({
       };
 
       if (productType === "hoodie") {
-        // Hoodie combined layering: Back2 base → back design → Front2 → front design → strings
+        // Hoodie combined layering: Back2 base → back design → Front2 → front design
         // Layer 1: Back2 base (BOTTOM)
         ctx.drawImage(backBase, 0, 0, backBase.width, backBase.height);
         // Layer 2: Back design overlay
@@ -435,10 +435,6 @@ export default function DesignUploadForm({
         ctx.drawImage(frontBase, 0, 0, frontBase.width, frontBase.height);
         // Layer 4: Front design overlay
         drawDesign(designImage, frontPosition);
-        // Layer 5: Hoodie strings (TOP)
-        const colorPrefix = frontBasePath.match(/Hoodie-([^-]+)-/)?.[1] || "Black";
-        const stringsImg = await loadImage(getHoodieStringsPath(colorPrefix));
-        ctx.drawImage(stringsImg, 0, 0, canvas.width, canvas.height);
       } else if (productType === "crewneck") {
         // Crewneck combined layering: Back2 base → back design → Front2 → front design
         // Layer 1: Back2 base (BOTTOM)
@@ -931,7 +927,7 @@ export default function DesignUploadForm({
                   <>
                     {currentEditingType === "hoodie" ? (
                       <>
-                        {/* Hoodie combined: Back2 base → back design → Front2 → front design → strings */}
+                        {/* Hoodie combined: Back2 base → back design → Front2 → front design */}
                         <img
                           src={getBlankImagePath(
                             currentEditingType,
@@ -978,18 +974,6 @@ export default function DesignUploadForm({
                             }}
                           />
                         )}
-                        <img
-                          src={getHoodieStringsPath(currentPreviewColor.filePrefix)}
-                          alt="Hoodie strings overlay"
-                          className="absolute top-0 left-0 pointer-events-none"
-                          style={{ 
-                            width: "100%", 
-                            height: "auto",
-                          }}
-                          onError={(e) => {
-                            console.warn("Failed to load hoodie strings overlay");
-                          }}
-                        />
                       </>
                     ) : currentEditingType === "crewneck" ? (
                       <>
@@ -1130,8 +1114,8 @@ export default function DesignUploadForm({
                         }}
                       />
                     )}
-                    {/* Hoodie strings overlay (only for hoodies on front or combined views) */}
-                    {currentEditingType === "hoodie" && effectivePreviewMode !== "back" && (
+                    {/* Hoodie strings overlay (only for hoodies on front view) */}
+                    {currentEditingType === "hoodie" && effectivePreviewMode === "front" && (
                       <img
                         src={getHoodieStringsPath(currentPreviewColor.filePrefix)}
                         alt="Hoodie strings overlay"
@@ -1151,7 +1135,7 @@ export default function DesignUploadForm({
                   Adjust sliders to reposition your design. The preview updates in real-time.
                   {currentEditingType === "hoodie" && effectivePreviewMode === "front" && " (Hoodie strings overlay shown on top)"}
                   {currentEditingType === "hoodie" && effectivePreviewMode === "combined" &&
-                    " Hoodie layer order: Back2 base → Back design → Front2 → Front design → Strings (top)."}
+                    " Hoodie layer order: Back2 base → Back design → Front2 → Front design."}
                   {currentEditingType === "crewneck" && effectivePreviewMode === "combined" &&
                     " Crewneck layer order: Back2 base → Back design → Front2 → Front design."}
                   {currentEditingType === "tee" && effectivePreviewMode === "combined" &&
