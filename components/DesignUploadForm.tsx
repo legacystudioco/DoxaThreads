@@ -1177,7 +1177,14 @@ export default function DesignUploadForm({
                         onChange={(e) => updatePosition("x", parseInt(e.target.value))} 
                         className="w-full" 
                       />
-                      <span className="text-sm text-brand-paper">{currentPosition.x}px</span>
+                      <input
+                        type="number"
+                        min={0}
+                        max={400}
+                        value={currentPosition.x}
+                        onChange={(e) => updatePosition("x", parseInt(e.target.value || "0"))}
+                        className="input mt-2 w-28"
+                      />
                     </div>
                     <div className="form-group">
                       <label className="label text-brand-paper">Y Position (Up/Down)</label>
@@ -1189,7 +1196,14 @@ export default function DesignUploadForm({
                         onChange={(e) => updatePosition("y", parseInt(e.target.value))} 
                         className="w-full" 
                       />
-                      <span className="text-sm text-brand-paper">{currentPosition.y}px</span>
+                      <input
+                        type="number"
+                        min={0}
+                        max={600}
+                        value={currentPosition.y}
+                        onChange={(e) => updatePosition("y", parseInt(e.target.value || "0"))}
+                        className="input mt-2 w-28"
+                      />
                     </div>
                     <div className="form-group">
                       <label className="label text-brand-paper">Scale (Size)</label>
@@ -1202,7 +1216,15 @@ export default function DesignUploadForm({
                         onChange={(e) => updatePosition("scale", parseFloat(e.target.value))} 
                         className="w-full" 
                       />
-                      <span className="text-sm text-brand-paper">{Math.round(currentPosition.scale * 100)}%</span>
+                      <input
+                        type="number"
+                        min={0.25}
+                        max={2.5}
+                        step={0.05}
+                        value={currentPosition.scale}
+                        onChange={(e) => updatePosition("scale", parseFloat(e.target.value || "0.25"))}
+                        className="input mt-2 w-28"
+                      />
                     </div>
                   </div>
                 )}
@@ -1218,7 +1240,14 @@ export default function DesignUploadForm({
                         onChange={(e) => updateGroupOffset(currentEditingType, "front", "x", parseInt(e.target.value))}
                         className="w-full"
                       />
-                      <span className="text-sm text-brand-paper">{currentGroupOffsets.front.x}px</span>
+                      <input
+                        type="number"
+                        min={-400}
+                        max={400}
+                        value={currentGroupOffsets.front.x}
+                        onChange={(e) => updateGroupOffset(currentEditingType, "front", "x", parseInt(e.target.value || "0"))}
+                        className="input mt-2 w-28"
+                      />
                     </div>
                     <div className="form-group">
                       <label className="label text-brand-paper">Front group Y</label>
@@ -1230,7 +1259,14 @@ export default function DesignUploadForm({
                         onChange={(e) => updateGroupOffset(currentEditingType, "front", "y", parseInt(e.target.value))}
                         className="w-full"
                       />
-                      <span className="text-sm text-brand-paper">{currentGroupOffsets.front.y}px</span>
+                      <input
+                        type="number"
+                        min={-400}
+                        max={400}
+                        value={currentGroupOffsets.front.y}
+                        onChange={(e) => updateGroupOffset(currentEditingType, "front", "y", parseInt(e.target.value || "0"))}
+                        className="input mt-2 w-28"
+                      />
                     </div>
                     <div className="form-group">
                       <label className="label text-brand-paper">Back group X</label>
@@ -1242,7 +1278,14 @@ export default function DesignUploadForm({
                         onChange={(e) => updateGroupOffset(currentEditingType, "back", "x", parseInt(e.target.value))}
                         className="w-full"
                       />
-                      <span className="text-sm text-brand-paper">{currentGroupOffsets.back.x}px</span>
+                      <input
+                        type="number"
+                        min={-400}
+                        max={400}
+                        value={currentGroupOffsets.back.x}
+                        onChange={(e) => updateGroupOffset(currentEditingType, "back", "x", parseInt(e.target.value || "0"))}
+                        className="input mt-2 w-28"
+                      />
                     </div>
                     <div className="form-group">
                       <label className="label text-brand-paper">Back group Y</label>
@@ -1254,7 +1297,14 @@ export default function DesignUploadForm({
                         onChange={(e) => updateGroupOffset(currentEditingType, "back", "y", parseInt(e.target.value))}
                         className="w-full"
                       />
-                      <span className="text-sm text-brand-paper">{currentGroupOffsets.back.y}px</span>
+                      <input
+                        type="number"
+                        min={-400}
+                        max={400}
+                        value={currentGroupOffsets.back.y}
+                        onChange={(e) => updateGroupOffset(currentEditingType, "back", "y", parseInt(e.target.value || "0"))}
+                        className="input mt-2 w-28"
+                      />
                     </div>
                   </div>
                 )}
