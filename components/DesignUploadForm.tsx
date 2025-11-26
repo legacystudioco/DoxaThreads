@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase-client";
 
@@ -148,7 +148,7 @@ export default function DesignUploadForm({
   setAssetGenerator,
 }: DesignUploadFormProps) {
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   const [designName, setDesignName] = useState("");
   const [description, setDescription] = useState("");
@@ -524,7 +524,7 @@ export default function DesignUploadForm({
     return signed.signedUrl;
   };
 
-  const generateAssets = async () => {
+  const generateAssets = useCallback(async () => {
     if (!designFile || !designImage) {
       throw new Error("Please upload a design image");
     }
@@ -594,7 +594,19 @@ export default function DesignUploadForm({
     }
 
     return assets;
-  };
+  }, [
+    activeLayer,
+    activePreviewMode,
+    backDesignFile,
+    backDesignImage,
+    colorSelections,
+    designFile,
+    designImage,
+    designName,
+    designPositions,
+    selectedTypes,
+    supabase,
+  ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -761,9 +773,10 @@ export default function DesignUploadForm({
 
   useEffect(() => {
     if (setAssetGenerator) {
+      // Keep the asset generator in sync with the latest design + selections
       setAssetGenerator(() => generateAssets);
     }
-  }, [setAssetGenerator]);
+  }, [generateAssets, setAssetGenerator]);
 
   const effectivePreviewMode: PreviewMode =
     currentEditingType === "tee" || currentEditingType === "hoodie" || currentEditingType === "crewneck" ? activePreviewMode : "front";
