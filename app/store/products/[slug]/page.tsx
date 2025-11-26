@@ -7,6 +7,8 @@ import { ColorSwatch } from "@/components/ColorSwatch";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase-client";
 
+type PreviewMode = "front" | "back" | "combined";
+
 export default function ProductPage({ params }: { params: { slug: string } }) {
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -87,6 +89,7 @@ function ProductClient({ product, variants, images }: any) {
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [qty, setQty] = useState(1);
+  const previewMode: PreviewMode = (product.preview_mode as PreviewMode) || "front";
 
   // Get unique colors from images - deduplicate by color name
   const availableColors = images
@@ -380,12 +383,22 @@ function ProductClient({ product, variants, images }: any) {
       <div className="grid lg:grid-cols-2 gap-12">
         {/* Left Column: Single Image with Color Selector */}
         <div>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-semibold uppercase tracking-wide">Preview</span>
+            <span className="badge-outline text-xs">
+              {previewMode === "front"
+                ? "Front view"
+                : previewMode === "back"
+                ? "Back view"
+                : "Front + Back view"}
+            </span>
+          </div>
           {/* Main Product Image - Single Large Image */}
           <div className="border border-brand-accent overflow-hidden aspect-square mb-6">
             {displayImage ? (
               <Image 
                 src={displayImage.url} 
-                alt={displayImage.alt ?? product.title} 
+                alt={displayImage.alt ?? `${product.title} (${previewMode} preview)`} 
                 width={800} 
                 height={800}
                 className="w-full h-full object-cover"

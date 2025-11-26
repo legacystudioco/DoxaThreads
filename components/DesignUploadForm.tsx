@@ -10,14 +10,20 @@ const PRODUCT_TYPES = {
     folder: "BlankTees",
     colors: [
       { name: "Black", filePrefix: "Black", hex: "#000000" },
-      { name: "Cream", filePrefix: "Cream", hex: "#F5F5DC" },
-      { name: "Desert Pink", filePrefix: "DesertPink", hex: "#EDD1B0" },
-      { name: "Graphite Black", filePrefix: "GrphBlack", hex: "#3E3E3E" },
-      { name: "Heavy Metal", filePrefix: "HeavyMetal", hex: "#4A4A4A" },
-      { name: "Light Gray", filePrefix: "LightGray", hex: "#D3D3D3" },
-      { name: "Military Green", filePrefix: "MilGreen", hex: "#5A5F4A" },
-      { name: "Purple Rush", filePrefix: "PurpleRush", hex: "#800080" },
-      { name: "Royal", filePrefix: "Royal", hex: "#1E3A8A" },
+      { name: "Bone", filePrefix: "Bone", hex: "#E3DAC9" },
+      { name: "Clay", filePrefix: "Clay", hex: "#B98976" },
+      { name: "Cream", filePrefix: "Cream", hex: "#F4EED7" },
+      { name: "Dark Chocolate", filePrefix: "Dark Chocolate", hex: "#3D2B1F" },
+      { name: "Desert Pink", filePrefix: "Desert Pink", hex: "#E1B7A0" },
+      { name: "Graphite", filePrefix: "Graphite", hex: "#4A4A4A" },
+      { name: "Heather Gray", filePrefix: "Heather Gray", hex: "#BEBEBE" },
+      { name: "Heavy Metal", filePrefix: "Heavy Metal", hex: "#4B4B4B" },
+      { name: "Light Gray", filePrefix: "Light Gray", hex: "#D3D3D3" },
+      { name: "Midnight Navy", filePrefix: "Midnight Navy", hex: "#1A2238" },
+      { name: "Military", filePrefix: "Military", hex: "#59644B" },
+      { name: "Natural", filePrefix: "Natural", hex: "#F2E8CF" },
+      { name: "Sand", filePrefix: "Sand", hex: "#D7C4A0" },
+      { name: "Tan", filePrefix: "Tan", hex: "#D2B48C" },
       { name: "White", filePrefix: "White", hex: "#FFFFFF" },
     ],
     defaultPricing: [
@@ -67,6 +73,8 @@ const PRODUCT_TYPES = {
 };
 
 type ProductTypeKey = keyof typeof PRODUCT_TYPES;
+type PreviewMode = "front" | "back" | "combined";
+type PositionKey = "front" | "back" | "combinedFront" | "combinedBack";
 
 interface ColorSelection {
   [key: string]: boolean;
@@ -80,12 +88,29 @@ interface DesignPosition {
   scale: number;
 }
 
-type ProductTypePositions = Record<ProductTypeKey, DesignPosition>;
+type ProductTypePositions = Record<ProductTypeKey, Record<PositionKey, DesignPosition>>;
+
+const createDefaultPosition = (): DesignPosition => ({
+  x: 70,
+  y: 140,
+  width: 120,
+  height: 120,
+  scale: 0.6,
+});
+
+const createDefaultPositionMap = (): Record<PositionKey, DesignPosition> => ({
+  front: createDefaultPosition(),
+  back: createDefaultPosition(),
+  combinedFront: createDefaultPosition(),
+  combinedBack: createDefaultPosition(),
+});
 
 interface DesignUploadFormProps {
   hideActions?: boolean;
   onDesignNameChange?: (name: string) => void;
   onSelectedTypesChange?: (types: Set<string>) => void;
+  previewMode?: PreviewMode;
+  onPreviewModeChange?: (mode: PreviewMode) => void;
   setAssetGenerator?: (
     generator: () => Promise<
       Record<
@@ -104,6 +129,8 @@ export default function DesignUploadForm({
   hideActions = false,
   onDesignNameChange,
   onSelectedTypesChange,
+  previewMode: previewModeProp,
+  onPreviewModeChange,
   setAssetGenerator,
 }: DesignUploadFormProps) {
   const router = useRouter();
@@ -113,6 +140,8 @@ export default function DesignUploadForm({
   const [description, setDescription] = useState("");
   const [designFile, setDesignFile] = useState<File | null>(null);
   const [designImage, setDesignImage] = useState<HTMLImageElement | null>(null);
+  const [backDesignFile, setBackDesignFile] = useState<File | null>(null);
+  const [backDesignImage, setBackDesignImage] = useState<HTMLImageElement | null>(null);
   
   const [selectedTypes, setSelectedTypes] = useState<Set<string>>(new Set(["tee"]));
   
@@ -124,17 +153,32 @@ export default function DesignUploadForm({
 
   // Preview dimensions for positioning UI (scaled down so the garment stays visible)
   const [designPositions, setDesignPositions] = useState<ProductTypePositions>({
-    tee: { x: 70, y: 140, width: 120, height: 120, scale: 0.6 },
-    crewneck: { x: 70, y: 140, width: 120, height: 120, scale: 0.6 },
-    hoodie: { x: 70, y: 140, width: 120, height: 120, scale: 0.6 },
+    tee: createDefaultPositionMap(),
+    crewneck: createDefaultPositionMap(),
+    hoodie: createDefaultPositionMap(),
   });
 
   const [currentEditingType, setCurrentEditingType] = useState<ProductTypeKey>("tee");
   const [previewColorIndex, setPreviewColorIndex] = useState(0);
+  const [activePreviewMode, setActivePreviewMode] = useState<PreviewMode>(previewModeProp || "front");
+  const [activeLayer, setActiveLayer] = useState<"front" | "back">("front");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [generating, setGenerating] = useState(false);
   const [progress, setProgress] = useState<{ percent: number; message: string } | null>(null);
+
+  useEffect(() => {
+    if (previewModeProp) {
+      setActivePreviewMode(previewModeProp);
+      setActiveLayer(previewModeProp === "back" ? "back" : "front");
+    }
+  }, [previewModeProp]);
+
+  const handlePreviewModeChange = (mode: PreviewMode) => {
+    setActivePreviewMode(mode);
+    setActiveLayer(mode === "back" ? "back" : "front");
+    onPreviewModeChange?.(mode);
+  };
 
   const handleDesignUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -146,6 +190,23 @@ export default function DesignUploadForm({
         const img = new Image();
         img.onload = () => {
           setDesignImage(img);
+        };
+        img.src = event.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleBackDesignUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setBackDesignFile(file);
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          setBackDesignImage(img);
         };
         img.src = event.target?.result as string;
       };
@@ -179,13 +240,37 @@ export default function DesignUploadForm({
     }));
   };
 
+  const getDesignForLayer = (layer: "front" | "back") => {
+    if (layer === "back") {
+      return backDesignImage || designImage;
+    }
+    return designImage;
+  };
+
+  const getPositionKeyForMode = (
+    mode: PreviewMode = activePreviewMode,
+    layer: "front" | "back" = activeLayer
+  ): PositionKey => {
+    if (mode === "combined") {
+      return layer === "front" ? "combinedFront" : "combinedBack";
+    }
+    return layer;
+  };
+
   const updatePosition = (field: keyof DesignPosition, value: number) => {
     setDesignPositions(prev => {
-      const current = prev[currentEditingType];
+      const modeForType: PreviewMode = currentEditingType === "tee" ? activePreviewMode : "front";
+      const positionKey = getPositionKeyForMode(modeForType, activeLayer);
+      const currentMap = prev[currentEditingType];
+      const current = currentMap[positionKey];
+      const designForSizing =
+        positionKey === "back" || positionKey === "combinedBack"
+          ? getDesignForLayer("back")
+          : getDesignForLayer("front");
       
       // If updating scale, maintain aspect ratio
-      if (field === 'scale' && designImage) {
-        const aspectRatio = designImage.width / designImage.height;
+      if (field === 'scale' && designForSizing) {
+        const aspectRatio = designForSizing.width / designForSizing.height;
         const baseSize = 200; // base size at scale 1
         const newWidth = baseSize * value;
         const newHeight = baseSize * value;
@@ -193,10 +278,13 @@ export default function DesignUploadForm({
         return {
           ...prev,
           [currentEditingType]: {
-            ...current,
-            scale: value,
-            width: aspectRatio >= 1 ? newWidth : newWidth * aspectRatio,
-            height: aspectRatio >= 1 ? newHeight / aspectRatio : newHeight,
+            ...currentMap,
+            [positionKey]: {
+              ...current,
+              scale: value,
+              width: aspectRatio >= 1 ? newWidth : newWidth * aspectRatio,
+              height: aspectRatio >= 1 ? newHeight / aspectRatio : newHeight,
+            },
           },
         };
       }
@@ -204,18 +292,30 @@ export default function DesignUploadForm({
       return {
         ...prev,
         [currentEditingType]: {
-          ...current,
-          [field]: value,
+          ...currentMap,
+          [positionKey]: {
+            ...current,
+            [field]: value,
+          },
         },
       };
     });
   };
 
-  const getBlankImagePath = (type: ProductTypeKey, colorPrefix: string) => {
+  const getBlankImagePath = (
+    type: ProductTypeKey,
+    colorPrefix: string,
+    view: "front" | "back" | "frontCombined" | "backCombined" = "front"
+  ) => {
     const config = PRODUCT_TYPES[type];
+    const encodedPrefix = encodeURIComponent(colorPrefix);
     
     if (type === "tee") {
-      return `/assets/Blanks/${config.folder}/424Wx635H-11018-${colorPrefix}-12-NL3600${colorPrefix}FlatFront7.jpg`;
+      const base = `/assets/Blanks/${config.folder}/Tee-${encodedPrefix}-`;
+      if (view === "back") return `${base}Back.png`;
+      if (view === "frontCombined") return `${base}Front2.png`;
+      if (view === "backCombined") return `${base}Back2.png`;
+      return `${base}Front.png`;
     } else if (type === "crewneck") {
       return `/assets/Blanks/${config.folder}/424Wx635H-63783-${colorPrefix}-12-NL9007${colorPrefix}FlatFront.jpg`;
     } else if (type === "hoodie") {
@@ -231,108 +331,123 @@ export default function DesignUploadForm({
     return `/assets/Blanks/BlankHoodies/black hoodie strings.png`;
   };
 
-  const compositeImage = async (
-    blankImagePath: string,
-    position: DesignPosition,
-    productType: ProductTypeKey,
-    previewImageElement: HTMLImageElement
-  ): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      console.log(`🎨 Compositing image for ${productType}`, { position, blankImagePath });
-      
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      if (!ctx || !designImage) {
-        reject(new Error("Canvas context or design image not available"));
-        return;
+  const toBlobUrl = (canvas: HTMLCanvasElement): Promise<string> =>
+    new Promise((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            resolve(URL.createObjectURL(blob));
+          } else {
+            reject(new Error("Failed to create blob"));
+          }
+        },
+        "image/jpeg",
+        0.9
+      );
+    });
+
+  const loadImage = (src: string) =>
+    new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error(`Failed to load: ${src}`));
+      img.src = src;
+    });
+
+  const compositeImage = async ({
+    mode,
+    productType,
+    previewImageElement,
+    frontBasePath,
+    backBasePath,
+    frontPosition,
+    backPosition,
+  }: {
+    mode: PreviewMode;
+    productType: ProductTypeKey;
+    previewImageElement: HTMLImageElement;
+    frontBasePath: string;
+    backBasePath?: string;
+    frontPosition: DesignPosition;
+    backPosition?: DesignPosition;
+  }): Promise<string> => {
+    if (!designImage) {
+      throw new Error("Design image not available");
+    }
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      throw new Error("Canvas context not available");
+    }
+
+    if (!previewImageElement) {
+      throw new Error("Preview image not found");
+    }
+
+    if (mode === "combined") {
+      if (!backBasePath) {
+        throw new Error("Missing back layer for combined preview");
       }
 
-      const blankImg = new Image();
-      blankImg.crossOrigin = "anonymous";
-      
-      blankImg.onload = () => {
-        canvas.width = blankImg.width;
-        canvas.height = blankImg.height;
-        
-        console.log(`✅ Actual canvas size: ${canvas.width}x${canvas.height}`);
-        console.log(`✅ Preview image displayed size: ${previewImageElement.clientWidth}x${previewImageElement.clientHeight}`);
-        
-        // Calculate scale factor between preview size and actual canvas size
-        const scaleFactor = canvas.width / previewImageElement.clientWidth;
-        console.log(`✅ Scale factor: ${scaleFactor}`);
-        
-        // Scale the position values to match the actual canvas size
+      const [frontBase, backBase] = await Promise.all([
+        loadImage(frontBasePath),
+        loadImage(backBasePath),
+      ]);
+
+      canvas.width = frontBase.width;
+      canvas.height = frontBase.height;
+
+      const scaleFactor = canvas.width / previewImageElement.clientWidth;
+      const drawDesign = (design: HTMLImageElement | null | undefined, position?: DesignPosition) => {
+        if (!design || !position) return;
         const scaledX = position.x * scaleFactor;
         const scaledY = position.y * scaleFactor;
         const scaledWidth = position.width * scaleFactor;
         const scaledHeight = position.height * scaleFactor;
-        
-        console.log(`✅ Scaled position for canvas: x=${scaledX}, y=${scaledY}, w=${scaledWidth}, h=${scaledHeight}`);
-        
-        // Layer 1: Draw blank garment (background)
-        ctx.drawImage(blankImg, 0, 0, blankImg.width, blankImg.height);
-        
-        // Layer 2: Draw design on top at the scaled position
-        ctx.drawImage(
-          designImage, 
-          scaledX, 
-          scaledY, 
-          scaledWidth, 
-          scaledHeight
-        );
-        
-        // Layer 3: If hoodie, draw strings on top
-        if (productType === "hoodie") {
-          const stringsImg = new Image();
-          stringsImg.crossOrigin = "anonymous";
-          
-          stringsImg.onload = () => {
-            console.log(`✅ Drawing hoodie strings overlay`);
-            ctx.drawImage(stringsImg, 0, 0, canvas.width, canvas.height);
-            
-            // Convert to blob after all layers are drawn
-            canvas.toBlob((blob) => {
-              if (blob) {
-                console.log(`✅ Composite complete, blob size: ${blob.size} bytes`);
-                resolve(URL.createObjectURL(blob));
-              } else {
-                reject(new Error("Failed to create blob"));
-              }
-            }, "image/jpeg", 0.9);
-          };
-          
-          stringsImg.onerror = () => {
-            console.warn("⚠️ Failed to load hoodie strings, continuing without overlay");
-            // Continue without strings if overlay fails
-            canvas.toBlob((blob) => {
-              if (blob) {
-                resolve(URL.createObjectURL(blob));
-              } else {
-                reject(new Error("Failed to create blob"));
-              }
-            }, "image/jpeg", 0.9);
-          };
-          
-          stringsImg.src = getHoodieStringsPath(blankImagePath.includes('BlkOnBlk') ? 'BlkOnBlk' : 'Black');
-        } else {
-          // For non-hoodies, just convert to blob
-          canvas.toBlob((blob) => {
-            if (blob) {
-              console.log(`✅ Composite complete (no strings), blob size: ${blob.size} bytes`);
-              resolve(URL.createObjectURL(blob));
-            } else {
-              reject(new Error("Failed to create blob"));
-            }
-          }, "image/jpeg", 0.9);
-        }
+        ctx.drawImage(design, scaledX, scaledY, scaledWidth, scaledHeight);
       };
-      
-      blankImg.onerror = () => {
-        console.error(`❌ Failed to load blank image: ${blankImagePath}`);
-        reject(new Error(`Failed to load: ${blankImagePath}`));
-      };
-      blankImg.src = blankImagePath;
-    });
+
+      // Layer 1: Front base
+      ctx.drawImage(frontBase, 0, 0, frontBase.width, frontBase.height);
+      // Layer 2: Front design overlay
+      drawDesign(designImage, frontPosition);
+      // Layer 3: Back base
+      ctx.drawImage(backBase, 0, 0, backBase.width, backBase.height);
+      // Layer 4: Back design overlay
+      drawDesign(backDesignImage || designImage, backPosition);
+
+      return toBlobUrl(canvas);
+    }
+
+    const isBack = mode === "back";
+    const basePath = isBack && backBasePath ? backBasePath : frontBasePath;
+    const baseImage = await loadImage(basePath);
+    canvas.width = baseImage.width;
+    canvas.height = baseImage.height;
+
+    const scaleFactor = canvas.width / previewImageElement.clientWidth;
+    const position = isBack ? backPosition || frontPosition : frontPosition;
+    const design = isBack ? backDesignImage || designImage : designImage;
+
+    ctx.drawImage(baseImage, 0, 0, baseImage.width, baseImage.height);
+    if (position && design) {
+      const scaledX = position.x * scaleFactor;
+      const scaledY = position.y * scaleFactor;
+      const scaledWidth = position.width * scaleFactor;
+      const scaledHeight = position.height * scaleFactor;
+      ctx.drawImage(design, scaledX, scaledY, scaledWidth, scaledHeight);
+    }
+
+    if (productType === "hoodie") {
+      const stringsImg = await loadImage(
+        getHoodieStringsPath(basePath.includes("BlkOnBlk") ? "BlkOnBlk" : "Black")
+      );
+      ctx.drawImage(stringsImg, 0, 0, canvas.width, canvas.height);
+    }
+
+    return toBlobUrl(canvas);
   };
 
   const uploadCompositedImage = async (dataUrl: string, productType: string, color: string): Promise<string> => {
@@ -385,7 +500,7 @@ export default function DesignUploadForm({
 
     for (const type of Array.from(selectedTypes)) {
       const config = PRODUCT_TYPES[type as ProductTypeKey];
-      const position = designPositions[type as ProductTypeKey];
+      const positionMap = designPositions[type as ProductTypeKey];
       const selectedColors = colorSelections[type];
       const colorsToProcess = config.colors.filter(color => selectedColors[color.filePrefix]);
       if (colorsToProcess.length === 0) continue;
@@ -394,8 +509,27 @@ export default function DesignUploadForm({
 
       for (let i = 0; i < colorsToProcess.length; i++) {
         const color = colorsToProcess[i];
-        const blankImagePath = getBlankImagePath(type as ProductTypeKey, color.filePrefix);
-        const compositedDataUrl = await compositeImage(blankImagePath, position, type as ProductTypeKey, previewImg);
+        const modeForType: PreviewMode = type === "tee" ? activePreviewMode : "front";
+        const compositedDataUrl = await compositeImage({
+          mode: modeForType,
+          productType: type as ProductTypeKey,
+          previewImageElement: previewImg,
+          frontBasePath: getBlankImagePath(
+            type as ProductTypeKey,
+            color.filePrefix,
+            modeForType === "combined" ? "frontCombined" : "front"
+          ),
+          backBasePath:
+            modeForType === "back"
+              ? getBlankImagePath(type as ProductTypeKey, color.filePrefix, "back")
+              : modeForType === "combined"
+              ? getBlankImagePath(type as ProductTypeKey, color.filePrefix, "backCombined")
+              : undefined,
+          frontPosition:
+            modeForType === "combined" ? positionMap.combinedFront : positionMap.front,
+          backPosition:
+            modeForType === "combined" ? positionMap.combinedBack : positionMap.back,
+        });
         const imageUrl = await uploadCompositedImage(compositedDataUrl, type, color.filePrefix);
 
         assets[type].push({
@@ -469,7 +603,8 @@ export default function DesignUploadForm({
 
       for (const type of selectedTypeList) {
         const config = PRODUCT_TYPES[type as ProductTypeKey];
-        const position = designPositions[type as ProductTypeKey];
+        const modeForProduct: PreviewMode = type === "tee" ? activePreviewMode : "front";
+        const positionMap = designPositions[type as ProductTypeKey];
         const selectedColors = colorSelections[type];
 
         const colorsToProcess = config.colors.filter(color => selectedColors[color.filePrefix]);
@@ -483,7 +618,14 @@ export default function DesignUploadForm({
 
         const { data: product, error: productError } = await supabase
           .from("products")
-          .insert({ title, slug, description, print_cost_cents: 300, active: true })
+          .insert({
+            title,
+            slug,
+            description,
+            print_cost_cents: 300,
+            active: true,
+            preview_mode: modeForProduct,
+          })
           .select("id")
           .single();
 
@@ -492,8 +634,27 @@ export default function DesignUploadForm({
         // Process colors and add them with proper color data
         for (let i = 0; i < colorsToProcess.length; i++) {
           const color = colorsToProcess[i];
-          const blankImagePath = getBlankImagePath(type as ProductTypeKey, color.filePrefix);
-          const compositedDataUrl = await compositeImage(blankImagePath, position, type as ProductTypeKey, previewImg);
+          const modeForType: PreviewMode = type === "tee" ? activePreviewMode : "front";
+          const compositedDataUrl = await compositeImage({
+            mode: modeForType,
+            productType: type as ProductTypeKey,
+            previewImageElement: previewImg,
+            frontBasePath: getBlankImagePath(
+              type as ProductTypeKey,
+              color.filePrefix,
+              modeForType === "combined" ? "frontCombined" : "front"
+            ),
+            backBasePath:
+              modeForType === "back"
+                ? getBlankImagePath(type as ProductTypeKey, color.filePrefix, "back")
+                : modeForType === "combined"
+                ? getBlankImagePath(type as ProductTypeKey, color.filePrefix, "backCombined")
+                : undefined,
+            frontPosition:
+              modeForType === "combined" ? positionMap.combinedFront : positionMap.front,
+            backPosition:
+              modeForType === "combined" ? positionMap.combinedBack : positionMap.back,
+          });
           const imageUrl = await uploadCompositedImage(compositedDataUrl, type, color.filePrefix);
 
           // 🎨 NOW SAVING COLOR DATA!
@@ -550,10 +711,34 @@ export default function DesignUploadForm({
       setAssetGenerator(() => generateAssets);
     }
     // Update whenever key inputs change so generator uses fresh state
-  }, [setAssetGenerator, designFile, designImage, selectedTypes, colorSelections, designPositions]);
+  }, [
+    setAssetGenerator,
+    designFile,
+    designImage,
+    backDesignFile,
+    backDesignImage,
+    selectedTypes,
+    colorSelections,
+    designPositions,
+    activePreviewMode,
+  ]);
 
   const currentConfig = PRODUCT_TYPES[currentEditingType];
   const currentPreviewColor = currentConfig.colors[previewColorIndex];
+  const currentPositionKey = getPositionKeyForMode(effectivePreviewMode, activeLayer);
+  const currentPosition = designPositions[currentEditingType][currentPositionKey];
+  const positionMap = designPositions[currentEditingType];
+  const combinedFrontPosition = positionMap.combinedFront;
+  const combinedBackPosition = positionMap.combinedBack;
+  const effectivePreviewMode: PreviewMode =
+    currentEditingType === "tee" ? activePreviewMode : "front";
+  const layerLabel =
+    effectivePreviewMode === "combined"
+      ? `${activeLayer === "front" ? "Front" : "Back"} layer`
+      : effectivePreviewMode === "back"
+      ? "Back layer"
+      : "Front layer";
+  const backDesignUsed = getDesignForLayer("back");
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
@@ -591,11 +776,24 @@ export default function DesignUploadForm({
           <input type="file" accept="image/png" onChange={handleDesignUpload} className="input" required />
           <p className="text-xs text-neutral-600 mt-1">Upload a transparent PNG for best results</p>
         </div>
+        <div className="form-group">
+          <label className="label">Back Design File (optional)</label>
+          <input type="file" accept="image/png" onChange={handleBackDesignUpload} className="input" />
+          <p className="text-xs text-neutral-600 mt-1">
+            Back-only and combined previews will use this artwork. If omitted, the front design is reused.
+          </p>
+        </div>
         
         {designImage && (
           <div className="mt-4 border-2 border-black p-4">
             <p className="text-sm font-bold mb-2">Design Preview:</p>
             <img src={designImage.src} alt="Design preview" className="max-w-xs border-2 border-black bg-gray-100" />
+          </div>
+        )}
+        {backDesignImage && (
+          <div className="mt-4 border-2 border-black p-4">
+            <p className="text-sm font-bold mb-2">Back Design Preview:</p>
+            <img src={backDesignImage.src} alt="Back design preview" className="max-w-xs border-2 border-black bg-gray-100" />
           </div>
         )}
       </div>
@@ -626,6 +824,9 @@ export default function DesignUploadForm({
                   onClick={() => {
                     setCurrentEditingType(type as ProductTypeKey);
                     setPreviewColorIndex(0);
+                    if (type !== "tee" && effectivePreviewMode !== "front") {
+                      handlePreviewModeChange("front");
+                    }
                   }} 
                   className={`px-4 py-2 border border-brand-accent font-bold ${currentEditingType === type ? "bg-black text-white" : "bg-white text-black hover:bg-neutral-100"}`}
                 >
@@ -639,69 +840,185 @@ export default function DesignUploadForm({
           <div className="mb-6 p-4 bg-neutral-100 border border-brand-accent">
             <div className="flex items-center justify-between mb-4 gap-4">
               <h3 className="text-lg font-bold">👁️ Live Preview</h3>
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium">Preview Color:</label>
-                <select
-                  value={previewColorIndex}
-                  onChange={(e) => setPreviewColorIndex(parseInt(e.target.value))}
-                  className="select text-sm"
-                >
-                  {currentConfig.colors.map((color, idx) => (
-                    <option key={color.filePrefix} value={idx}>
-                      {color.name}
-                    </option>
-                  ))}
-                </select>
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium">Preview Mode:</label>
+                  {(["front", "back", "combined"] as PreviewMode[]).map((mode) => {
+                    const disabled = currentEditingType !== "tee" && mode !== "front";
+                    return (
+                      <button
+                        key={mode}
+                        type="button"
+                        onClick={() => handlePreviewModeChange(mode)}
+                        disabled={disabled}
+                        className={`px-3 py-1 border text-xs font-semibold uppercase tracking-wide ${
+                          effectivePreviewMode === mode ? "bg-black text-white border-black" : "border-brand-accent bg-white"
+                        } ${disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-neutral-100"}`}
+                      >
+                        {mode === "front" ? "Front only" : mode === "back" ? "Back only" : "Front + Back"}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium">Preview Color:</label>
+                  <select
+                    value={previewColorIndex}
+                    onChange={(e) => setPreviewColorIndex(parseInt(e.target.value))}
+                    className="select text-sm"
+                  >
+                    {currentConfig.colors.map((color, idx) => (
+                      <option key={color.filePrefix} value={idx}>
+                        {color.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
 
             <div className="flex flex-col md:flex-row gap-6 items-start">
               <div className="relative bg-white border border-brand-accent w-full md:w-auto max-w-xl mx-auto md:mx-0">
-                {/* Layer 1: Blank garment */}
-                <img
-                  src={getBlankImagePath(currentEditingType, currentPreviewColor.filePrefix)}
-                  alt={`${currentConfig.label} - ${currentPreviewColor.name}`}
-                  className="block preview-blank-image"
-                  style={{ maxWidth: "100%", height: "auto" }}
-                  onError={(e) => {
-                    console.error("Failed to load blank image:", getBlankImagePath(currentEditingType, currentPreviewColor.filePrefix));
-                  }}
-                />
-                {/* Layer 2: Your design */}
-                <img
-                  src={designImage.src}
-                  alt="Your design"
-                  className="absolute pointer-events-none"
-                  style={{
-                    left: `${designPositions[currentEditingType].x}px`,
-                    top: `${designPositions[currentEditingType].y}px`,
-                    width: `${designPositions[currentEditingType].width}px`,
-                    height: `${designPositions[currentEditingType].height}px`,
-                  }}
-                />
-                {/* Layer 3: Hoodie strings overlay (only for hoodies) */}
-                {currentEditingType === "hoodie" && (
-                  <img
-                    src={getHoodieStringsPath(currentPreviewColor.filePrefix)}
-                    alt="Hoodie strings overlay"
-                    className="absolute top-0 left-0 pointer-events-none"
-                    style={{ 
-                      width: "100%", 
-                      height: "auto",
-                    }}
-                    onError={(e) => {
-                      console.warn("Failed to load hoodie strings overlay");
-                    }}
-                  />
+                {effectivePreviewMode === "combined" ? (
+                  <>
+                    <img
+                      src={getBlankImagePath(
+                        currentEditingType,
+                        currentPreviewColor.filePrefix,
+                        "frontCombined"
+                      )}
+                      alt={`${currentConfig.label} - ${currentPreviewColor.name} combined front`}
+                      className="block preview-blank-image"
+                      style={{ maxWidth: "100%", height: "auto" }}
+                    />
+                    {designImage && (
+                      <img
+                        src={designImage.src}
+                        alt="Your design front"
+                        className="absolute pointer-events-none"
+                        style={{
+                          left: `${combinedFrontPosition.x}px`,
+                          top: `${combinedFrontPosition.y}px`,
+                          width: `${combinedFrontPosition.width}px`,
+                          height: `${combinedFrontPosition.height}px`,
+                        }}
+                      />
+                    )}
+                    <img
+                      src={getBlankImagePath(
+                        currentEditingType,
+                        currentPreviewColor.filePrefix,
+                        "backCombined"
+                      )}
+                      alt={`${currentConfig.label} - ${currentPreviewColor.name} combined back`}
+                      className="absolute top-0 left-0 w-full h-auto pointer-events-none"
+                      style={{ maxWidth: "100%" }}
+                    />
+                    {backDesignUsed && (
+                      <img
+                        src={backDesignUsed.src}
+                        alt="Your design back"
+                        className="absolute pointer-events-none"
+                        style={{
+                          left: `${combinedBackPosition.x}px`,
+                          top: `${combinedBackPosition.y}px`,
+                          width: `${combinedBackPosition.width}px`,
+                          height: `${combinedBackPosition.height}px`,
+                        }}
+                      />
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <img
+                      src={getBlankImagePath(
+                        currentEditingType,
+                        currentPreviewColor.filePrefix,
+                        effectivePreviewMode === "back" ? "back" : "front"
+                      )}
+                      alt={`${currentConfig.label} - ${currentPreviewColor.name}`}
+                      className="block preview-blank-image"
+                      style={{ maxWidth: "100%", height: "auto" }}
+                      onError={(e) => {
+                        console.error(
+                          "Failed to load blank image:",
+                          getBlankImagePath(
+                            currentEditingType,
+                            currentPreviewColor.filePrefix,
+                            effectivePreviewMode === "back" ? "back" : "front"
+                          )
+                        );
+                      }}
+                    />
+                    {getDesignForLayer(effectivePreviewMode === "back" ? "back" : "front") && (
+                      <img
+                        src={getDesignForLayer(
+                          effectivePreviewMode === "back" ? "back" : "front"
+                        )!.src}
+                        alt="Your design"
+                        className="absolute pointer-events-none"
+                        style={{
+                          left: `${currentPosition.x}px`,
+                          top: `${currentPosition.y}px`,
+                          width: `${currentPosition.width}px`,
+                          height: `${currentPosition.height}px`,
+                        }}
+                      />
+                    )}
+                    {/* Layer 3: Hoodie strings overlay (only for hoodies) */}
+                    {currentEditingType === "hoodie" && (
+                      <img
+                        src={getHoodieStringsPath(currentPreviewColor.filePrefix)}
+                        alt="Hoodie strings overlay"
+                        className="absolute top-0 left-0 pointer-events-none"
+                        style={{ 
+                          width: "100%", 
+                          height: "auto",
+                        }}
+                        onError={(e) => {
+                          console.warn("Failed to load hoodie strings overlay");
+                        }}
+                      />
+                    )}
+                  </>
                 )}
                 <p className="text-xs text-neutral-600 mt-2 px-3 py-2">
                   Adjust sliders to reposition your design. The preview updates in real-time.
-                  {currentEditingType === "hoodie" && " (Hoodie strings overlay shown on top)"}
+                  {currentEditingType === "hoodie" && effectivePreviewMode !== "combined" && " (Hoodie strings overlay shown on top)"}
+                  {effectivePreviewMode === "combined" &&
+                    " Layer order: Front base → Front design → Back base → Back design."}
+                  {effectivePreviewMode !== "front" && !backDesignUsed && " Back design not uploaded—reusing front artwork."}
                 </p>
               </div>
 
               <div className="flex-1 w-full md:w-80 bg-white border border-dashed border-brand-accent rounded p-4">
                 <h4 className="text-sm font-bold mb-3">Position Controls</h4>
+                {effectivePreviewMode !== "front" && (
+                  <div className="flex gap-2 mb-4">
+                    <button
+                      type="button"
+                      onClick={() => setActiveLayer("front")}
+                      disabled={effectivePreviewMode === "back"}
+                      className={`px-3 py-1 border text-xs font-semibold ${
+                        activeLayer === "front" ? "bg-black text-white border-black" : "border-brand-accent bg-white"
+                      } ${effectivePreviewMode === "back" ? "opacity-50 cursor-not-allowed" : ""}`}
+                    >
+                      Front Layer
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveLayer("back")}
+                      className={`px-3 py-1 border text-xs font-semibold ${
+                        activeLayer === "back" ? "bg-black text-white border-black" : "border-brand-accent bg-white"
+                      }`}
+                    >
+                      Back Layer
+                    </button>
+                  </div>
+                )}
+                <p className="text-xs text-neutral-600 mb-3 font-medium uppercase tracking-wide">
+                  Editing: {layerLabel}
+                </p>
                 <div className="space-y-4">
                   <div className="form-group">
                     <label className="label">X Position (Left/Right)</label>
@@ -709,11 +1026,11 @@ export default function DesignUploadForm({
                       type="range" 
                       min="0" 
                       max="400" 
-                      value={designPositions[currentEditingType].x} 
+                      value={currentPosition.x} 
                       onChange={(e) => updatePosition("x", parseInt(e.target.value))} 
                       className="w-full" 
                     />
-                    <span className="text-sm text-neutral-600">{designPositions[currentEditingType].x}px</span>
+                    <span className="text-sm text-neutral-600">{currentPosition.x}px</span>
                   </div>
                   <div className="form-group">
                     <label className="label">Y Position (Up/Down)</label>
@@ -721,11 +1038,11 @@ export default function DesignUploadForm({
                       type="range" 
                       min="0" 
                       max="600" 
-                      value={designPositions[currentEditingType].y} 
+                      value={currentPosition.y} 
                       onChange={(e) => updatePosition("y", parseInt(e.target.value))} 
                       className="w-full" 
                     />
-                    <span className="text-sm text-neutral-600">{designPositions[currentEditingType].y}px</span>
+                    <span className="text-sm text-neutral-600">{currentPosition.y}px</span>
                   </div>
                   <div className="form-group">
                     <label className="label">Scale (Size)</label>
@@ -734,11 +1051,11 @@ export default function DesignUploadForm({
                       min="0.25" 
                       max="2.5" 
                       step="0.05"
-                      value={designPositions[currentEditingType].scale} 
+                      value={currentPosition.scale} 
                       onChange={(e) => updatePosition("scale", parseFloat(e.target.value))} 
                       className="w-full" 
                     />
-                    <span className="text-sm text-neutral-600">{Math.round(designPositions[currentEditingType].scale * 100)}%</span>
+                    <span className="text-sm text-neutral-600">{Math.round(currentPosition.scale * 100)}%</span>
                   </div>
                 </div>
               </div>

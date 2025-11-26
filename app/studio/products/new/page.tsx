@@ -17,6 +17,7 @@ type ProductionCalcKey =
   | "retail4XL";
 
 type ProductTypeKey = "tee" | "hoodie" | "crewneck";
+type PreviewMode = "front" | "back" | "combined";
 
 const PRODUCT_TYPE_CONFIGS: Record<
   ProductTypeKey,
@@ -109,6 +110,7 @@ export default function NewProductPage() {
   const [assetGenerator, setAssetGenerator] = useState<
     (() => Promise<Record<string, { url: string; colorName?: string; colorHex?: string }[]>>) | null
   >(null);
+  const [previewMode, setPreviewMode] = useState<PreviewMode>("front");
 
   const [productionCalcByType, setProductionCalcByType] = useState<
     Record<ProductTypeKey, Record<ProductionCalcKey, number>>
@@ -219,6 +221,7 @@ export default function NewProductPage() {
         const print_cost_cents = Math.round(
           (calc.blankCost + calc.transferCost + baseOrderFee) * 100
         );
+        const modeForProduct: PreviewMode = type === "tee" ? previewMode : "front";
 
         setProgress({
           percent: 10 + Math.round((created / activeTypes.length) * 60),
@@ -234,6 +237,7 @@ export default function NewProductPage() {
               description,
               print_cost_cents,
               active: true,
+              preview_mode: modeForProduct,
             })
             .select("id")
             .single();
@@ -359,11 +363,37 @@ export default function NewProductPage() {
             hideActions
             onDesignNameChange={setDesignName}
             onSelectedTypesChange={(types) => setSelectedTypes(new Set(types as Set<ProductTypeKey>))}
+            previewMode={previewMode}
+            onPreviewModeChange={setPreviewMode}
             setAssetGenerator={setAssetGenerator}
           />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="card">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-black">
+              <h2 className="text-xl font-bold">Preview Mode (Customer View)</h2>
+              <span className="badge-outline text-xs">Admin only</span>
+            </div>
+            <p className="text-sm text-neutral-600 mb-4">
+              Pick which garment preview is surfaced to shoppers. This selection stays in sync with the live editor above.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              {(["front", "back", "combined"] as PreviewMode[]).map((mode) => (
+                <button
+                  key={`preview-${mode}`}
+                  type="button"
+                  onClick={() => setPreviewMode(mode)}
+                  className={`px-4 py-2 border-2 text-sm font-semibold ${
+                    previewMode === mode ? "bg-black text-white border-black" : "bg-white border-black"
+                  }`}
+                >
+                  {mode === "front" ? "Front only" : mode === "back" ? "Back only" : "Front + Back combined"}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="card">
             <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-black">
               <h2 className="text-xl font-bold">Production Cost Calculator</h2>
