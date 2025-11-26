@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase-client";
 
@@ -87,6 +87,28 @@ const PRODUCT_TYPES = {
 };
 
 type ProductTypeKey = keyof typeof PRODUCT_TYPES;
+
+const compositeLayout: Record<
+  ProductTypeKey,
+  {
+    front: { scale: number; x: number; y: number };
+    back: { scale: number; x: number; y: number };
+  }
+> = {
+  tee: {
+    front: { scale: 0.85, x: -140, y: 0 },
+    back: { scale: 1.0, x: 120, y: -20 },
+  },
+  hoodie: {
+    front: { scale: 0.85, x: -130, y: 0 },
+    back: { scale: 1.0, x: 110, y: -20 },
+  },
+  crewneck: {
+    front: { scale: 0.85, x: -135, y: 0 },
+    back: { scale: 1.0, x: 115, y: -20 },
+  },
+};
+
 type PreviewMode = "front" | "back" | "combined";
 type PositionKey = "front" | "back" | "combinedFront" | "combinedBack";
 
@@ -180,6 +202,9 @@ export default function DesignUploadForm({
   const [error, setError] = useState("");
   const [generating, setGenerating] = useState(false);
   const [progress, setProgress] = useState<{ percent: number; message: string } | null>(null);
+  const [previewWidth, setPreviewWidth] = useState<number | null>(null);
+  const [combinedPreviewUrl, setCombinedPreviewUrl] = useState<string | null>(null);
+  const previewImageRef = useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
     if (previewModeProp) {
@@ -187,6 +212,12 @@ export default function DesignUploadForm({
       setActiveLayer(previewModeProp === "back" ? "back" : "front");
     }
   }, [previewModeProp]);
+  
+  useEffect(() => {
+    const handleResize = () => updatePreviewWidth();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const handlePreviewModeChange = (mode: PreviewMode) => {
     setActivePreviewMode(mode);
@@ -227,6 +258,13 @@ export default function DesignUploadForm({
       reader.readAsDataURL(file);
     }
   };
+  
+  const updatePreviewWidth = () => {
+    const node = previewImageRef.current;
+    if (!node) return;
+    const width = node.clientWidth || node.naturalWidth;
+    if (width) setPreviewWidth(width);
+  };
 
   const toggleProductType = (type: string) => {
     const newSet = new Set(selectedTypes);
@@ -265,9 +303,6 @@ export default function DesignUploadForm({
     mode: PreviewMode = activePreviewMode,
     layer: "front" | "back" = activeLayer
   ): PositionKey => {
-    if (mode === "combined") {
-      return layer === "front" ? "combinedFront" : "combinedBack";
-    }
     return layer;
   };
 
@@ -319,7 +354,7 @@ export default function DesignUploadForm({
   const getBlankImagePath = (
     type: ProductTypeKey,
     colorPrefix: string,
-    view: "front" | "back" | "frontCombined" | "backCombined" = "front"
+    view: "front" | "back" = "front"
   ) => {
     const config = PRODUCT_TYPES[type];
     const encodedPrefix = encodeURIComponent(colorPrefix);
@@ -327,35 +362,24 @@ export default function DesignUploadForm({
     if (type === "tee") {
       const base = `/assets/Blanks/${config.folder}/Tee-${encodedPrefix}-`;
       if (view === "back") return `${base}Back.png`;
-      if (view === "frontCombined") return `${base}Front2.png`;
-      if (view === "backCombined") return `${base}Back2.png`;
       return `${base}Front.png`;
     } else if (type === "crewneck") {
       const base = `/assets/Blanks/${config.folder}/Crew-${encodedPrefix}-`;
       if (view === "back") return `${base}Back.png`;
-      if (view === "frontCombined") return `${base}Front2.png`;
-      if (view === "backCombined") return `${base}Back2.png`;
       return `${base}Front.png`;
     } else if (type === "hoodie") {
       const base = `/assets/Blanks/${config.folder}/Hoodie-${encodedPrefix}-`;
       if (view === "back") return `${base}Back.png`;
-      if (view === "frontCombined") return `${base}Front2.png`;
-      if (view === "backCombined") return `${base}Back2.png`;
       return `${base}Front.png`;
     }
     return "";
   };
 
-  const getHoodieStringsPath = (colorPrefix: string, mode: PreviewMode = "front") => {
-    // Combined mode uses String2 files, front-only mode uses String files
+  const getHoodieStringsPath = (colorPrefix: string) => {
     if (colorPrefix === "Black_on_Black") {
-      return mode === "combined" 
-        ? `/assets/Blanks/BlankHoodies/Hoodie-Black Sting.2png`
-        : `/assets/Blanks/BlankHoodies/Hoodie-Black Sting.png`;
+      return `/assets/Blanks/BlankHoodies/Hoodie-Black Sting.png`;
     }
-    return mode === "combined"
-      ? `/assets/Blanks/BlankHoodies/Hoodie-White String2.png`
-      : `/assets/Blanks/BlankHoodies/Hoodie-White String.png`;
+    return `/assets/Blanks/BlankHoodies/Hoodie-White String.png`;
   };
 
   const toBlobUrl = (canvas: HTMLCanvasElement): Promise<string> =>
@@ -385,7 +409,7 @@ export default function DesignUploadForm({
   const compositeImage = async ({
     mode,
     productType,
-    previewImageElement,
+    previewWidth,
     frontBasePath,
     backBasePath,
     frontPosition,
@@ -393,7 +417,7 @@ export default function DesignUploadForm({
   }: {
     mode: PreviewMode;
     productType: ProductTypeKey;
-    previewImageElement: HTMLImageElement;
+    previewWidth?: number | null;
     frontBasePath: string;
     backBasePath?: string;
     frontPosition: DesignPosition;
@@ -409,10 +433,6 @@ export default function DesignUploadForm({
       throw new Error("Canvas context not available");
     }
 
-    if (!previewImageElement) {
-      throw new Error("Preview image not found");
-    }
-
     if (mode === "combined") {
       if (!backBasePath) {
         throw new Error("Missing back layer for combined preview");
@@ -423,53 +443,71 @@ export default function DesignUploadForm({
         loadImage(backBasePath),
       ]);
 
-      canvas.width = frontBase.width;
-      canvas.height = frontBase.height;
+      const layout = compositeLayout[productType] || compositeLayout.tee;
+      const scaleFactor = frontBase.width / (previewWidth || frontBase.width);
 
-      const scaleFactor = canvas.width / previewImageElement.clientWidth;
-      const drawDesign = (design: HTMLImageElement | null | undefined, position?: DesignPosition) => {
-        if (!design || !position) return;
-        const scaledX = position.x * scaleFactor;
-        const scaledY = position.y * scaleFactor;
-        const scaledWidth = position.width * scaleFactor;
-        const scaledHeight = position.height * scaleFactor;
-        ctx.drawImage(design, scaledX, scaledY, scaledWidth, scaledHeight);
+      // Compute scaled rectangles relative to a centered origin, then shift so nothing is clipped.
+      const rectFor = (img: HTMLImageElement, layer: "front" | "back") => {
+        const cfg = layout[layer];
+        const width = img.width * cfg.scale;
+        const height = img.height * cfg.scale;
+        return {
+          width,
+          height,
+          x: cfg.x - width / 2,
+          y: cfg.y - height / 2,
+        };
       };
 
+      const frontRect = rectFor(frontBase, "front");
+      const backRect = rectFor(backBase, "back");
+      const minX = Math.min(frontRect.x, backRect.x);
+      const minY = Math.min(frontRect.y, backRect.y);
+      const maxX = Math.max(frontRect.x + frontRect.width, backRect.x + backRect.width);
+      const maxY = Math.max(frontRect.y + frontRect.height, backRect.y + backRect.height);
+
+      canvas.width = maxX - minX;
+      canvas.height = maxY - minY;
+
+      const shiftX = -minX;
+      const shiftY = -minY;
+
+      const drawLayer = (
+        base: HTMLImageElement,
+        rect: { x: number; y: number; width: number; height: number },
+        design: HTMLImageElement | null | undefined,
+        position?: DesignPosition
+      ) => {
+        ctx.drawImage(base, rect.x, rect.y, rect.width, rect.height);
+        if (!design || !position) return;
+        const designX = rect.x + position.x * scaleFactor * (rect.width / base.width);
+        const designY = rect.y + position.y * scaleFactor * (rect.height / base.height);
+        const designW = position.width * scaleFactor * (rect.width / base.width);
+        const designH = position.height * scaleFactor * (rect.height / base.height);
+        ctx.drawImage(design, designX, designY, designW, designH);
+      };
+
+      // Layer order: Back base → back design → Front base → front design → (hoodie strings if applicable)
+      const backRectShifted = {
+        x: backRect.x + shiftX,
+        y: backRect.y + shiftY,
+        width: backRect.width,
+        height: backRect.height,
+      };
+      const frontRectShifted = {
+        x: frontRect.x + shiftX,
+        y: frontRect.y + shiftY,
+        width: frontRect.width,
+        height: frontRect.height,
+      };
+
+      drawLayer(backBase, backRectShifted, backDesignImage || designImage, backPosition);
+      drawLayer(frontBase, frontRectShifted, designImage, frontPosition);
+
       if (productType === "hoodie") {
-        // Hoodie combined layering: Back2 base → back design → Front2 → front design → strings
-        // Layer 1: Back2 base (BOTTOM)
-        ctx.drawImage(backBase, 0, 0, backBase.width, backBase.height);
-        // Layer 2: Back design overlay
-        drawDesign(backDesignImage || designImage, backPosition);
-        // Layer 3: Front2
-        ctx.drawImage(frontBase, 0, 0, frontBase.width, frontBase.height);
-        // Layer 4: Front design overlay
-        drawDesign(designImage, frontPosition);
-        // Layer 5: Hoodie strings (TOP)
         const colorPrefix = frontBasePath.match(/Hoodie-([^-]+)-/)?.[1] || "Black";
-        const stringsImg = await loadImage(getHoodieStringsPath(colorPrefix, "combined"));
-        ctx.drawImage(stringsImg, 0, 0, canvas.width, canvas.height);
-      } else if (productType === "crewneck") {
-        // Crewneck combined layering: Back2 base → back design → Front2 → front design
-        // Layer 1: Back2 base (BOTTOM)
-        ctx.drawImage(backBase, 0, 0, backBase.width, backBase.height);
-        // Layer 2: Back design overlay
-        drawDesign(backDesignImage || designImage, backPosition);
-        // Layer 3: Front2
-        ctx.drawImage(frontBase, 0, 0, frontBase.width, frontBase.height);
-        // Layer 4: Front design overlay
-        drawDesign(designImage, frontPosition);
-      } else {
-        // T-shirt combined layering (existing logic)
-        // Layer 1: Front base
-        ctx.drawImage(frontBase, 0, 0, frontBase.width, frontBase.height);
-        // Layer 2: Front design overlay
-        drawDesign(designImage, frontPosition);
-        // Layer 3: Back base
-        ctx.drawImage(backBase, 0, 0, backBase.width, backBase.height);
-        // Layer 4: Back design overlay
-        drawDesign(backDesignImage || designImage, backPosition);
+        const stringsImg = await loadImage(getHoodieStringsPath(colorPrefix));
+        ctx.drawImage(stringsImg, frontRectShifted.x, frontRectShifted.y, frontRectShifted.width, frontRectShifted.height);
       }
 
       return toBlobUrl(canvas);
@@ -481,7 +519,7 @@ export default function DesignUploadForm({
     canvas.width = baseImage.width;
     canvas.height = baseImage.height;
 
-    const scaleFactor = canvas.width / previewImageElement.clientWidth;
+    const scaleFactor = canvas.width / (previewWidth || baseImage.width);
     const position = isBack ? backPosition || frontPosition : frontPosition;
     const design = isBack ? backDesignImage || designImage : designImage;
 
@@ -496,7 +534,7 @@ export default function DesignUploadForm({
 
     if (productType === "hoodie" && mode !== "back") {
       const colorPrefix = basePath.match(/Hoodie-([^-]+)-/)?.[1] || "Black";
-      const stringsImg = await loadImage(getHoodieStringsPath(colorPrefix, mode));
+      const stringsImg = await loadImage(getHoodieStringsPath(colorPrefix));
       ctx.drawImage(stringsImg, 0, 0, canvas.width, canvas.height);
     }
 
@@ -546,8 +584,9 @@ export default function DesignUploadForm({
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("You must be signed in");
 
-    const previewImg = document.querySelector('.preview-blank-image') as HTMLImageElement;
-    if (!previewImg) throw new Error("Preview image not found");
+    const previewImg = document.querySelector('.preview-blank-image') as HTMLImageElement | null;
+    const previewWidthValue = previewWidth || previewImg?.clientWidth || previewImg?.naturalWidth;
+    if (!previewWidthValue) throw new Error("Preview image not found");
 
     const assets: Record<string, { url: string; colorName?: string; colorHex?: string }[]> = {};
 
@@ -566,22 +605,20 @@ export default function DesignUploadForm({
         const compositedDataUrl = await compositeImage({
           mode: modeForType,
           productType: type as ProductTypeKey,
-          previewImageElement: previewImg,
+          previewWidth: previewWidthValue,
           frontBasePath: getBlankImagePath(
             type as ProductTypeKey,
             color.filePrefix,
-            modeForType === "combined" ? "frontCombined" : "front"
+            "front"
           ),
           backBasePath:
             modeForType === "back"
               ? getBlankImagePath(type as ProductTypeKey, color.filePrefix, "back")
               : modeForType === "combined"
-              ? getBlankImagePath(type as ProductTypeKey, color.filePrefix, "backCombined")
+              ? getBlankImagePath(type as ProductTypeKey, color.filePrefix, "back")
               : undefined,
-          frontPosition:
-            modeForType === "combined" ? positionMap.combinedFront : positionMap.front,
-          backPosition:
-            modeForType === "combined" ? positionMap.combinedBack : positionMap.back,
+          frontPosition: positionMap.front,
+          backPosition: positionMap.back,
         });
         const imageUrl = await uploadCompositedImage(compositedDataUrl, type, color.filePrefix);
 
@@ -604,6 +641,7 @@ export default function DesignUploadForm({
     designImage,
     designName,
     designPositions,
+    previewWidth,
     selectedTypes,
     supabase,
   ]);
@@ -663,8 +701,9 @@ export default function DesignUploadForm({
       if (!user) throw new Error("You must be signed in");
 
       // Get the preview image element to calculate scale factor
-      const previewImg = document.querySelector('.preview-blank-image') as HTMLImageElement;
-      if (!previewImg) throw new Error("Preview image not found");
+      const previewImg = document.querySelector('.preview-blank-image') as HTMLImageElement | null;
+      const previewWidthValue = previewWidth || previewImg?.clientWidth || previewImg?.naturalWidth;
+      if (!previewWidthValue) throw new Error("Preview image not found");
 
       for (const type of selectedTypeList) {
         const config = PRODUCT_TYPES[type as ProductTypeKey];
@@ -703,22 +742,20 @@ export default function DesignUploadForm({
           const compositedDataUrl = await compositeImage({
             mode: modeForType,
             productType: type as ProductTypeKey,
-            previewImageElement: previewImg,
+            previewWidth: previewWidthValue,
             frontBasePath: getBlankImagePath(
               type as ProductTypeKey,
               color.filePrefix,
-              modeForType === "combined" ? "frontCombined" : "front"
+              "front"
             ),
             backBasePath:
               modeForType === "back"
                 ? getBlankImagePath(type as ProductTypeKey, color.filePrefix, "back")
                 : modeForType === "combined"
-                ? getBlankImagePath(type as ProductTypeKey, color.filePrefix, "backCombined")
+                ? getBlankImagePath(type as ProductTypeKey, color.filePrefix, "back")
                 : undefined,
-            frontPosition:
-              modeForType === "combined" ? positionMap.combinedFront : positionMap.front,
-            backPosition:
-              modeForType === "combined" ? positionMap.combinedBack : positionMap.back,
+            frontPosition: positionMap.front,
+            backPosition: positionMap.back,
           });
           const imageUrl = await uploadCompositedImage(compositedDataUrl, type, color.filePrefix);
 
@@ -785,8 +822,6 @@ export default function DesignUploadForm({
   const currentPositionKey = getPositionKeyForMode(effectivePreviewMode, activeLayer);
   const currentPosition = designPositions[currentEditingType][currentPositionKey];
   const positionMap = designPositions[currentEditingType];
-  const combinedFrontPosition = positionMap.combinedFront;
-  const combinedBackPosition = positionMap.combinedBack;
   const layerLabel =
     effectivePreviewMode === "combined"
       ? `${activeLayer === "front" ? "Front" : "Back"} layer`
@@ -794,6 +829,46 @@ export default function DesignUploadForm({
       ? "Back layer"
       : "Front layer";
   const backDesignUsed = getDesignForLayer("back");
+  
+  useEffect(() => {
+    if (effectivePreviewMode !== "combined") {
+      setCombinedPreviewUrl(null);
+      return;
+    }
+    if (!designImage || !previewWidth) return;
+
+    let cancelled = false;
+    const build = async () => {
+      try {
+        const url = await compositeImage({
+          mode: "combined",
+          productType: currentEditingType,
+          previewWidth,
+          frontBasePath: getBlankImagePath(currentEditingType, currentPreviewColor.filePrefix, "front"),
+          backBasePath: getBlankImagePath(currentEditingType, currentPreviewColor.filePrefix, "back"),
+          frontPosition: positionMap.front,
+          backPosition: positionMap.back,
+        });
+        if (!cancelled) setCombinedPreviewUrl(url);
+      } catch (err) {
+        console.error("Failed to build combined preview", err);
+        if (!cancelled) setCombinedPreviewUrl(null);
+      }
+    };
+
+    build();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    effectivePreviewMode,
+    designImage,
+    backDesignImage,
+    previewWidth,
+    currentEditingType,
+    currentPreviewColor.filePrefix,
+    positionMap,
+  ]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
@@ -942,169 +1017,29 @@ export default function DesignUploadForm({
               <div className="relative bg-[rgba(36,33,27,0.55)] border border-brand-accent w-full md:w-auto max-w-xl mx-auto md:mx-0">
                 {effectivePreviewMode === "combined" ? (
                   <>
-                    {currentEditingType === "hoodie" ? (
-                      <>
-                        {/* Hoodie combined: Back2 base → back design → Front2 → front design → strings */}
+                    <img
+                      src={getBlankImagePath(currentEditingType, currentPreviewColor.filePrefix, "front")}
+                      alt="Preview size reference"
+                      className="absolute opacity-0 pointer-events-none preview-blank-image"
+                      ref={previewImageRef}
+                      onLoad={updatePreviewWidth}
+                      aria-hidden
+                      style={{ maxWidth: "100%", height: "auto" }}
+                    />
+                    <div className="w-full">
+                      {combinedPreviewUrl ? (
                         <img
-                          src={getBlankImagePath(
-                            currentEditingType,
-                            currentPreviewColor.filePrefix,
-                            "backCombined"
-                          )}
-                          alt={`${currentConfig.label} - ${currentPreviewColor.name} combined back base`}
-                          className="block preview-blank-image"
-                          style={{ maxWidth: "100%", height: "auto" }}
+                          src={combinedPreviewUrl}
+                          alt="Combined preview"
+                          className="block w-full h-auto"
+                          onLoad={updatePreviewWidth}
                         />
-                        {backDesignUsed && (
-                          <img
-                            src={backDesignUsed.src}
-                            alt="Your design back"
-                            className="absolute pointer-events-none"
-                            style={{
-                              left: `${combinedBackPosition.x}px`,
-                              top: `${combinedBackPosition.y}px`,
-                              width: `${combinedBackPosition.width}px`,
-                              height: `${combinedBackPosition.height}px`,
-                            }}
-                          />
-                        )}
-                        <img
-                          src={getBlankImagePath(
-                            currentEditingType,
-                            currentPreviewColor.filePrefix,
-                            "frontCombined"
-                          )}
-                          alt={`${currentConfig.label} - ${currentPreviewColor.name} combined front`}
-                          className="absolute top-0 left-0 w-full h-auto pointer-events-none"
-                          style={{ maxWidth: "100%" }}
-                        />
-                        {designImage && (
-                          <img
-                            src={designImage.src}
-                            alt="Your design front"
-                            className="absolute pointer-events-none"
-                            style={{
-                              left: `${combinedFrontPosition.x}px`,
-                              top: `${combinedFrontPosition.y}px`,
-                              width: `${combinedFrontPosition.width}px`,
-                              height: `${combinedFrontPosition.height}px`,
-                            }}
-                          />
-                        )}
-                        <img
-                          src={getHoodieStringsPath(currentPreviewColor.filePrefix, "combined")}
-                          alt="Hoodie strings overlay"
-                          className="absolute top-0 left-0 pointer-events-none"
-                          style={{ 
-                            width: "100%", 
-                            height: "auto",
-                          }}
-                          onError={(e) => {
-                            console.warn("Failed to load hoodie strings overlay");
-                          }}
-                        />
-                      </>
-                    ) : currentEditingType === "crewneck" ? (
-                      <>
-                        {/* Crewneck combined: Back2 base → back design → Front2 → front design */}
-                        <img
-                          src={getBlankImagePath(
-                            currentEditingType,
-                            currentPreviewColor.filePrefix,
-                            "backCombined"
-                          )}
-                          alt={`${currentConfig.label} - ${currentPreviewColor.name} combined back base`}
-                          className="block preview-blank-image"
-                          style={{ maxWidth: "100%", height: "auto" }}
-                        />
-                        {backDesignUsed && (
-                          <img
-                            src={backDesignUsed.src}
-                            alt="Your design back"
-                            className="absolute pointer-events-none"
-                            style={{
-                              left: `${combinedBackPosition.x}px`,
-                              top: `${combinedBackPosition.y}px`,
-                              width: `${combinedBackPosition.width}px`,
-                              height: `${combinedBackPosition.height}px`,
-                            }}
-                          />
-                        )}
-                        <img
-                          src={getBlankImagePath(
-                            currentEditingType,
-                            currentPreviewColor.filePrefix,
-                            "frontCombined"
-                          )}
-                          alt={`${currentConfig.label} - ${currentPreviewColor.name} combined front`}
-                          className="absolute top-0 left-0 w-full h-auto pointer-events-none"
-                          style={{ maxWidth: "100%" }}
-                        />
-                        {designImage && (
-                          <img
-                            src={designImage.src}
-                            alt="Your design front"
-                            className="absolute pointer-events-none"
-                            style={{
-                              left: `${combinedFrontPosition.x}px`,
-                              top: `${combinedFrontPosition.y}px`,
-                              width: `${combinedFrontPosition.width}px`,
-                              height: `${combinedFrontPosition.height}px`,
-                            }}
-                          />
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        {/* T-shirt combined: Front base → front design → Back base → back design */}
-                        <img
-                          src={getBlankImagePath(
-                            currentEditingType,
-                            currentPreviewColor.filePrefix,
-                            "frontCombined"
-                          )}
-                          alt={`${currentConfig.label} - ${currentPreviewColor.name} combined front`}
-                          className="block preview-blank-image"
-                          style={{ maxWidth: "100%", height: "auto" }}
-                        />
-                        {designImage && (
-                          <img
-                            src={designImage.src}
-                            alt="Your design front"
-                            className="absolute pointer-events-none"
-                            style={{
-                              left: `${combinedFrontPosition.x}px`,
-                              top: `${combinedFrontPosition.y}px`,
-                              width: `${combinedFrontPosition.width}px`,
-                              height: `${combinedFrontPosition.height}px`,
-                            }}
-                          />
-                        )}
-                        <img
-                          src={getBlankImagePath(
-                            currentEditingType,
-                            currentPreviewColor.filePrefix,
-                            "backCombined"
-                          )}
-                          alt={`${currentConfig.label} - ${currentPreviewColor.name} combined back`}
-                          className="absolute top-0 left-0 w-full h-auto pointer-events-none"
-                          style={{ maxWidth: "100%" }}
-                        />
-                        {backDesignUsed && (
-                          <img
-                            src={backDesignUsed.src}
-                            alt="Your design back"
-                            className="absolute pointer-events-none"
-                            style={{
-                              left: `${combinedBackPosition.x}px`,
-                              top: `${combinedBackPosition.y}px`,
-                              width: `${combinedBackPosition.width}px`,
-                              height: `${combinedBackPosition.height}px`,
-                            }}
-                          />
-                        )}
-                      </>
-                    )}
+                      ) : (
+                        <div className="aspect-[3/4] w-full flex items-center justify-center text-sm text-brand-accent border border-dashed border-brand-accent/60 bg-[rgba(36,33,27,0.35)]">
+                          Combined preview will appear once assets load.
+                        </div>
+                      )}
+                    </div>
                   </>
                 ) : (
                   <>
@@ -1116,6 +1051,8 @@ export default function DesignUploadForm({
                       )}
                       alt={`${currentConfig.label} - ${currentPreviewColor.name}`}
                       className="block preview-blank-image"
+                      ref={previewImageRef}
+                      onLoad={updatePreviewWidth}
                       style={{ maxWidth: "100%", height: "auto" }}
                       onError={(e) => {
                         console.error(
@@ -1146,7 +1083,7 @@ export default function DesignUploadForm({
                     {/* Hoodie strings overlay (only for hoodies on front or combined views) */}
                     {currentEditingType === "hoodie" && effectivePreviewMode !== "back" && (
                       <img
-                        src={getHoodieStringsPath(currentPreviewColor.filePrefix, "front")}
+                        src={getHoodieStringsPath(currentPreviewColor.filePrefix)}
                         alt="Hoodie strings overlay"
                         className="absolute top-0 left-0 pointer-events-none"
                         style={{ 
@@ -1164,11 +1101,11 @@ export default function DesignUploadForm({
                   Adjust sliders to reposition your design. The preview updates in real-time.
                   {currentEditingType === "hoodie" && effectivePreviewMode === "front" && " (Hoodie strings overlay shown on top)"}
                   {currentEditingType === "hoodie" && effectivePreviewMode === "combined" &&
-                    " Hoodie layer order: Back2 base → Back design → Front2 → Front design → Strings (top)."}
+                    " Hoodie combined order: Back base → Back design → Front base → Front design → Strings (top)."}
                   {currentEditingType === "crewneck" && effectivePreviewMode === "combined" &&
-                    " Crewneck layer order: Back2 base → Back design → Front2 → Front design."}
+                    " Crewneck combined order: Back base → Back design → Front base → Front design."}
                   {currentEditingType === "tee" && effectivePreviewMode === "combined" &&
-                    " Layer order: Front base → Front design → Back base → Back design."}
+                    " Combined order: Back base → Back design → Front base → Front design."}
                   {effectivePreviewMode !== "front" && !backDesignUsed && " Back design not uploaded—reusing front artwork."}
                 </p>
               </div>
