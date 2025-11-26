@@ -139,17 +139,17 @@ export default function Home() {
                   >
                     <div className="product-image">
                       {hasValidImage ? (
-                        <Image
-                          src={firstImage.url}
-                          alt={firstImage.alt || product.title}
-                          width={600}
-                          height={600}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            // Fallback if image fails to load
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
+                      <Image
+                        src={firstImage.url}
+                        alt={firstImage.alt || product.title}
+                        width={600}
+                        height={600}
+                        className="w-full h-full object-contain bg-transparent"
+                        onError={(e) => {
+                          // Fallback if image fails to load
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
                       ) : (
                         <>
                           {/* Placeholder until product imagery is uploaded */}
@@ -158,7 +158,7 @@ export default function Home() {
                             alt="Placeholder for upcoming product imagery"
                             width={600}
                             height={600}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-contain bg-transparent"
                           />
                         </>
                       )}

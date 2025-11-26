@@ -394,14 +394,14 @@ function ProductClient({ product, variants, images }: any) {
             </span>
           </div>
           {/* Main Product Image - Single Large Image */}
-          <div className="border border-brand-accent overflow-hidden aspect-square mb-6">
+          <div className="border border-brand-accent overflow-hidden aspect-square mb-6 bg-[var(--paper)] flex items-center justify-center">
             {displayImage ? (
               <Image 
                 src={displayImage.url} 
                 alt={displayImage.alt ?? `${product.title} (${previewMode} preview)`} 
                 width={800} 
                 height={800}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain bg-transparent"
               />
             ) : (
               <>
@@ -411,7 +411,7 @@ function ProductClient({ product, variants, images }: any) {
                   alt="Placeholder for upcoming product imagery"
                   width={800}
                   height={800}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain bg-transparent"
                 />
               </>
             )}

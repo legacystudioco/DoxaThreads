@@ -142,7 +142,7 @@ export default function StorePage() {
                       alt={firstImage.alt || product.title}
                       width={600}
                       height={600}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain bg-transparent"
                       onError={(e) => {
                         // Fallback if image fails to load
                         e.currentTarget.style.display = 'none';
@@ -156,7 +156,7 @@ export default function StorePage() {
                         alt="Placeholder for upcoming product imagery"
                         width={600}
                         height={600}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain bg-transparent"
                       />
                     </>
                   )}
