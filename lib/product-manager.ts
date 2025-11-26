@@ -73,11 +73,13 @@ export function createProduct(productData: Partial<Product>): Product {
     created_at: new Date().toISOString(),
     product_images: productData.product_images || [],
     variants: productData.variants || [
-      { id: `var-${Date.now()}-1`, size: "S", price_cents: 2800, weight_oz: 5.0, active: true },
-      { id: `var-${Date.now()}-2`, size: "M", price_cents: 2800, weight_oz: 5.5, active: true },
-      { id: `var-${Date.now()}-3`, size: "L", price_cents: 2800, weight_oz: 6.0, active: true },
-      { id: `var-${Date.now()}-4`, size: "XL", price_cents: 3200, weight_oz: 6.5, active: true },
-      { id: `var-${Date.now()}-5`, size: "2XL", price_cents: 3600, weight_oz: 7.0, active: true },
+      { id: `var-${Date.now()}-1`, size: "S", price_cents: 2899, weight_oz: 5.0, active: true },
+      { id: `var-${Date.now()}-2`, size: "M", price_cents: 2899, weight_oz: 5.5, active: true },
+      { id: `var-${Date.now()}-3`, size: "L", price_cents: 2899, weight_oz: 6.0, active: true },
+      { id: `var-${Date.now()}-4`, size: "XL", price_cents: 2899, weight_oz: 6.5, active: true },
+      { id: `var-${Date.now()}-5`, size: "2XL", price_cents: 3099, weight_oz: 7.0, active: true },
+      { id: `var-${Date.now()}-6`, size: "3XL", price_cents: 3199, weight_oz: 7.5, active: true },
+      { id: `var-${Date.now()}-7`, size: "4XL", price_cents: 3299, weight_oz: 8.0, active: true },
     ],
   };
 

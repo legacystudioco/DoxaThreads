@@ -182,7 +182,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     const newVariant = {
       id: `new-${Date.now()}`,
       size: "",
-      price_cents: 2800,
+      price_cents: 2899,
       weight_oz: 5.0,
       active: true,
     };

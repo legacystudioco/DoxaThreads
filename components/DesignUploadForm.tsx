@@ -27,11 +27,13 @@ const PRODUCT_TYPES = {
       { name: "White", filePrefix: "White", hex: "#FFFFFF" },
     ],
     defaultPricing: [
-      { size: "S", price: 28.00, weight: 5.0 },
-      { size: "M", price: 28.00, weight: 5.5 },
-      { size: "L", price: 28.00, weight: 6.0 },
-      { size: "XL", price: 32.00, weight: 6.5 },
-      { size: "2XL", price: 36.00, weight: 7.0 },
+      { size: "S", price: 28.99, weight: 5.0 },
+      { size: "M", price: 28.99, weight: 5.5 },
+      { size: "L", price: 28.99, weight: 6.0 },
+      { size: "XL", price: 28.99, weight: 6.5 },
+      { size: "2XL", price: 30.99, weight: 7.0 },
+      { size: "3XL", price: 31.99, weight: 7.5 },
+      { size: "4XL", price: 32.99, weight: 8.0 },
     ],
   },
   crewneck: {
@@ -45,12 +47,15 @@ const PRODUCT_TYPES = {
       { name: "Tan", filePrefix: "Tan", hex: "#D2B48C" },
     ],
     defaultPricing: [
-      { size: "S", price: 40.00, weight: 8.0 },
-      { size: "M", price: 40.00, weight: 8.5 },
-      { size: "L", price: 40.00, weight: 9.0 },
-      { size: "XL", price: 44.00, weight: 9.5 },
-      { size: "2XL", price: 48.00, weight: 10.0 },
+      { size: "S", price: 38.99, weight: 8.0 },
+      { size: "M", price: 38.99, weight: 8.5 },
+      { size: "L", price: 38.99, weight: 9.0 },
+      { size: "XL", price: 38.99, weight: 9.5 },
+      { size: "2XL", price: 40.99, weight: 10.0 },
+      { size: "3XL", price: 41.99, weight: 10.5 },
+      { size: "4XL", price: 42.99, weight: 11.0 },
     ],
+    supportsAllPreviewModes: true, // Crewnecks support all three preview modes
   },
   hoodie: {
     label: "Hoodie",
@@ -63,11 +68,13 @@ const PRODUCT_TYPES = {
       { name: "Natural", filePrefix: "Natural", hex: "#F5F5DC" },
     ],
     defaultPricing: [
-      { size: "S", price: 45.00, weight: 12.0 },
-      { size: "M", price: 45.00, weight: 12.5 },
-      { size: "L", price: 45.00, weight: 13.0 },
-      { size: "XL", price: 49.00, weight: 13.5 },
-      { size: "2XL", price: 53.00, weight: 14.0 },
+      { size: "S", price: 44.99, weight: 12.0 },
+      { size: "M", price: 44.99, weight: 12.5 },
+      { size: "L", price: 44.99, weight: 13.0 },
+      { size: "XL", price: 44.99, weight: 13.5 },
+      { size: "2XL", price: 46.99, weight: 14.0 },
+      { size: "3XL", price: 48.99, weight: 14.5 },
+      { size: "4XL", price: 48.99, weight: 15.0 },
     ],
     supportsAllPreviewModes: true, // Hoodies support all three preview modes
   },
@@ -260,7 +267,7 @@ export default function DesignUploadForm({
 
   const updatePosition = (field: keyof DesignPosition, value: number) => {
     setDesignPositions(prev => {
-      const modeForType: PreviewMode = (currentEditingType === "tee" || currentEditingType === "hoodie") ? activePreviewMode : "front";
+      const modeForType: PreviewMode = (currentEditingType === "tee" || currentEditingType === "hoodie" || currentEditingType === "crewneck") ? activePreviewMode : "front";
       const positionKey = getPositionKeyForMode(modeForType, activeLayer);
       const currentMap = prev[currentEditingType];
       const current = currentMap[positionKey];
@@ -318,7 +325,11 @@ export default function DesignUploadForm({
       if (view === "backCombined") return `${base}Back2.png`;
       return `${base}Front.png`;
     } else if (type === "crewneck") {
-      return `/assets/Blanks/${config.folder}/424Wx635H-63783-${colorPrefix}-12-NL9007${colorPrefix}FlatFront.jpg`;
+      const base = `/assets/Blanks/${config.folder}/Crew-${encodedPrefix}-`;
+      if (view === "back") return `${base}Back.png`;
+      if (view === "frontCombined") return `${base}Front2.png`;
+      if (view === "backCombined") return `${base}Back2.png`;
+      return `${base}Front.png`;
     } else if (type === "hoodie") {
       const base = `/assets/Blanks/${config.folder}/Hoodie-${encodedPrefix}-`;
       if (view === "back") return `${base}Back.png`;
@@ -428,6 +439,16 @@ export default function DesignUploadForm({
         const colorPrefix = frontBasePath.match(/Hoodie-([^-]+)-/)?.[1] || "Black";
         const stringsImg = await loadImage(getHoodieStringsPath(colorPrefix));
         ctx.drawImage(stringsImg, 0, 0, canvas.width, canvas.height);
+      } else if (productType === "crewneck") {
+        // Crewneck combined layering: Back2 base → back design → Front2 → front design
+        // Layer 1: Back2 base (BOTTOM)
+        ctx.drawImage(backBase, 0, 0, backBase.width, backBase.height);
+        // Layer 2: Back design overlay
+        drawDesign(backDesignImage || designImage, backPosition);
+        // Layer 3: Front2
+        ctx.drawImage(frontBase, 0, 0, frontBase.width, frontBase.height);
+        // Layer 4: Front design overlay
+        drawDesign(designImage, frontPosition);
       } else {
         // T-shirt combined layering (existing logic)
         // Layer 1: Front base
@@ -530,7 +551,7 @@ export default function DesignUploadForm({
 
       for (let i = 0; i < colorsToProcess.length; i++) {
         const color = colorsToProcess[i];
-        const modeForType: PreviewMode = (type === "tee" || type === "hoodie") ? activePreviewMode : "front";
+        const modeForType: PreviewMode = (type === "tee" || type === "hoodie" || type === "crewneck") ? activePreviewMode : "front";
         const compositedDataUrl = await compositeImage({
           mode: modeForType,
           productType: type as ProductTypeKey,
@@ -624,7 +645,7 @@ export default function DesignUploadForm({
 
       for (const type of selectedTypeList) {
         const config = PRODUCT_TYPES[type as ProductTypeKey];
-        const modeForProduct: PreviewMode = (type === "tee" || type === "hoodie") ? activePreviewMode : "front";
+        const modeForProduct: PreviewMode = (type === "tee" || type === "hoodie" || type === "crewneck") ? activePreviewMode : "front";
         const positionMap = designPositions[type as ProductTypeKey];
         const selectedColors = colorSelections[type];
 
@@ -655,7 +676,7 @@ export default function DesignUploadForm({
         // Process colors and add them with proper color data
         for (let i = 0; i < colorsToProcess.length; i++) {
           const color = colorsToProcess[i];
-          const modeForType: PreviewMode = (type === "tee" || type === "hoodie") ? activePreviewMode : "front";
+          const modeForType: PreviewMode = (type === "tee" || type === "hoodie" || type === "crewneck") ? activePreviewMode : "front";
           const compositedDataUrl = await compositeImage({
             mode: modeForType,
             productType: type as ProductTypeKey,
@@ -745,7 +766,7 @@ export default function DesignUploadForm({
   ]);
 
   const effectivePreviewMode: PreviewMode =
-    currentEditingType === "tee" || currentEditingType === "hoodie" ? activePreviewMode : "front";
+    currentEditingType === "tee" || currentEditingType === "hoodie" || currentEditingType === "crewneck" ? activePreviewMode : "front";
   const currentConfig = PRODUCT_TYPES[currentEditingType];
   const currentPreviewColor = currentConfig.colors[previewColorIndex];
   const currentPositionKey = getPositionKeyForMode(effectivePreviewMode, activeLayer);
@@ -845,7 +866,7 @@ export default function DesignUploadForm({
                   onClick={() => {
                     setCurrentEditingType(type as ProductTypeKey);
                     setPreviewColorIndex(0);
-                    if (type !== "tee" && type !== "hoodie" && effectivePreviewMode !== "front") {
+                    if (type !== "tee" && type !== "hoodie" && type !== "crewneck" && effectivePreviewMode !== "front") {
                       handlePreviewModeChange("front");
                     }
                   }} 
@@ -869,7 +890,7 @@ export default function DesignUploadForm({
                 <div className="flex items-center gap-2">
                   <label className="text-sm font-medium text-brand-accent">Preview Mode:</label>
                   {(["front", "back", "combined"] as PreviewMode[]).map((mode) => {
-                    const disabled = currentEditingType !== "tee" && currentEditingType !== "hoodie" && mode !== "front";
+                    const disabled = currentEditingType !== "tee" && currentEditingType !== "hoodie" && currentEditingType !== "crewneck" && mode !== "front";
                     return (
                       <button
                         key={mode}
@@ -969,6 +990,56 @@ export default function DesignUploadForm({
                             console.warn("Failed to load hoodie strings overlay");
                           }}
                         />
+                      </>
+                    ) : currentEditingType === "crewneck" ? (
+                      <>
+                        {/* Crewneck combined: Back2 base → back design → Front2 → front design */}
+                        <img
+                          src={getBlankImagePath(
+                            currentEditingType,
+                            currentPreviewColor.filePrefix,
+                            "backCombined"
+                          )}
+                          alt={`${currentConfig.label} - ${currentPreviewColor.name} combined back base`}
+                          className="block preview-blank-image"
+                          style={{ maxWidth: "100%", height: "auto" }}
+                        />
+                        {backDesignUsed && (
+                          <img
+                            src={backDesignUsed.src}
+                            alt="Your design back"
+                            className="absolute pointer-events-none"
+                            style={{
+                              left: `${combinedBackPosition.x}px`,
+                              top: `${combinedBackPosition.y}px`,
+                              width: `${combinedBackPosition.width}px`,
+                              height: `${combinedBackPosition.height}px`,
+                            }}
+                          />
+                        )}
+                        <img
+                          src={getBlankImagePath(
+                            currentEditingType,
+                            currentPreviewColor.filePrefix,
+                            "frontCombined"
+                          )}
+                          alt={`${currentConfig.label} - ${currentPreviewColor.name} combined front`}
+                          className="absolute top-0 left-0 w-full h-auto pointer-events-none"
+                          style={{ maxWidth: "100%" }}
+                        />
+                        {designImage && (
+                          <img
+                            src={designImage.src}
+                            alt="Your design front"
+                            className="absolute pointer-events-none"
+                            style={{
+                              left: `${combinedFrontPosition.x}px`,
+                              top: `${combinedFrontPosition.y}px`,
+                              width: `${combinedFrontPosition.width}px`,
+                              height: `${combinedFrontPosition.height}px`,
+                            }}
+                          />
+                        )}
                       </>
                     ) : (
                       <>
@@ -1081,6 +1152,8 @@ export default function DesignUploadForm({
                   {currentEditingType === "hoodie" && effectivePreviewMode === "front" && " (Hoodie strings overlay shown on top)"}
                   {currentEditingType === "hoodie" && effectivePreviewMode === "combined" &&
                     " Hoodie layer order: Back2 base → Back design → Front2 → Front design → Strings (top)."}
+                  {currentEditingType === "crewneck" && effectivePreviewMode === "combined" &&
+                    " Crewneck layer order: Back2 base → Back design → Front2 → Front design."}
                   {currentEditingType === "tee" && effectivePreviewMode === "combined" &&
                     " Layer order: Front base → Front design → Back base → Back design."}
                   {effectivePreviewMode !== "front" && !backDesignUsed && " Back design not uploaded—reusing front artwork."}
