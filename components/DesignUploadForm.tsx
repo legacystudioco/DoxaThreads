@@ -1165,97 +1165,96 @@ export default function DesignUploadForm({
                 <p className="text-xs text-brand-accent mb-3 font-medium uppercase tracking-wide">
                   Editing: {layerLabel}
                 </p>
-                <div className="space-y-4">
-                  <div className="form-group">
-                    <label className="label text-brand-paper">X Position (Left/Right)</label>
-                    <input 
-                      type="range" 
-                      min="0" 
-                      max="400" 
-                      value={currentPosition.x} 
-                      onChange={(e) => updatePosition("x", parseInt(e.target.value))} 
-                      className="w-full" 
-                    />
-                    <span className="text-sm text-brand-paper">{currentPosition.x}px</span>
+                {effectivePreviewMode !== "combined" && (
+                  <div className="space-y-4">
+                    <div className="form-group">
+                      <label className="label text-brand-paper">X Position (Left/Right)</label>
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max="400" 
+                        value={currentPosition.x} 
+                        onChange={(e) => updatePosition("x", parseInt(e.target.value))} 
+                        className="w-full" 
+                      />
+                      <span className="text-sm text-brand-paper">{currentPosition.x}px</span>
+                    </div>
+                    <div className="form-group">
+                      <label className="label text-brand-paper">Y Position (Up/Down)</label>
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max="600" 
+                        value={currentPosition.y} 
+                        onChange={(e) => updatePosition("y", parseInt(e.target.value))} 
+                        className="w-full" 
+                      />
+                      <span className="text-sm text-brand-paper">{currentPosition.y}px</span>
+                    </div>
+                    <div className="form-group">
+                      <label className="label text-brand-paper">Scale (Size)</label>
+                      <input 
+                        type="range" 
+                        min="0.25" 
+                        max="2.5" 
+                        step="0.05"
+                        value={currentPosition.scale} 
+                        onChange={(e) => updatePosition("scale", parseFloat(e.target.value))} 
+                        className="w-full" 
+                      />
+                      <span className="text-sm text-brand-paper">{Math.round(currentPosition.scale * 100)}%</span>
+                    </div>
                   </div>
-                  <div className="form-group">
-                    <label className="label text-brand-paper">Y Position (Up/Down)</label>
-                    <input 
-                      type="range" 
-                      min="0" 
-                      max="600" 
-                      value={currentPosition.y} 
-                      onChange={(e) => updatePosition("y", parseInt(e.target.value))} 
-                      className="w-full" 
-                    />
-                    <span className="text-sm text-brand-paper">{currentPosition.y}px</span>
-                  </div>
-                  <div className="form-group">
-                    <label className="label text-brand-paper">Scale (Size)</label>
-                    <input 
-                      type="range" 
-                      min="0.25" 
-                      max="2.5" 
-                      step="0.05"
-                      value={currentPosition.scale} 
-                      onChange={(e) => updatePosition("scale", parseFloat(e.target.value))} 
-                      className="w-full" 
-                    />
-                    <span className="text-sm text-brand-paper">{Math.round(currentPosition.scale * 100)}%</span>
-                  </div>
-                </div>
+                )}
                 {effectivePreviewMode === "combined" && (
-                  <div className="mt-6 border-t border-brand-accent/50 pt-4">
-                    <p className="text-xs text-brand-accent mb-3 font-bold uppercase tracking-wide">Combined Shirt Group Offsets</p>
-                    <div className="space-y-4">
-                      <div className="form-group">
-                        <label className="label text-brand-paper">Front group X</label>
-                        <input
-                          type="range"
-                          min="-400"
-                          max="400"
-                          value={currentGroupOffsets.front.x}
-                          onChange={(e) => updateGroupOffset(currentEditingType, "front", "x", parseInt(e.target.value))}
-                          className="w-full"
-                        />
-                        <span className="text-sm text-brand-paper">{currentGroupOffsets.front.x}px</span>
-                      </div>
-                      <div className="form-group">
-                        <label className="label text-brand-paper">Front group Y</label>
-                        <input
-                          type="range"
-                          min="-400"
-                          max="400"
-                          value={currentGroupOffsets.front.y}
-                          onChange={(e) => updateGroupOffset(currentEditingType, "front", "y", parseInt(e.target.value))}
-                          className="w-full"
-                        />
-                        <span className="text-sm text-brand-paper">{currentGroupOffsets.front.y}px</span>
-                      </div>
-                      <div className="form-group">
-                        <label className="label text-brand-paper">Back group X</label>
-                        <input
-                          type="range"
-                          min="-400"
-                          max="400"
-                          value={currentGroupOffsets.back.x}
-                          onChange={(e) => updateGroupOffset(currentEditingType, "back", "x", parseInt(e.target.value))}
-                          className="w-full"
-                        />
-                        <span className="text-sm text-brand-paper">{currentGroupOffsets.back.x}px</span>
-                      </div>
-                      <div className="form-group">
-                        <label className="label text-brand-paper">Back group Y</label>
-                        <input
-                          type="range"
-                          min="-400"
-                          max="400"
-                          value={currentGroupOffsets.back.y}
-                          onChange={(e) => updateGroupOffset(currentEditingType, "back", "y", parseInt(e.target.value))}
-                          className="w-full"
-                        />
-                        <span className="text-sm text-brand-paper">{currentGroupOffsets.back.y}px</span>
-                      </div>
+                  <div className="space-y-4">
+                    <div className="form-group">
+                      <label className="label text-brand-paper">Front group X</label>
+                      <input
+                        type="range"
+                        min="-400"
+                        max="400"
+                        value={currentGroupOffsets.front.x}
+                        onChange={(e) => updateGroupOffset(currentEditingType, "front", "x", parseInt(e.target.value))}
+                        className="w-full"
+                      />
+                      <span className="text-sm text-brand-paper">{currentGroupOffsets.front.x}px</span>
+                    </div>
+                    <div className="form-group">
+                      <label className="label text-brand-paper">Front group Y</label>
+                      <input
+                        type="range"
+                        min="-400"
+                        max="400"
+                        value={currentGroupOffsets.front.y}
+                        onChange={(e) => updateGroupOffset(currentEditingType, "front", "y", parseInt(e.target.value))}
+                        className="w-full"
+                      />
+                      <span className="text-sm text-brand-paper">{currentGroupOffsets.front.y}px</span>
+                    </div>
+                    <div className="form-group">
+                      <label className="label text-brand-paper">Back group X</label>
+                      <input
+                        type="range"
+                        min="-400"
+                        max="400"
+                        value={currentGroupOffsets.back.x}
+                        onChange={(e) => updateGroupOffset(currentEditingType, "back", "x", parseInt(e.target.value))}
+                        className="w-full"
+                      />
+                      <span className="text-sm text-brand-paper">{currentGroupOffsets.back.x}px</span>
+                    </div>
+                    <div className="form-group">
+                      <label className="label text-brand-paper">Back group Y</label>
+                      <input
+                        type="range"
+                        min="-400"
+                        max="400"
+                        value={currentGroupOffsets.back.y}
+                        onChange={(e) => updateGroupOffset(currentEditingType, "back", "y", parseInt(e.target.value))}
+                        className="w-full"
+                      />
+                      <span className="text-sm text-brand-paper">{currentGroupOffsets.back.y}px</span>
                     </div>
                   </div>
                 )}
