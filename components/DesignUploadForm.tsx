@@ -446,7 +446,7 @@ export default function DesignUploadForm({
       const layout = compositeLayout[productType] || compositeLayout.tee;
       const scaleFactor = frontBase.width / (previewWidth || frontBase.width);
 
-      // Compute scaled rectangles relative to a centered origin, then shift so nothing is clipped.
+      // Compute scaled rectangles relative to the top-left origin, then shift so nothing is clipped.
       const rectFor = (img: HTMLImageElement, layer: "front" | "back") => {
         const cfg = layout[layer];
         const width = img.width * cfg.scale;
@@ -454,8 +454,8 @@ export default function DesignUploadForm({
         return {
           width,
           height,
-          x: cfg.x - width / 2,
-          y: cfg.y - height / 2,
+          x: cfg.x,
+          y: cfg.y,
         };
       };
 
