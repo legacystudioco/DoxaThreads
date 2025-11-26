@@ -95,7 +95,7 @@ const PRODUCT_TYPE_CONFIGS: Record<
 export default function NewProductPage() {
   const { isAuthenticated, loading: authLoading } = useStudioAuth();
   const router = useRouter();
-  const supabase = createClient();
+  
   // Redirect unauthenticated users to login instead of rendering a blank page
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -184,6 +184,7 @@ export default function NewProductPage() {
     }
 
     // Ensure user is authenticated for RLS
+    const supabase = createClient();
     const { data: { user }, error: userErr } = await supabase.auth.getUser();
     console.log('🔐 Current user:', user);
     console.log('🔐 User error:', userErr);
@@ -228,8 +229,9 @@ export default function NewProductPage() {
           message: `Creating ${PRODUCT_TYPE_CONFIGS[type].label}...`,
         });
 
-        const attemptInsert = async (slug: string) =>
-          supabase
+        const attemptInsert = async (slug: string) => {
+          const supabase = createClient();
+          return supabase
             .from("products")
             .insert({
               title,
@@ -241,6 +243,7 @@ export default function NewProductPage() {
             })
             .select("id")
             .single();
+        };
 
         let product;
         let productError;
@@ -278,6 +281,7 @@ export default function NewProductPage() {
             is_primary: index === 0,
           }));
 
+          const supabase = createClient();
           const { error: imageError } = await supabase.from("product_images").insert(imageRows);
           if (imageError) {
             console.error("❌ [product_images.insert] Full error object:", imageError);
@@ -303,6 +307,7 @@ export default function NewProductPage() {
           }))
         );
 
+        const supabase = createClient();
         const { error: variantsError } = await supabase
           .from("variants")
           .insert(variantsToInsert);

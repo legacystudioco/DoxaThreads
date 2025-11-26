@@ -723,6 +723,8 @@ export default function DesignUploadForm({
     activePreviewMode,
   ]);
 
+  const effectivePreviewMode: PreviewMode =
+    currentEditingType === "tee" ? activePreviewMode : "front";
   const currentConfig = PRODUCT_TYPES[currentEditingType];
   const currentPreviewColor = currentConfig.colors[previewColorIndex];
   const currentPositionKey = getPositionKeyForMode(effectivePreviewMode, activeLayer);
@@ -730,8 +732,6 @@ export default function DesignUploadForm({
   const positionMap = designPositions[currentEditingType];
   const combinedFrontPosition = positionMap.combinedFront;
   const combinedBackPosition = positionMap.combinedBack;
-  const effectivePreviewMode: PreviewMode =
-    currentEditingType === "tee" ? activePreviewMode : "front";
   const layerLabel =
     effectivePreviewMode === "combined"
       ? `${activeLayer === "front" ? "Front" : "Back"} layer`

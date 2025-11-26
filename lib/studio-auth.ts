@@ -9,10 +9,12 @@ export function useStudioAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const supabase = createClient();
 
   useEffect(() => {
+    // Get the supabase client inside the effect to avoid dependency issues
+    const supabase = createClient();
     let isMounted = true;
+    
     const hydrate = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -31,15 +33,17 @@ export function useStudioAuth() {
 
     // Listen for auth changes
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      router.refresh();
+      if (isMounted) {
+        setUser(session?.user ?? null);
+        router.refresh();
+      }
     });
 
     return () => {
       isMounted = false;
       data?.subscription?.unsubscribe();
     };
-  }, [router, supabase]);
+  }, [router]);
 
   return { user, isAuthenticated: !!user, loading };
 }
