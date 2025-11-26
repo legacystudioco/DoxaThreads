@@ -346,11 +346,16 @@ export default function DesignUploadForm({
     return "";
   };
 
-  const getHoodieStringsPath = (colorPrefix: string) => {
+  const getHoodieStringsPath = (colorPrefix: string, mode: PreviewMode = "front") => {
+    // Combined mode uses String2 files, front-only mode uses String files
     if (colorPrefix === "Black_on_Black") {
-      return `/assets/Blanks/BlankHoodies/Hoodie-Black Sting.2png`;
+      return mode === "combined" 
+        ? `/assets/Blanks/BlankHoodies/Hoodie-Black Sting.2png`
+        : `/assets/Blanks/BlankHoodies/Hoodie-Black Sting.png`;
     }
-    return `/assets/Blanks/BlankHoodies/Hoodie-White String.png`;
+    return mode === "combined"
+      ? `/assets/Blanks/BlankHoodies/Hoodie-White String2.png`
+      : `/assets/Blanks/BlankHoodies/Hoodie-White String.png`;
   };
 
   const toBlobUrl = (canvas: HTMLCanvasElement): Promise<string> =>
@@ -443,7 +448,7 @@ export default function DesignUploadForm({
         drawDesign(designImage, frontPosition);
         // Layer 5: Hoodie strings (TOP)
         const colorPrefix = frontBasePath.match(/Hoodie-([^-]+)-/)?.[1] || "Black";
-        const stringsImg = await loadImage(getHoodieStringsPath(colorPrefix));
+        const stringsImg = await loadImage(getHoodieStringsPath(colorPrefix, "combined"));
         ctx.drawImage(stringsImg, 0, 0, canvas.width, canvas.height);
       } else if (productType === "crewneck") {
         // Crewneck combined layering: Back2 base → back design → Front2 → front design
@@ -491,7 +496,7 @@ export default function DesignUploadForm({
 
     if (productType === "hoodie" && mode !== "back") {
       const colorPrefix = basePath.match(/Hoodie-([^-]+)-/)?.[1] || "Black";
-      const stringsImg = await loadImage(getHoodieStringsPath(colorPrefix));
+      const stringsImg = await loadImage(getHoodieStringsPath(colorPrefix, mode));
       ctx.drawImage(stringsImg, 0, 0, canvas.width, canvas.height);
     }
 
@@ -974,7 +979,7 @@ export default function DesignUploadForm({
                           />
                         )}
                         <img
-                          src={getHoodieStringsPath(currentPreviewColor.filePrefix)}
+                          src={getHoodieStringsPath(currentPreviewColor.filePrefix, "combined")}
                           alt="Hoodie strings overlay"
                           className="absolute top-0 left-0 pointer-events-none"
                           style={{ 
@@ -1128,7 +1133,7 @@ export default function DesignUploadForm({
                     {/* Hoodie strings overlay (only for hoodies on front or combined views) */}
                     {currentEditingType === "hoodie" && effectivePreviewMode !== "back" && (
                       <img
-                        src={getHoodieStringsPath(currentPreviewColor.filePrefix)}
+                        src={getHoodieStringsPath(currentPreviewColor.filePrefix, "front")}
                         alt="Hoodie strings overlay"
                         className="absolute top-0 left-0 pointer-events-none"
                         style={{ 
