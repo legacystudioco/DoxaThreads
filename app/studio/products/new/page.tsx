@@ -340,10 +340,10 @@ export default function NewProductPage() {
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-8 p-6 border border-brand-accent rounded bg-[rgba(36,33,27,0.7)] text-brand-paper">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight mb-2">Add New Product</h1>
-            <p className="text-neutral-600">Create a new product in your catalog</p>
+            <h1 className="text-3xl font-bold tracking-tight mb-2 text-brand-paper">Add New Product</h1>
+            <p className="text-brand-accent">Create a new product in your catalog</p>
           </div>
           <Link href="/studio/products" className="btn-secondary text-sm">
             ← Back
@@ -358,10 +358,10 @@ export default function NewProductPage() {
 
         {/* Live Editor */}
         <div className="card mb-8">
-          <h2 className="text-xl font-bold mb-4 pb-3 border-b-2 border-black">
+          <h2 className="text-xl font-bold mb-4 pb-3 border-b-2 border-brand-accent text-brand-paper">
             🎨 Live Editor
           </h2>
-          <p className="text-sm text-neutral-600 mb-4">
+          <p className="text-sm text-brand-accent mb-4">
             Use the live editor to visualize designs and color selections. The design name will be used for all product types.
           </p>
           <DesignUploadForm
@@ -376,11 +376,11 @@ export default function NewProductPage() {
 
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="card">
-            <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-black">
-              <h2 className="text-xl font-bold">Preview Mode (Customer View)</h2>
-              <span className="badge-outline text-xs">Admin only</span>
+            <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-brand-accent">
+              <h2 className="text-xl font-bold text-brand-paper">Preview Mode (Customer View)</h2>
+              <span className="badge-outline text-xs bg-transparent text-brand-paper border-brand-accent">Admin only</span>
             </div>
-            <p className="text-sm text-neutral-600 mb-4">
+            <p className="text-sm text-brand-accent mb-4">
               Pick which garment preview is surfaced to shoppers. This selection stays in sync with the live editor above.
             </p>
             <div className="flex flex-wrap gap-3">
@@ -390,7 +390,9 @@ export default function NewProductPage() {
                   type="button"
                   onClick={() => setPreviewMode(mode)}
                   className={`px-4 py-2 border-2 text-sm font-semibold ${
-                    previewMode === mode ? "bg-black text-white border-black" : "bg-white border-black"
+                    previewMode === mode
+                      ? "bg-brand-blood text-brand-paper border-brand-accent"
+                      : "bg-transparent text-brand-paper border-brand-accent"
                   }`}
                 >
                   {mode === "front" ? "Front only" : mode === "back" ? "Back only" : "Front + Back combined"}
@@ -400,9 +402,9 @@ export default function NewProductPage() {
           </div>
 
           <div className="card">
-            <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-black">
-              <h2 className="text-xl font-bold">Production Cost Calculator</h2>
-              <span className="badge-outline text-xs">Tabbed by garment</span>
+            <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-brand-accent">
+              <h2 className="text-xl font-bold text-brand-paper">Production Cost Calculator</h2>
+              <span className="badge-outline text-xs bg-transparent text-brand-paper border-brand-accent">Tabbed by garment</span>
             </div>
 
             <div className="flex flex-wrap gap-2 mb-6">
@@ -411,8 +413,8 @@ export default function NewProductPage() {
                   key={`tab-${type}`}
                   type="button"
                   onClick={() => setActiveCalcTab(type)}
-                  className={`px-4 py-2 border-2 border-black text-sm font-semibold ${
-                    activeCalcTab === type ? "bg-black text-white" : "bg-white"
+                  className={`px-4 py-2 border-2 border-brand-accent text-sm font-semibold ${
+                    activeCalcTab === type ? "bg-brand-blood text-brand-paper" : "bg-transparent text-brand-paper"
                   }`}
                 >
                   {PRODUCT_TYPE_CONFIGS[type].label}
@@ -432,13 +434,13 @@ export default function NewProductPage() {
                   <div className="grid lg:grid-cols-2 gap-6">
                     <div className="space-y-4">
                       <div className="form-group">
-                        <label className="label">Blank Cost</label>
+                        <label className="label text-brand-paper">Blank Cost</label>
                         <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-600">$</span>
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-accent">$</span>
                           <input
                             type="number"
                             step="0.01"
-                            className="input pl-8"
+                            className="input pl-8 text-brand-paper"
                             value={calc.blankCost}
                             onChange={(e) =>
                               updateProductionCalc(type, "blankCost", parseMoneyInput(e.target.value))
@@ -448,13 +450,13 @@ export default function NewProductPage() {
                       </div>
 
                       <div className="form-group">
-                        <label className="label">Transfer Cost</label>
+                        <label className="label text-brand-paper">Transfer Cost</label>
                         <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-600">$</span>
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-accent">$</span>
                           <input
                             type="number"
                             step="0.01"
-                            className="input pl-8"
+                            className="input pl-8 text-brand-paper"
                             value={calc.transferCost}
                             onChange={(e) =>
                               updateProductionCalc(type, "transferCost", parseMoneyInput(e.target.value))
@@ -463,31 +465,31 @@ export default function NewProductPage() {
                         </div>
                       </div>
 
-                      <div className="bg-neutral-100 border-2 border-dashed border-black p-4 rounded">
-                        <p className="text-xs font-bold uppercase tracking-wide text-neutral-600 mb-1">
+                      <div className="bg-[rgba(203,184,155,0.08)] border-2 border-dashed border-brand-accent p-4 rounded">
+                        <p className="text-xs font-bold uppercase tracking-wide text-brand-accent mb-1">
                           Base Order Print Cost
                         </p>
-                        <p className="text-lg font-bold">
+                        <p className="text-lg font-bold text-brand-paper">
                           ${baseOrderFee.toFixed(2)}{" "}
-                          <span className="text-sm font-medium text-neutral-700">per order</span>
+                          <span className="text-sm font-medium text-brand-accent">per order</span>
                         </p>
                       </div>
                     </div>
 
                     <div className="space-y-4">
-                      <p className="text-sm font-semibold uppercase tracking-wide text-neutral-700">
+                      <p className="text-sm font-semibold uppercase tracking-wide text-brand-accent">
                         Retail pricing (customer-facing)
                       </p>
                       <div className="grid grid-cols-2 gap-3">
                         {productionSizeTiers.map((tier) => (
                           <div className="form-group" key={`${type}-retail-${tier.label}`}>
-                            <label className="label">Retail Price {tier.label}</label>
+                            <label className="label text-brand-paper">Retail Price {tier.label}</label>
                             <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-600">$</span>
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-accent">$</span>
                               <input
                                 type="number"
                                 step="0.01"
-                                className="input pl-8"
+                                className="input pl-8 text-brand-paper"
                                 value={calc[tier.retailKey]}
                                 onChange={(e) =>
                                   updateProductionCalc(
@@ -501,21 +503,21 @@ export default function NewProductPage() {
                           </div>
                         ))}
                       </div>
-                      <p className="text-xs text-neutral-600">
+                      <p className="text-xs text-brand-accent">
                         Updates live as you type for planning only. It will not change the saved product.
                       </p>
                     </div>
                   </div>
 
-                  <div className="border-t-2 border-black pt-4">
+                  <div className="border-t-2 border-brand-accent pt-4">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-bold">Live Calculations (Qty 1)</h3>
-                      <span className="text-xs text-neutral-600">
+                      <h3 className="text-lg font-bold text-brand-paper">Live Calculations (Qty 1)</h3>
+                      <span className="text-xs text-brand-accent">
                         Printer cost = blank + transfer + base order print cost
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-bold uppercase tracking-wide text-neutral-600 mb-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-bold uppercase tracking-wide text-brand-accent mb-2">
                       <span>Size Tier</span>
                       <span className="text-right">Printer Cost</span>
                       <span className="text-right">Retail Price</span>
@@ -558,14 +560,14 @@ export default function NewProductPage() {
 
           {/* Submit */}
           {(submitting || progress) && (
-            <div className="card border-dashed border-2 border-black/40">
+            <div className="card border-dashed border-2 border-brand-accent/60">
               <div className="flex items-center justify-between text-sm font-medium">
                 <span>{progress?.message || "Processing..."}</span>
                 <span>{progress ? `${Math.min(progress.percent, 100)}%` : ""}</span>
               </div>
               <div className="w-full h-2 bg-neutral-200 rounded-full overflow-hidden mt-2">
                 <div
-                  className="h-full bg-black transition-all duration-300"
+                  className="h-full bg-brand-accent transition-all duration-300"
                   style={{ width: `${progress ? Math.min(progress.percent, 100) : 0}%` }}
                 />
               </div>

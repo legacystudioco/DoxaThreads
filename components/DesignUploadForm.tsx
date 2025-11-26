@@ -749,10 +749,10 @@ export default function DesignUploadForm({
       )}
 
       <div className="card">
-        <h2 className="text-xl font-bold mb-6 pb-4 border-b-2 border-black">Design Information</h2>
+        <h2 className="text-xl font-bold mb-6 pb-4 border-b-2 border-brand-accent text-brand-paper">Design Information</h2>
         <div className="space-y-4">
           <div className="form-group">
-            <label className="label">Design Name *</label>
+            <label className="label text-brand-paper">Design Name *</label>
             <input
               type="text"
               className="input"
@@ -763,37 +763,37 @@ export default function DesignUploadForm({
             />
           </div>
           <div className="form-group">
-            <label className="label">Description</label>
+            <label className="label text-brand-paper">Description</label>
             <textarea className="textarea" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe your design..." rows={4} />
           </div>
         </div>
       </div>
 
       <div className="card">
-        <h2 className="text-xl font-bold mb-6 pb-4 border-b-2 border-black">🎨 Upload Design (PNG)</h2>
+        <h2 className="text-xl font-bold mb-6 pb-4 border-b-2 border-brand-accent text-brand-paper">🎨 Upload Design (PNG)</h2>
         <div className="form-group">
-          <label className="label">Design File *</label>
+          <label className="label text-brand-paper">Design File *</label>
           <input type="file" accept="image/png" onChange={handleDesignUpload} className="input" required />
-          <p className="text-xs text-neutral-600 mt-1">Upload a transparent PNG for best results</p>
+          <p className="text-xs text-brand-accent mt-1">Upload a transparent PNG for best results</p>
         </div>
         <div className="form-group">
-          <label className="label">Back Design File (optional)</label>
+          <label className="label text-brand-paper">Back Design File (optional)</label>
           <input type="file" accept="image/png" onChange={handleBackDesignUpload} className="input" />
-          <p className="text-xs text-neutral-600 mt-1">
+          <p className="text-xs text-brand-accent mt-1">
             Back-only and combined previews will use this artwork. If omitted, the front design is reused.
           </p>
         </div>
         
         {designImage && (
-          <div className="mt-4 border-2 border-black p-4">
-            <p className="text-sm font-bold mb-2">Design Preview:</p>
-            <img src={designImage.src} alt="Design preview" className="max-w-xs border-2 border-black bg-gray-100" />
+          <div className="mt-4 border-2 border-brand-accent p-4">
+            <p className="text-sm font-bold mb-2 text-brand-paper">Design Preview:</p>
+            <img src={designImage.src} alt="Design preview" className="max-w-xs border-2 border-brand-accent bg-gray-100" />
           </div>
         )}
         {backDesignImage && (
-          <div className="mt-4 border-2 border-black p-4">
-            <p className="text-sm font-bold mb-2">Back Design Preview:</p>
-            <img src={backDesignImage.src} alt="Back design preview" className="max-w-xs border-2 border-black bg-gray-100" />
+          <div className="mt-4 border-2 border-brand-accent p-4">
+            <p className="text-sm font-bold mb-2 text-brand-paper">Back Design Preview:</p>
+            <img src={backDesignImage.src} alt="Back design preview" className="max-w-xs border-2 border-brand-accent bg-gray-100" />
           </div>
         )}
       </div>
@@ -815,7 +815,7 @@ export default function DesignUploadForm({
           <h2 className="text-xl font-bold mb-6 pb-4 border-b border-brand-accent">📐 Adjust Design Position & Preview</h2>
           
           <div className="mb-6">
-            <label className="label">Editing Position For:</label>
+            <label className="label text-brand-paper">Editing Position For:</label>
             <div className="flex gap-2">
               {Array.from(selectedTypes).map(type => (
                 <button 
@@ -828,7 +828,11 @@ export default function DesignUploadForm({
                       handlePreviewModeChange("front");
                     }
                   }} 
-                  className={`px-4 py-2 border border-brand-accent font-bold ${currentEditingType === type ? "bg-black text-white" : "bg-white text-black hover:bg-neutral-100"}`}
+                  className={`px-4 py-2 border border-brand-accent font-bold ${
+                    currentEditingType === type
+                      ? "bg-brand-blood text-brand-paper"
+                      : "bg-transparent text-brand-paper hover:bg-[rgba(203,184,155,0.12)]"
+                  }`}
                 >
                   {PRODUCT_TYPES[type as ProductTypeKey].label}
                 </button>
@@ -837,12 +841,12 @@ export default function DesignUploadForm({
           </div>
 
           {/* Live Preview Section */}
-          <div className="mb-6 p-4 bg-neutral-100 border border-brand-accent">
+          <div className="mb-6 p-4 bg-[rgba(36,33,27,0.7)] border border-brand-accent text-brand-paper">
             <div className="flex items-center justify-between mb-4 gap-4">
-              <h3 className="text-lg font-bold">👁️ Live Preview</h3>
+              <h3 className="text-lg font-bold text-brand-paper">👁️ Live Preview</h3>
               <div className="flex flex-wrap items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium">Preview Mode:</label>
+                  <label className="text-sm font-medium text-brand-accent">Preview Mode:</label>
                   {(["front", "back", "combined"] as PreviewMode[]).map((mode) => {
                     const disabled = currentEditingType !== "tee" && mode !== "front";
                     return (
@@ -852,8 +856,10 @@ export default function DesignUploadForm({
                         onClick={() => handlePreviewModeChange(mode)}
                         disabled={disabled}
                         className={`px-3 py-1 border text-xs font-semibold uppercase tracking-wide ${
-                          effectivePreviewMode === mode ? "bg-black text-white border-black" : "border-brand-accent bg-white"
-                        } ${disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-neutral-100"}`}
+                          effectivePreviewMode === mode
+                            ? "bg-brand-blood text-brand-paper border-brand-accent"
+                            : "border-brand-accent bg-transparent text-brand-paper"
+                        } ${disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-[rgba(203,184,155,0.12)]"}`}
                       >
                         {mode === "front" ? "Front only" : mode === "back" ? "Back only" : "Front + Back"}
                       </button>
@@ -861,7 +867,7 @@ export default function DesignUploadForm({
                   })}
                 </div>
                 <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium">Preview Color:</label>
+                  <label className="text-sm font-medium text-brand-accent">Preview Color:</label>
                   <select
                     value={previewColorIndex}
                     onChange={(e) => setPreviewColorIndex(parseInt(e.target.value))}
@@ -878,7 +884,7 @@ export default function DesignUploadForm({
             </div>
 
             <div className="flex flex-col md:flex-row gap-6 items-start">
-              <div className="relative bg-white border border-brand-accent w-full md:w-auto max-w-xl mx-auto md:mx-0">
+              <div className="relative bg-[rgba(36,33,27,0.55)] border border-brand-accent w-full md:w-auto max-w-xl mx-auto md:mx-0">
                 {effectivePreviewMode === "combined" ? (
                   <>
                     <img
@@ -982,7 +988,7 @@ export default function DesignUploadForm({
                     )}
                   </>
                 )}
-                <p className="text-xs text-neutral-600 mt-2 px-3 py-2">
+                <p className="text-xs text-brand-accent mt-2 px-3 py-2">
                   Adjust sliders to reposition your design. The preview updates in real-time.
                   {currentEditingType === "hoodie" && effectivePreviewMode !== "combined" && " (Hoodie strings overlay shown on top)"}
                   {effectivePreviewMode === "combined" &&
@@ -991,8 +997,8 @@ export default function DesignUploadForm({
                 </p>
               </div>
 
-              <div className="flex-1 w-full md:w-80 bg-white border border-dashed border-brand-accent rounded p-4">
-                <h4 className="text-sm font-bold mb-3">Position Controls</h4>
+              <div className="flex-1 w-full md:w-80 bg-[rgba(36,33,27,0.55)] text-brand-paper border border-dashed border-brand-accent rounded p-4">
+                <h4 className="text-sm font-bold mb-3 text-brand-paper">Position Controls</h4>
                 {effectivePreviewMode !== "front" && (
                   <div className="flex gap-2 mb-4">
                     <button
@@ -1000,7 +1006,9 @@ export default function DesignUploadForm({
                       onClick={() => setActiveLayer("front")}
                       disabled={effectivePreviewMode === "back"}
                       className={`px-3 py-1 border text-xs font-semibold ${
-                        activeLayer === "front" ? "bg-black text-white border-black" : "border-brand-accent bg-white"
+                        activeLayer === "front"
+                          ? "bg-brand-blood text-brand-paper border-brand-accent"
+                          : "border-brand-accent bg-transparent text-brand-paper"
                       } ${effectivePreviewMode === "back" ? "opacity-50 cursor-not-allowed" : ""}`}
                     >
                       Front Layer
@@ -1009,19 +1017,21 @@ export default function DesignUploadForm({
                       type="button"
                       onClick={() => setActiveLayer("back")}
                       className={`px-3 py-1 border text-xs font-semibold ${
-                        activeLayer === "back" ? "bg-black text-white border-black" : "border-brand-accent bg-white"
+                        activeLayer === "back"
+                          ? "bg-brand-blood text-brand-paper border-brand-accent"
+                          : "border-brand-accent bg-transparent text-brand-paper"
                       }`}
                     >
                       Back Layer
                     </button>
                   </div>
                 )}
-                <p className="text-xs text-neutral-600 mb-3 font-medium uppercase tracking-wide">
+                <p className="text-xs text-brand-accent mb-3 font-medium uppercase tracking-wide">
                   Editing: {layerLabel}
                 </p>
                 <div className="space-y-4">
                   <div className="form-group">
-                    <label className="label">X Position (Left/Right)</label>
+                    <label className="label text-brand-paper">X Position (Left/Right)</label>
                     <input 
                       type="range" 
                       min="0" 
@@ -1030,10 +1040,10 @@ export default function DesignUploadForm({
                       onChange={(e) => updatePosition("x", parseInt(e.target.value))} 
                       className="w-full" 
                     />
-                    <span className="text-sm text-neutral-600">{currentPosition.x}px</span>
+                    <span className="text-sm text-brand-paper">{currentPosition.x}px</span>
                   </div>
                   <div className="form-group">
-                    <label className="label">Y Position (Up/Down)</label>
+                    <label className="label text-brand-paper">Y Position (Up/Down)</label>
                     <input 
                       type="range" 
                       min="0" 
@@ -1042,10 +1052,10 @@ export default function DesignUploadForm({
                       onChange={(e) => updatePosition("y", parseInt(e.target.value))} 
                       className="w-full" 
                     />
-                    <span className="text-sm text-neutral-600">{currentPosition.y}px</span>
+                    <span className="text-sm text-brand-paper">{currentPosition.y}px</span>
                   </div>
                   <div className="form-group">
-                    <label className="label">Scale (Size)</label>
+                    <label className="label text-brand-paper">Scale (Size)</label>
                     <input 
                       type="range" 
                       min="0.25" 
@@ -1055,7 +1065,7 @@ export default function DesignUploadForm({
                       onChange={(e) => updatePosition("scale", parseFloat(e.target.value))} 
                       className="w-full" 
                     />
-                    <span className="text-sm text-neutral-600">{Math.round(currentPosition.scale * 100)}%</span>
+                    <span className="text-sm text-brand-paper">{Math.round(currentPosition.scale * 100)}%</span>
                   </div>
                 </div>
               </div>
@@ -1068,14 +1078,14 @@ export default function DesignUploadForm({
         const config = PRODUCT_TYPES[type as ProductTypeKey];
         return (
           <div key={type} className="card">
-            <h2 className="text-xl font-bold mb-6 pb-4 border-b-2 border-black">🎨 Select Colors for {config.label}</h2>
-            <p className="text-sm text-neutral-600 mb-4">
+            <h2 className="text-xl font-bold mb-6 pb-4 border-b-2 border-brand-accent text-brand-paper">🎨 Select Colors for {config.label}</h2>
+            <p className="text-sm text-brand-accent mb-4">
               Check the colors that look good with your design (use preview above to verify)
               {type === "hoodie" && " • Hoodie strings will be overlaid on all colors"}
             </p>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {config.colors.map(color => (
-                <label key={color.filePrefix} className="flex items-center gap-3 cursor-pointer p-3 border-2 border-black hover:bg-gray-50">
+                <label key={color.filePrefix} className="flex items-center gap-3 cursor-pointer p-3 border-2 border-brand-accent hover:bg-[rgba(203,184,155,0.12)]">
                   <input type="checkbox" checked={colorSelections[type]?.[color.filePrefix] || false} onChange={() => toggleColor(type, color.filePrefix)} className="w-5 h-5" />
                   <span className="font-medium">{color.name}</span>
                 </label>
@@ -1089,14 +1099,14 @@ export default function DesignUploadForm({
         <div className="flex gap-4">
           {progress && (
             <div className="flex-1">
-              <div className="card border-dashed border-2 border-black/40 mb-4">
+              <div className="card border-dashed border-2 border-brand-accent/60 mb-4">
                 <div className="flex items-center justify-between text-sm font-medium">
                   <span>{progress.message}</span>
                   <span>{Math.min(progress.percent, 100)}%</span>
                 </div>
                 <div className="w-full h-2 bg-neutral-200 rounded-full overflow-hidden mt-2">
                   <div
-                    className="h-full bg-black transition-all duration-300"
+                    className="h-full bg-brand-accent transition-all duration-300"
                     style={{ width: `${Math.min(progress.percent, 100)}%` }}
                   />
                 </div>
