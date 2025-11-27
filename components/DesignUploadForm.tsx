@@ -419,8 +419,8 @@ export default function DesignUploadForm({
             reject(new Error("Failed to create blob"));
           }
         },
-        "image/jpeg",
-        0.9
+        "image/png",  // Changed from "image/jpeg" to "image/png" for transparency
+        1.0  // Maximum quality
       );
     });
 
@@ -555,16 +555,16 @@ export default function DesignUploadForm({
     return toBlobUrl(canvas);
   };
 
-  const uploadCompositedImage = async (dataUrl: string, productType: string, color: string): Promise<string> => {
+  const uploadCompositedImage = async (dataUrl: string, productType: string, color: string, view: string = "combined"): Promise<string> => {
     const response = await fetch(dataUrl);
     const blob = await response.blob();
     
-    const fileName = `${Date.now()}-${designName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${productType}-${color}.jpg`;
+    const fileName = `${Date.now()}-${designName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${productType}-${color}-${view}.png`;  // Changed to .png
     const filePath = `products/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
       .from("product-images")
-      .upload(filePath, blob, { cacheControl: "3600", upsert: false });
+      .upload(filePath, blob, { cacheControl: "3600", upsert: false, contentType: "image/png" });  // Added contentType
 
     if (uploadError) throw uploadError;
 
@@ -602,7 +602,7 @@ export default function DesignUploadForm({
     const previewWidthValue = previewWidth || previewImg?.clientWidth || previewImg?.naturalWidth;
     if (!previewWidthValue) throw new Error("Preview image not found");
 
-    const assets: Record<string, { url: string; colorName?: string; colorHex?: string }[]> = {};
+    const assets: Record<string, { url: string; colorName?: string; colorHex?: string; view?: string }[]> = {};
 
     for (const type of Array.from(selectedTypes)) {
       const config = PRODUCT_TYPES[type as ProductTypeKey];
@@ -615,34 +615,35 @@ export default function DesignUploadForm({
 
       for (let i = 0; i < colorsToProcess.length; i++) {
         const color = colorsToProcess[i];
-        const modeForType: PreviewMode = (type === "tee" || type === "hoodie" || type === "crewneck") ? activePreviewMode : "front";
-        const compositedDataUrl = await compositeImage({
-          mode: modeForType,
-          productType: type as ProductTypeKey,
-          previewWidth: previewWidthValue,
-          frontGroupOffset: groupOffsets[type as ProductTypeKey].front,
-          backGroupOffset: groupOffsets[type as ProductTypeKey].back,
-          frontBasePath: getBlankImagePath(
-            type as ProductTypeKey,
-            color.filePrefix,
-            "front"
-          ),
-          backBasePath:
-            modeForType === "back"
-              ? getBlankImagePath(type as ProductTypeKey, color.filePrefix, "back")
-              : modeForType === "combined"
-              ? getBlankImagePath(type as ProductTypeKey, color.filePrefix, "back")
-              : undefined,
-          frontPosition: positionMap.front,
-          backPosition: positionMap.back,
-        });
-        const imageUrl = await uploadCompositedImage(compositedDataUrl, type, color.filePrefix);
+        
+        // Generate ALL three views for each color
+        const views: PreviewMode[] = ["front", "back", "combined"];
+        
+        for (const view of views) {
+          const compositedDataUrl = await compositeImage({
+            mode: view,
+            productType: type as ProductTypeKey,
+            previewWidth: previewWidthValue,
+            frontGroupOffset: groupOffsets[type as ProductTypeKey].front,
+            backGroupOffset: groupOffsets[type as ProductTypeKey].back,
+            frontBasePath: getBlankImagePath(
+              type as ProductTypeKey,
+              color.filePrefix,
+              "front"
+            ),
+            backBasePath: getBlankImagePath(type as ProductTypeKey, color.filePrefix, "back"),
+            frontPosition: positionMap.front,
+            backPosition: positionMap.back,
+          });
+          const imageUrl = await uploadCompositedImage(compositedDataUrl, type, color.filePrefix, view);
 
-        assets[type].push({
-          url: imageUrl,
-          colorName: color.name,
-          colorHex: color.hex,
-        });
+          assets[type].push({
+            url: imageUrl,
+            colorName: color.name,
+            colorHex: color.hex,
+            view: view,  // Add the view type so we know which image is which
+          });
+        }
       }
     }
 

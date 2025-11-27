@@ -294,15 +294,36 @@ export default function NewProductPage() {
             message: `Saving images for ${title}...`,
           });
 
-          const imageRows = assets.map((asset, index) => ({
-            product_id: product.id,
-            url: asset.url,
-            alt: `${title}${asset.colorName ? ` - ${asset.colorName}` : ""}`,
-            sort: index,
-            color_name: asset.colorName,
-            color_hex: asset.colorHex,
-            is_primary: index === 0,
-          }));
+          // Group assets by color, each color should have 3 views (front, back, combined)
+          const assetsByColor = new Map<string, typeof assets>();
+          assets.forEach(asset => {
+            const colorKey = asset.colorName || 'default';
+            if (!assetsByColor.has(colorKey)) {
+              assetsByColor.set(colorKey, []);
+            }
+            assetsByColor.get(colorKey)!.push(asset);
+          });
+
+          // Create image rows with proper alt text including view type
+          const imageRows: any[] = [];
+          let sortIndex = 0;
+          
+          assetsByColor.forEach((colorAssets, colorName) => {
+            colorAssets.forEach((asset: any) => {
+              // Determine if this is the primary image based on preview mode
+              const isPrimary = asset.view === modeForProduct && sortIndex < 3; // First color's preview mode image
+              
+              imageRows.push({
+                product_id: product.id,
+                url: asset.url,
+                alt: `${title} - ${colorName} - ${asset.view || 'view'}`,
+                sort: sortIndex++,
+                color_name: asset.colorName,
+                color_hex: asset.colorHex,
+                is_primary: isPrimary,
+              });
+            });
+          });
 
           const supabase = createClient();
           const { error: imageError } = await supabase.from("product_images").insert(imageRows);
@@ -317,7 +338,12 @@ export default function NewProductPage() {
           message: `Saving variants for ${title}...`,
         });
 
-        const variantsToInsert = assets.flatMap((asset, colorIndex) =>
+        // Group assets by color to avoid duplicate variants (since we now have 3 images per color)
+        const uniqueColorAssets = Array.from(
+          new Map(assets.map(asset => [asset.colorName, asset])).values()
+        );
+
+        const variantsToInsert = uniqueColorAssets.flatMap((asset, colorIndex) =>
           config.defaultVariants.map((v, sizeIndex) => ({
             product_id: product.id,
             size: v.size,
