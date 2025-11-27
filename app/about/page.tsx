@@ -14,7 +14,7 @@ export default function AboutPage() {
               width={500}
               height={150}
               priority
-              className="h-24 lg:h-32 w-auto"
+              className="h-32 lg:h-44 w-auto"
             />
           </div>
           <p className="text-xl lg:text-2xl text-neutral-600">Greek for Glory. Worn with honor. Backed by faith.</p>
