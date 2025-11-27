@@ -255,7 +255,7 @@
            mb-4
            transition-all duration-300;
     border-color: var(--line);
-    background: var(--paper);
+    background: transparent;
   }
 
   .product-image img {
@@ -270,13 +270,15 @@
            uppercase 
            tracking-[0.12em] 
            mb-2
-           transition-colors;
+           transition-colors
+           text-center;
     color: var(--ink-black);
   }
 
   .product-price {
     @apply text-base font-semibold 
-           tracking-tight;
+           tracking-tight
+           text-center;
     color: var(--storm-blue);
   }
 

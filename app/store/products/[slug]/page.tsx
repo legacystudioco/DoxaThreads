@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase-client";
 
 type PreviewMode = "front" | "back" | "combined";
+type ImageView = "front" | "back" | "combined";
 
 export default function ProductPage({ params }: { params: { slug: string } }) {
   const [product, setProduct] = useState<any>(null);
@@ -89,6 +90,7 @@ function ProductClient({ product, variants, images }: any) {
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [qty, setQty] = useState(1);
+  const [imageView, setImageView] = useState<ImageView>("combined");
   const previewMode: PreviewMode = (product.preview_mode as PreviewMode) || "front";
 
   // Get unique colors from images - deduplicate by color name
@@ -150,10 +152,37 @@ function ProductClient({ product, variants, images }: any) {
     }
   }, [selectedColor, selectedSize, variants]);
 
-  // Get the image to display based on selected color
-  const displayImage = selectedColor 
-    ? images.find((img: any) => img.color_name === selectedColor) || images[0]
-    : images[0];
+  // Get the images to display based on selected color and view
+  const getDisplayImages = () => {
+    let filteredImages = selectedColor 
+      ? images.filter((img: any) => img.color_name === selectedColor)
+      : images;
+
+    if (imageView === "combined") {
+      // Show the combined front/back image
+      const combined = filteredImages.find((img: any) => 
+        img.alt?.toLowerCase().includes("front") && img.alt?.toLowerCase().includes("back")
+      );
+      return combined ? [combined] : filteredImages.slice(0, 1);
+    } else if (imageView === "front") {
+      // Show only front view
+      const front = filteredImages.find((img: any) => 
+        img.alt?.toLowerCase().includes("front") && !img.alt?.toLowerCase().includes("back")
+      );
+      return front ? [front] : filteredImages.slice(0, 1);
+    } else if (imageView === "back") {
+      // Show only back view
+      const back = filteredImages.find((img: any) => 
+        img.alt?.toLowerCase().includes("back") && !img.alt?.toLowerCase().includes("front")
+      );
+      return back ? [back] : filteredImages.slice(0, 1);
+    }
+    
+    return filteredImages.slice(0, 1);
+  };
+
+  const displayImages = getDisplayImages();
+  const displayImage = displayImages[0];
 
   const handleAddToCart = (e: React.FormEvent) => {
     e.preventDefault();
@@ -381,24 +410,54 @@ function ProductClient({ product, variants, images }: any) {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-12">
-        {/* Left Column: Single Image with Color Selector */}
+        {/* Left Column: Image with View Toggle and Color Selector */}
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-semibold uppercase tracking-wide">Preview</span>
-            <span className="badge-outline text-xs">
-              {previewMode === "front"
-                ? "Front view"
-                : previewMode === "back"
-                ? "Back view"
-                : "Front + Back view"}
-            </span>
+          {/* View Toggle Buttons */}
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-sm font-semibold uppercase tracking-wide">Select View</span>
           </div>
-          {/* Main Product Image - Single Large Image */}
-          <div className="border border-brand-accent overflow-hidden aspect-square mb-6 bg-[var(--paper)] flex items-center justify-center">
+          <div className="flex gap-2 mb-4">
+            <button
+              type="button"
+              onClick={() => setImageView("front")}
+              className={`px-4 py-2 border-2 text-xs font-bold uppercase tracking-wider transition-colors ${
+                imageView === "front" 
+                  ? "bg-black text-white border-black" 
+                  : "border-black text-black hover:bg-black hover:text-white"
+              }`}
+            >
+              Front
+            </button>
+            <button
+              type="button"
+              onClick={() => setImageView("back")}
+              className={`px-4 py-2 border-2 text-xs font-bold uppercase tracking-wider transition-colors ${
+                imageView === "back" 
+                  ? "bg-black text-white border-black" 
+                  : "border-black text-black hover:bg-black hover:text-white"
+              }`}
+            >
+              Back
+            </button>
+            <button
+              type="button"
+              onClick={() => setImageView("combined")}
+              className={`px-4 py-2 border-2 text-xs font-bold uppercase tracking-wider transition-colors ${
+                imageView === "combined" 
+                  ? "bg-black text-white border-black" 
+                  : "border-black text-black hover:bg-black hover:text-white"
+              }`}
+            >
+              Both
+            </button>
+          </div>
+
+          {/* Main Product Image */}
+          <div className="border-2 border-brand-accent overflow-hidden aspect-square mb-6 flex items-center justify-center bg-transparent">
             {displayImage ? (
               <Image 
                 src={displayImage.url} 
-                alt={displayImage.alt ?? `${product.title} (${previewMode} preview)`} 
+                alt={displayImage.alt ?? `${product.title} (${imageView} view)`} 
                 width={800} 
                 height={800}
                 className="w-full h-full object-contain bg-transparent"
