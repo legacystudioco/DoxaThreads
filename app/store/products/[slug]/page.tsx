@@ -159,21 +159,25 @@ function ProductClient({ product, variants, images }: any) {
       : images;
 
     if (imageView === "combined") {
-      // Show the combined front/back image
+      // Show the combined front/back image - look for images with "both" in the URL or alt
       const combined = filteredImages.find((img: any) => 
-        img.alt?.toLowerCase().includes("front") && img.alt?.toLowerCase().includes("back")
+        img.url?.toLowerCase().includes("both") || 
+        img.url?.toLowerCase().includes("combined") ||
+        (img.alt?.toLowerCase().includes("front") && img.alt?.toLowerCase().includes("back"))
       );
       return combined ? [combined] : filteredImages.slice(0, 1);
     } else if (imageView === "front") {
-      // Show only front view
+      // Show only front view - look for images with "front" in URL or alt (but not "back")
       const front = filteredImages.find((img: any) => 
-        img.alt?.toLowerCase().includes("front") && !img.alt?.toLowerCase().includes("back")
+        (img.url?.toLowerCase().includes("front") && !img.url?.toLowerCase().includes("back")) ||
+        (img.alt?.toLowerCase().includes("front") && !img.alt?.toLowerCase().includes("back"))
       );
       return front ? [front] : filteredImages.slice(0, 1);
     } else if (imageView === "back") {
-      // Show only back view
+      // Show only back view - look for images with "back" in URL or alt (but not "front")
       const back = filteredImages.find((img: any) => 
-        img.alt?.toLowerCase().includes("back") && !img.alt?.toLowerCase().includes("front")
+        (img.url?.toLowerCase().includes("back") && !img.url?.toLowerCase().includes("front")) ||
+        (img.alt?.toLowerCase().includes("back") && !img.alt?.toLowerCase().includes("front"))
       );
       return back ? [back] : filteredImages.slice(0, 1);
     }
@@ -453,14 +457,15 @@ function ProductClient({ product, variants, images }: any) {
           </div>
 
           {/* Main Product Image */}
-          <div className="border-2 border-brand-accent overflow-hidden aspect-square mb-6 flex items-center justify-center bg-transparent">
+          <div className="border-2 border-brand-accent overflow-hidden aspect-square mb-6 flex items-center justify-center" style={{ backgroundColor: '#F3E8D8' }}>
             {displayImage ? (
               <Image 
                 src={displayImage.url} 
                 alt={displayImage.alt ?? `${product.title} (${imageView} view)`} 
                 width={800} 
                 height={800}
-                className="w-full h-full object-contain bg-transparent"
+                className="w-full h-full object-contain"
+                style={{ mixBlendMode: 'multiply' }}
               />
             ) : (
               <>
@@ -470,7 +475,7 @@ function ProductClient({ product, variants, images }: any) {
                   alt="Placeholder for upcoming product imagery"
                   width={800}
                   height={800}
-                  className="w-full h-full object-contain bg-transparent"
+                  className="w-full h-full object-contain"
                 />
               </>
             )}

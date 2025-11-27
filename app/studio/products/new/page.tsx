@@ -105,6 +105,7 @@ export default function NewProductPage() {
   
   const baseOrderFee = 5;
   const [designName, setDesignName] = useState("");
+  const [productDescription, setProductDescription] = useState("");
   const [selectedTypes, setSelectedTypes] = useState<Set<ProductTypeKey>>(new Set(["tee"]));
   const [activeCalcTab, setActiveCalcTab] = useState<ProductTypeKey>("tee");
   const [assetGenerator, setAssetGenerator] = useState<
@@ -218,7 +219,7 @@ export default function NewProductPage() {
         const slugBase =
           slugSource.replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") ||
           `${config.label.toLowerCase()}`;
-        const description = "";
+        const description = productDescription.trim() || `${titleBase} ${config.label} - Premium quality apparel with custom design. Made to order.`;
         const print_cost_cents = Math.round(
           (calc.blankCost + calc.transferCost + baseOrderFee) * 100
         );
@@ -394,6 +395,21 @@ export default function NewProductPage() {
             onPreviewModeChange={setPreviewMode}
             setAssetGenerator={setAssetGenerator}
           />
+          
+          {/* Product Description Field */}
+          <div className="mt-6 pt-6 border-t-2 border-brand-accent">
+            <label className="label text-brand-paper mb-2">Product Description (Optional)</label>
+            <p className="text-xs text-brand-accent mb-3">
+              Add a custom description for this product. If left empty, a default description will be generated.
+            </p>
+            <textarea
+              className="input w-full text-brand-paper"
+              value={productDescription}
+              onChange={(e) => setProductDescription(e.target.value)}
+              rows={3}
+              placeholder="Enter a custom description for your product..."
+            />
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
