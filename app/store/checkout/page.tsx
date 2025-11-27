@@ -294,7 +294,7 @@ export default function CheckoutPage() {
                       setShouldCreateIntent(true);
                     }
                   }}
-                  className="w-full border border-brand-accent px-3 py-3 rounded-none"
+                  className="w-full border border-brand-accent px-3 py-3 rounded-none bg-[var(--storm-blue)] text-[var(--paper)] placeholder:text-[rgba(243,232,216,0.6)]"
                   placeholder="you@example.com"
                 />
               </div>
@@ -309,7 +309,7 @@ export default function CheckoutPage() {
                       required
                       value={shippingAddress.name}
                       onChange={(e) => updateAddress("name", e.target.value)}
-                      className="w-full border border-brand-accent px-3 py-3 rounded-none"
+                      className="w-full border border-brand-accent px-3 py-3 rounded-none bg-[var(--storm-blue)] text-[var(--paper)] placeholder:text-[rgba(243,232,216,0.6)]"
                       placeholder="Full name"
                     />
                   </div>
@@ -318,7 +318,7 @@ export default function CheckoutPage() {
                       type="text"
                       value={shippingAddress.phone}
                       onChange={(e) => updateAddress("phone", e.target.value)}
-                      className="w-full border border-brand-accent px-3 py-3 rounded-none"
+                      className="w-full border border-brand-accent px-3 py-3 rounded-none bg-[var(--storm-blue)] text-[var(--paper)] placeholder:text-[rgba(243,232,216,0.6)]"
                       placeholder="Phone (optional)"
                     />
                   </div>
@@ -328,7 +328,7 @@ export default function CheckoutPage() {
                       required
                       value={shippingAddress.line1}
                       onChange={(e) => updateAddress("line1", e.target.value)}
-                      className="w-full border border-brand-accent px-3 py-3 rounded-none"
+                      className="w-full border border-brand-accent px-3 py-3 rounded-none bg-[var(--storm-blue)] text-[var(--paper)] placeholder:text-[rgba(243,232,216,0.6)]"
                       placeholder="Address line 1"
                     />
                   </div>
@@ -337,7 +337,7 @@ export default function CheckoutPage() {
                       type="text"
                       value={shippingAddress.line2}
                       onChange={(e) => updateAddress("line2", e.target.value)}
-                      className="w-full border border-brand-accent px-3 py-3 rounded-none"
+                      className="w-full border border-brand-accent px-3 py-3 rounded-none bg-[var(--storm-blue)] text-[var(--paper)] placeholder:text-[rgba(243,232,216,0.6)]"
                       placeholder="Address line 2 (optional)"
                     />
                   </div>
@@ -347,7 +347,7 @@ export default function CheckoutPage() {
                       required
                       value={shippingAddress.city}
                       onChange={(e) => updateAddress("city", e.target.value)}
-                      className="w-full border border-brand-accent px-3 py-3 rounded-none"
+                      className="w-full border border-brand-accent px-3 py-3 rounded-none bg-[var(--storm-blue)] text-[var(--paper)] placeholder:text-[rgba(243,232,216,0.6)]"
                       placeholder="City"
                     />
                   </div>
@@ -357,7 +357,7 @@ export default function CheckoutPage() {
                       required
                       value={shippingAddress.state}
                       onChange={(e) => updateAddress("state", e.target.value)}
-                      className="w-full border border-brand-accent px-3 py-3 rounded-none"
+                      className="w-full border border-brand-accent px-3 py-3 rounded-none bg-[var(--storm-blue)] text-[var(--paper)] placeholder:text-[rgba(243,232,216,0.6)]"
                       placeholder="State"
                     />
                   </div>
@@ -367,7 +367,7 @@ export default function CheckoutPage() {
                       required
                       value={shippingAddress.postal_code}
                       onChange={(e) => updateAddress("postal_code", e.target.value)}
-                      className="w-full border border-brand-accent px-3 py-3 rounded-none"
+                      className="w-full border border-brand-accent px-3 py-3 rounded-none bg-[var(--storm-blue)] text-[var(--paper)] placeholder:text-[rgba(243,232,216,0.6)]"
                       placeholder="ZIP / Postal code"
                     />
                   </div>
@@ -377,7 +377,7 @@ export default function CheckoutPage() {
                       required
                       value={shippingAddress.country}
                       onChange={(e) => updateAddress("country", e.target.value)}
-                      className="w-full border border-brand-accent px-3 py-3 rounded-none"
+                      className="w-full border border-brand-accent px-3 py-3 rounded-none bg-[var(--storm-blue)] text-[var(--paper)] placeholder:text-[rgba(243,232,216,0.6)]"
                       placeholder="Country"
                     />
                   </div>
@@ -551,7 +551,7 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            <div className="bg-neutral-50 border border-brand-accent p-4">
+            <div className="bg-[var(--blood-red)] border border-brand-accent p-4">
               <div className="flex items-start gap-3">
                 <svg
                   className="w-5 h-5 flex-shrink-0 mt-0.5"
