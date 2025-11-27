@@ -1234,16 +1234,16 @@ export default function DesignUploadForm({
                       <label className="label text-brand-paper">Front group X</label>
                       <input
                         type="range"
-                        min="-400"
-                        max="400"
+                        min="-800"
+                        max="800"
                         value={currentGroupOffsets.front.x}
                         onChange={(e) => updateGroupOffset(currentEditingType, "front", "x", parseInt(e.target.value))}
                         className="w-full"
                       />
                       <input
                         type="number"
-                        min={-400}
-                        max={400}
+                        min={-800}
+                        max={800}
                         value={currentGroupOffsets.front.x}
                         onChange={(e) => updateGroupOffset(currentEditingType, "front", "x", parseInt(e.target.value || "0"))}
                         className="input mt-2 w-28"
@@ -1253,16 +1253,16 @@ export default function DesignUploadForm({
                       <label className="label text-brand-paper">Front group Y</label>
                       <input
                         type="range"
-                        min="-400"
-                        max="400"
+                        min="-800"
+                        max="800"
                         value={currentGroupOffsets.front.y}
                         onChange={(e) => updateGroupOffset(currentEditingType, "front", "y", parseInt(e.target.value))}
                         className="w-full"
                       />
                       <input
                         type="number"
-                        min={-400}
-                        max={400}
+                        min={-800}
+                        max={800}
                         value={currentGroupOffsets.front.y}
                         onChange={(e) => updateGroupOffset(currentEditingType, "front", "y", parseInt(e.target.value || "0"))}
                         className="input mt-2 w-28"
@@ -1272,16 +1272,16 @@ export default function DesignUploadForm({
                       <label className="label text-brand-paper">Back group X</label>
                       <input
                         type="range"
-                        min="-400"
-                        max="400"
+                        min="-800"
+                        max="800"
                         value={currentGroupOffsets.back.x}
                         onChange={(e) => updateGroupOffset(currentEditingType, "back", "x", parseInt(e.target.value))}
                         className="w-full"
                       />
                       <input
                         type="number"
-                        min={-400}
-                        max={400}
+                        min={-800}
+                        max={800}
                         value={currentGroupOffsets.back.x}
                         onChange={(e) => updateGroupOffset(currentEditingType, "back", "x", parseInt(e.target.value || "0"))}
                         className="input mt-2 w-28"
@@ -1291,16 +1291,16 @@ export default function DesignUploadForm({
                       <label className="label text-brand-paper">Back group Y</label>
                       <input
                         type="range"
-                        min="-400"
-                        max="400"
+                        min="-800"
+                        max="800"
                         value={currentGroupOffsets.back.y}
                         onChange={(e) => updateGroupOffset(currentEditingType, "back", "y", parseInt(e.target.value))}
                         className="w-full"
                       />
                       <input
                         type="number"
-                        min={-400}
-                        max={400}
+                        min={-800}
+                        max={800}
                         value={currentGroupOffsets.back.y}
                         onChange={(e) => updateGroupOffset(currentEditingType, "back", "y", parseInt(e.target.value || "0"))}
                         className="input mt-2 w-28"
