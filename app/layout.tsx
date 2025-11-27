@@ -26,13 +26,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link
                 href="/"
                 className="block hover:opacity-70 transition-opacity relative"
-                style={{ zIndex: 10, marginBottom: '-95px' }}
+                style={{ zIndex: 10, marginBottom: '-75px' }}
               >
-                <div className="relative w-[180px] h-[180px] lg:w-[220px] lg:h-[220px]">
+                <div className="relative w-[150px] h-[150px] lg:w-[185px] lg:h-[185px]">
                   {/* Circular background with shadow */}
                   <div className="absolute inset-0 rounded-full bg-[var(--paper)] border-2 border-[var(--line)] shadow-lg"></div>
                   {/* Logo */}
-                  <div className="absolute inset-0 flex items-center justify-center p-6">
+                  <div className="absolute inset-0 flex items-center justify-center p-5">
                     <Image
                       src="/assets/Doxa_Circle.png"
                       alt="DOXA Threads logo"
@@ -45,18 +45,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </div>
               </Link>
 
-              {/* Desktop Navigation */}
-              <nav className="hidden md:flex items-center gap-8">
+              {/* Desktop Navigation - 30% larger text */}
+              <nav className="hidden md:flex items-center gap-8 text-lg lg:text-xl">
                 <Link href="/store" className="nav-link">
-                  Shop
+                  SHOP
                 </Link>
                 <Link href="/about" className="nav-link">
-                  About
+                  ABOUT
                 </Link>
                 <Link href="/contact" className="nav-link">
-                  Contact
+                  CONTACT
                 </Link>
-                <CartBadge />
+                <div className="scale-125">
+                  <CartBadge />
+                </div>
               </nav>
 
               {/* Mobile menu button */}
