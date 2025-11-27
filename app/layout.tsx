@@ -45,8 +45,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </div>
               </Link>
 
-              {/* Desktop Navigation - 30% larger text */}
-              <nav className="hidden md:flex items-center gap-8 text-lg lg:text-xl">
+              {/* Desktop Navigation - 40% larger text */}
+              <nav className="hidden md:flex items-center gap-8 text-xl lg:text-2xl">
                 <Link href="/store" className="nav-link">
                   SHOP
                 </Link>
@@ -56,7 +56,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <Link href="/contact" className="nav-link">
                   CONTACT
                 </Link>
-                <div className="scale-125">
+                <div className="scale-[1.4]">
                   <CartBadge />
                 </div>
               </nav>
