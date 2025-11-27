@@ -231,13 +231,35 @@ export default function NewProductPage() {
 
         const attemptInsert = async (slug: string) => {
           const supabase = createClient();
+          
+          // Calculate blank costs for each size based on the production calculator
+          const blank_cost_s_cents = Math.round(calc.blankCost * 100);
+          const blank_cost_m_cents = Math.round(calc.blankCost * 100);
+          const blank_cost_l_cents = Math.round(calc.blankCost * 100);
+          const blank_cost_xl_cents = Math.round(calc.blankCost * 100);
+          const blank_cost_2xl_cents = Math.round(calc.blankCost * 100);
+          const blank_cost_3xl_cents = Math.round(calc.blankCost * 100);
+          const blank_cost_4xl_cents = Math.round(calc.blankCost * 100);
+          
           return supabase
             .from("products")
             .insert({
               title,
               slug,
               description,
+              sku: `${slugBase}-${type}`.toUpperCase(),
+              style: config.label,
               print_cost_cents,
+              fabric_description: null,
+              care_instructions: null,
+              decoration_specs: null,
+              blank_cost_s_cents,
+              blank_cost_m_cents,
+              blank_cost_l_cents,
+              blank_cost_xl_cents,
+              blank_cost_2xl_cents,
+              blank_cost_3xl_cents,
+              blank_cost_4xl_cents,
               active: true,
               preview_mode: modeForProduct,
             })
