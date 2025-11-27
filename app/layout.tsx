@@ -20,8 +20,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         {/* Main header */}
         <header className="bg-[var(--paper)] sticky top-0 z-50 relative border-b-2 border-brand-accent mb-12 lg:mb-16">
-          <div className="container mx-auto py-2 lg:py-3">
-            <div className="flex items-end justify-between pb-1">
+          <div className="container mx-auto py-0">
+            <div className="flex items-end justify-between">
               {/* Logo with circular background - overlaps the bottom border at halfway point */}
               <Link
                 href="/"
