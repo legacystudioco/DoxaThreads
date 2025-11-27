@@ -103,8 +103,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="grid md:grid-cols-3 gap-8 mb-8">
               {/* Brand column */}
               <div className="space-y-3">
-                <div className="text-2xl font-black tracking-tighter">
-                  DOXA THREADS
+                <div className="mb-2">
+                  <Image
+                    src="/assets/Doxa_Logo.png"
+                    alt="DOXA Threads Logo"
+                    width={200}
+                    height={60}
+                    className="h-10 w-auto"
+                  />
                 </div>
                 <p className="text-sm leading-relaxed max-w-xs text-[rgba(30,42,68,0.8)]">
                   Greek for Glory. Premium streetwear built with purpose. Worn with honor. Backed by faith.
