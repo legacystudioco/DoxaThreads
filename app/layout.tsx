@@ -19,36 +19,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </div>
 
         {/* Main header */}
-        <header className="bg-[var(--paper)] sticky top-0 z-50 relative pb-16 lg:pb-20">
-          {/* Custom swooping border line - dips down around the logo */}
-          <svg 
-            className="absolute bottom-0 left-0 w-full" 
-            height="80"
-            viewBox="0 0 1440 80" 
-            preserveAspectRatio="none"
-            style={{ pointerEvents: 'none' }}
-          >
-            <path 
-              d="M 0 0 L 0 0 Q 70 0, 90 25 Q 100 40, 110 55 Q 120 70, 140 75 Q 160 78, 180 75 Q 200 70, 210 55 Q 220 40, 230 25 Q 250 0, 320 0 L 1440 0" 
-              stroke="var(--line)" 
-              strokeWidth="2" 
-              fill="none"
-            />
-          </svg>
-          
+        <header className="bg-[var(--paper)] sticky top-0 z-50 relative border-b-2 border-brand-accent">
           <div className="container mx-auto py-4 lg:py-6">
             <div className="flex items-center justify-between">
-              {/* Logo with circular background - extends below header */}
+              {/* Logo with circular background - overlaps the bottom border */}
               <Link
                 href="/"
                 className="block hover:opacity-70 transition-opacity relative"
-                style={{ zIndex: 10 }}
+                style={{ zIndex: 10, marginBottom: '-30px' }}
               >
-                <div className="relative w-[120px] h-[120px] lg:w-[150px] lg:h-[150px]">
+                <div className="relative w-[110px] h-[110px] lg:w-[140px] lg:h-[140px]">
                   {/* Circular background with shadow */}
-                  <div className="absolute inset-0 rounded-full bg-[var(--paper)] border-2 border-[var(--line)] shadow-[0_4px_12px_rgba(0,0,0,0.1)]"></div>
+                  <div className="absolute inset-0 rounded-full bg-[var(--paper)] border-2 border-[var(--line)] shadow-lg"></div>
                   {/* Logo */}
-                  <div className="absolute inset-0 flex items-center justify-center p-5">
+                  <div className="absolute inset-0 flex items-center justify-center p-4">
                     <Image
                       src="/assets/Doxa_Circle.png"
                       alt="DOXA Threads logo"
