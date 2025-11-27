@@ -109,7 +109,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     alt="DOXA Threads Logo"
                     width={200}
                     height={60}
-                    className="h-10 w-auto"
+                    className="h-14 w-auto"
                   />
                 </div>
                 <p className="text-sm leading-relaxed max-w-xs text-[rgba(30,42,68,0.8)]">
