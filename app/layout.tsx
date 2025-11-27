@@ -134,7 +134,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <li>Made to order</li>
                   <li>Premium materials</li>
                   <li>Free shipping $75+</li>
-                  <li>30-day returns</li>
+                  <li>14-day size exchange only</li>
                 </ul>
               </div>
             </div>

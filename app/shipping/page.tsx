@@ -56,8 +56,10 @@ export default function ShippingPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-bold mb-4">Returns & Exchanges</h2>
             <p>
-              We offer a 30-day return policy with free size exchanges. Items must be unworn and in original condition. 
-              Due to the made-to-order nature of our products, we cannot accept returns for buyer's remorse, but we will gladly exchange sizes or address any quality issues.
+              We offer a 14-day size exchange only policy. Since all items are made to order specifically for you, we can only exchange for a different size within 14 days of delivery. Items must be unworn, unwashed, and in original condition with all tags attached.
+            </p>
+            <p className="mt-4">
+              To request a size exchange, please contact us at support@doxathreads.com within 14 days of receiving your order.
             </p>
           </section>
 
