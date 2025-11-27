@@ -19,34 +19,36 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </div>
 
         {/* Main header */}
-        <header className="bg-[var(--paper)] sticky top-0 z-50 relative">
-          {/* Custom border line with circular swoop effect */}
-          <div className="absolute bottom-0 left-0 right-0 h-[2px] overflow-hidden">
-            {/* Main border line */}
-            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-brand-accent"></div>
-            {/* Circular cutout creates the swoop effect */}
-            <div 
-              className="absolute bottom-0 left-0 w-[120px] h-[120px] lg:w-[150px] lg:h-[150px] rounded-full bg-[var(--paper)]" 
-              style={{ 
-                transform: 'translate(-2px, 50%)',
-                border: '2px solid var(--line)'
-              }}
-            ></div>
-          </div>
+        <header className="bg-[var(--paper)] sticky top-0 z-50 relative pb-16 lg:pb-20">
+          {/* Custom swooping border line - dips down around the logo */}
+          <svg 
+            className="absolute bottom-0 left-0 w-full" 
+            height="80"
+            viewBox="0 0 1440 80" 
+            preserveAspectRatio="none"
+            style={{ pointerEvents: 'none' }}
+          >
+            <path 
+              d="M 0 0 L 0 0 Q 70 0, 90 25 Q 100 40, 110 55 Q 120 70, 140 75 Q 160 78, 180 75 Q 200 70, 210 55 Q 220 40, 230 25 Q 250 0, 320 0 L 1440 0" 
+              stroke="var(--line)" 
+              strokeWidth="2" 
+              fill="none"
+            />
+          </svg>
           
-          <div className="container mx-auto py-6 lg:py-8">
+          <div className="container mx-auto py-4 lg:py-6">
             <div className="flex items-center justify-between">
-              {/* Logo with circular background */}
+              {/* Logo with circular background - extends below header */}
               <Link
                 href="/"
-                className="block hover:opacity-70 transition-opacity relative -ml-2 lg:-ml-4"
+                className="block hover:opacity-70 transition-opacity relative"
                 style={{ zIndex: 10 }}
               >
-                <div className="relative w-[112px] h-[112px] lg:w-[140px] lg:h-[140px]">
-                  {/* Circular background */}
-                  <div className="absolute inset-0 rounded-full bg-[var(--paper)] border-2 border-brand-accent shadow-lg"></div>
+                <div className="relative w-[120px] h-[120px] lg:w-[150px] lg:h-[150px]">
+                  {/* Circular background with shadow */}
+                  <div className="absolute inset-0 rounded-full bg-[var(--paper)] border-2 border-[var(--line)] shadow-[0_4px_12px_rgba(0,0,0,0.1)]"></div>
                   {/* Logo */}
-                  <div className="absolute inset-0 flex items-center justify-center p-4">
+                  <div className="absolute inset-0 flex items-center justify-center p-5">
                     <Image
                       src="/assets/Doxa_Circle.png"
                       alt="DOXA Threads logo"
