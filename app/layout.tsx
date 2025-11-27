@@ -46,14 +46,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </Link>
 
               {/* Desktop Navigation - 40% larger text */}
-              <nav className="hidden md:flex items-center gap-8 text-xl lg:text-2xl">
-                <Link href="/store" className="nav-link">
+              <nav className="hidden md:flex items-center gap-8">
+                <Link href="/store" className="nav-link !text-base lg:!text-lg font-bold uppercase tracking-[0.15em]">
                   SHOP
                 </Link>
-                <Link href="/about" className="nav-link">
+                <Link href="/about" className="nav-link !text-base lg:!text-lg font-bold uppercase tracking-[0.15em]">
                   ABOUT
                 </Link>
-                <Link href="/contact" className="nav-link">
+                <Link href="/contact" className="nav-link !text-base lg:!text-lg font-bold uppercase tracking-[0.15em]">
                   CONTACT
                 </Link>
                 <div className="scale-[1.4]">
