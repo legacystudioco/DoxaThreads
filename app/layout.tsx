@@ -19,22 +19,44 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </div>
 
         {/* Main header */}
-        <header className="border-b border-brand-accent bg-[var(--paper)] sticky top-0 z-50 overflow-visible">
-          <div className="container mx-auto py-4 lg:py-6">
+        <header className="bg-[var(--paper)] sticky top-0 z-50 relative">
+          {/* Custom border line with circular swoop effect */}
+          <div className="absolute bottom-0 left-0 right-0 h-[2px] overflow-hidden">
+            {/* Main border line */}
+            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-brand-accent"></div>
+            {/* Circular cutout creates the swoop effect */}
+            <div 
+              className="absolute bottom-0 left-0 w-[120px] h-[120px] lg:w-[150px] lg:h-[150px] rounded-full bg-[var(--paper)]" 
+              style={{ 
+                transform: 'translate(-2px, 50%)',
+                border: '2px solid var(--line)'
+              }}
+            ></div>
+          </div>
+          
+          <div className="container mx-auto py-6 lg:py-8">
             <div className="flex items-center justify-between">
-              {/* Logo */}
+              {/* Logo with circular background */}
               <Link
                 href="/"
-                className="block hover:opacity-70 transition-opacity relative translate-y-4 lg:translate-y-6 scale-125 lg:scale-150 origin-top-left"
+                className="block hover:opacity-70 transition-opacity relative -ml-2 lg:-ml-4"
+                style={{ zIndex: 10 }}
               >
-                <Image
-                  src="/assets/Doxa_Circle.png"
-                  alt="DOXA Threads circular logo"
-                  width={240}
-                  height={240}
-                  priority
-                  className="h-16 w-auto drop-shadow-[0_8px_16px_rgba(0,0,0,0.16)]"
-                />
+                <div className="relative w-[112px] h-[112px] lg:w-[140px] lg:h-[140px]">
+                  {/* Circular background */}
+                  <div className="absolute inset-0 rounded-full bg-[var(--paper)] border-2 border-brand-accent shadow-lg"></div>
+                  {/* Logo */}
+                  <div className="absolute inset-0 flex items-center justify-center p-4">
+                    <Image
+                      src="/assets/Doxa_Circle.png"
+                      alt="DOXA Threads logo"
+                      width={240}
+                      height={240}
+                      priority
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                </div>
               </Link>
 
               {/* Desktop Navigation */}
