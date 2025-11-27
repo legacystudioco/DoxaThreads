@@ -21,9 +21,9 @@ export default function AboutPage() {
         </div>
 
         {/* What we stand for */}
-        <section className="card">
+        <section className="card text-center">
           <h2 className="text-3xl font-bold mb-4">What We Stand For</h2>
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="space-y-6">
             <div className="space-y-2">
               <p className="font-semibold">Built on:</p>
               <ul className="space-y-2">
@@ -41,7 +41,7 @@ export default function AboutPage() {
         </section>
 
         {/* Our Message */}
-        <section className="card">
+        <section className="card text-center">
           <h2 className="text-3xl font-bold mb-4">The Message</h2>
           <div className="space-y-4">
             <p>DOXA means glory — the visible presence of God. This isn't about self-glory. It's about wearing faith with honor.</p>
@@ -59,7 +59,7 @@ export default function AboutPage() {
         </section>
 
         {/* More Than Clothing */}
-        <section className="card">
+        <section className="card text-center">
           <h2 className="text-3xl font-bold mb-4">Built to Last</h2>
           <div className="space-y-4 leading-relaxed">
             <p>DOXA Threads merges traditional tattoo aesthetics with modern streetwear. Bold dove and rose imagery. Sacred symbolism that honors faith and heritage.</p>
