@@ -25,7 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {/* Logo with circular background - overlaps the bottom border at halfway point */}
               <Link
                 href="/"
-                className="block hover:opacity-70 transition-opacity relative"
+                className="block relative"
                 style={{ zIndex: 10, marginBottom: '-75px' }}
               >
                 <div className="relative w-[150px] h-[150px] lg:w-[185px] lg:h-[185px]">
@@ -47,6 +47,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
               {/* Desktop Navigation - 40% larger text */}
               <nav className="hidden md:flex items-center gap-8">
+                <Link href="/" className="nav-link !text-base lg:!text-lg font-bold uppercase tracking-[0.15em]">
+                  HOME
+                </Link>
                 <Link href="/store" className="nav-link !text-base lg:!text-lg font-bold uppercase tracking-[0.15em]">
                   SHOP
                 </Link>
