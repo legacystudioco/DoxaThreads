@@ -189,6 +189,13 @@ export default function DesignUploadForm({
     hoodie: {},
   });
 
+  // Base mockup color for generating front/back images (one per product type)
+  const [baseMockupColors, setBaseMockupColors] = useState<Record<string, string>>({
+    tee: PRODUCT_TYPES.tee.colors[0].filePrefix,
+    crewneck: PRODUCT_TYPES.crewneck.colors[0].filePrefix,
+    hoodie: PRODUCT_TYPES.hoodie.colors[0].filePrefix,
+  });
+
   // Preview dimensions for positioning UI (scaled down so the garment stays visible)
   const [designPositions, setDesignPositions] = useState<ProductTypePositions>({
     tee: createDefaultPositionMap(),
@@ -613,37 +620,90 @@ export default function DesignUploadForm({
 
       assets[type] = [];
 
+      // Get the base mockup color for this product type
+      const baseMockupColor = baseMockupColors[type as ProductTypeKey];
+      const baseColorObj = config.colors.find(c => c.filePrefix === baseMockupColor);
+      
+      if (!baseColorObj) {
+        throw new Error(`Base mockup color not found for ${type}`);
+      }
+
+      // Generate FRONT image using base mockup color
+      const frontDataUrl = await compositeImage({
+        mode: "front",
+        productType: type as ProductTypeKey,
+        previewWidth: previewWidthValue,
+        frontGroupOffset: groupOffsets[type as ProductTypeKey].front,
+        backGroupOffset: groupOffsets[type as ProductTypeKey].back,
+        frontBasePath: getBlankImagePath(
+          type as ProductTypeKey,
+          baseMockupColor,
+          "front"
+        ),
+        frontPosition: positionMap.front,
+        backPosition: positionMap.back,
+      });
+      const frontImageUrl = await uploadCompositedImage(frontDataUrl, type, baseMockupColor, "front");
+
+      assets[type].push({
+        url: frontImageUrl,
+        colorName: baseColorObj.name,
+        colorHex: baseColorObj.hex,
+        view: "front",
+      });
+
+      // Generate BACK image using base mockup color
+      const backDataUrl = await compositeImage({
+        mode: "back",
+        productType: type as ProductTypeKey,
+        previewWidth: previewWidthValue,
+        frontGroupOffset: groupOffsets[type as ProductTypeKey].front,
+        backGroupOffset: groupOffsets[type as ProductTypeKey].back,
+        frontBasePath: getBlankImagePath(
+          type as ProductTypeKey,
+          baseMockupColor,
+          "front"
+        ),
+        backBasePath: getBlankImagePath(type as ProductTypeKey, baseMockupColor, "back"),
+        frontPosition: positionMap.front,
+        backPosition: positionMap.back,
+      });
+      const backImageUrl = await uploadCompositedImage(backDataUrl, type, baseMockupColor, "back");
+
+      assets[type].push({
+        url: backImageUrl,
+        colorName: baseColorObj.name,
+        colorHex: baseColorObj.hex,
+        view: "back",
+      });
+
+      // Generate COMBINED views for ALL selected colors
       for (let i = 0; i < colorsToProcess.length; i++) {
         const color = colorsToProcess[i];
         
-        // Generate ALL three views for each color
-        const views: PreviewMode[] = ["front", "back", "combined"];
-        
-        for (const view of views) {
-          const compositedDataUrl = await compositeImage({
-            mode: view,
-            productType: type as ProductTypeKey,
-            previewWidth: previewWidthValue,
-            frontGroupOffset: groupOffsets[type as ProductTypeKey].front,
-            backGroupOffset: groupOffsets[type as ProductTypeKey].back,
-            frontBasePath: getBlankImagePath(
-              type as ProductTypeKey,
-              color.filePrefix,
-              "front"
-            ),
-            backBasePath: getBlankImagePath(type as ProductTypeKey, color.filePrefix, "back"),
-            frontPosition: positionMap.front,
-            backPosition: positionMap.back,
-          });
-          const imageUrl = await uploadCompositedImage(compositedDataUrl, type, color.filePrefix, view);
+        const combinedDataUrl = await compositeImage({
+          mode: "combined",
+          productType: type as ProductTypeKey,
+          previewWidth: previewWidthValue,
+          frontGroupOffset: groupOffsets[type as ProductTypeKey].front,
+          backGroupOffset: groupOffsets[type as ProductTypeKey].back,
+          frontBasePath: getBlankImagePath(
+            type as ProductTypeKey,
+            color.filePrefix,
+            "front"
+          ),
+          backBasePath: getBlankImagePath(type as ProductTypeKey, color.filePrefix, "back"),
+          frontPosition: positionMap.front,
+          backPosition: positionMap.back,
+        });
+        const combinedImageUrl = await uploadCompositedImage(combinedDataUrl, type, color.filePrefix, "combined");
 
-          assets[type].push({
-            url: imageUrl,
-            colorName: color.name,
-            colorHex: color.hex,
-            view: view,  // Add the view type so we know which image is which
-          });
-        }
+        assets[type].push({
+          url: combinedImageUrl,
+          colorName: color.name,
+          colorHex: color.hex,
+          view: "combined",
+        });
       }
     }
 
@@ -662,6 +722,7 @@ export default function DesignUploadForm({
     previewWidth,
     selectedTypes,
     supabase,
+    baseMockupColors,
   ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -1320,8 +1381,36 @@ export default function DesignUploadForm({
         return (
           <div key={type} className="card">
             <h2 className="text-xl font-bold mb-6 pb-4 border-b-2 border-brand-accent text-brand-paper">🎨 Select Colors for {config.label}</h2>
+            
+            {/* Base Mockup Color Selection */}
+            <div className="mb-6 p-4 bg-[rgba(36,33,27,0.7)] border-2 border-brand-blood rounded">
+              <label className="label text-brand-paper mb-2">
+                <span className="flex items-center gap-2">
+                  📸 Base Mockup Color
+                  <span className="text-xs font-normal text-brand-accent">(Used for front & back images)</span>
+                </span>
+              </label>
+              <p className="text-xs text-brand-accent mb-3">
+                Select which color will be used to generate the single front and back product images. All other colors will only get combined views.
+              </p>
+              <select
+                value={baseMockupColors[type as ProductTypeKey]}
+                onChange={(e) => setBaseMockupColors(prev => ({
+                  ...prev,
+                  [type]: e.target.value
+                }))}
+                className="select w-full max-w-xs"
+              >
+                {config.colors.map(color => (
+                  <option key={color.filePrefix} value={color.filePrefix}>
+                    {color.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <p className="text-sm text-brand-accent mb-4">
-              Check the colors that look good with your design (use preview above to verify)
+              Check the colors that will be available for purchase (combined view generated for each)
               {type === "hoodie" && " • Hoodie strings will be overlaid on all colors"}
             </p>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
