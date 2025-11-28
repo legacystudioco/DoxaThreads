@@ -325,11 +325,17 @@ export default function NewProductPage() {
             });
           });
 
+          // Insert images in batches of 10 to avoid exceeding Supabase request size limit
           const supabase = createClient();
-          const { error: imageError } = await supabase.from("product_images").insert(imageRows);
-          if (imageError) {
-            console.error("❌ [product_images.insert] Full error object:", imageError);
-            throw new Error(imageError.message || "Failed to save product images");
+          const BATCH_SIZE = 10;
+          
+          for (let i = 0; i < imageRows.length; i += BATCH_SIZE) {
+            const batch = imageRows.slice(i, i + BATCH_SIZE);
+            const { error: imageError } = await supabase.from("product_images").insert(batch);
+            if (imageError) {
+              console.error("❌ [product_images.insert] Full error object:", imageError);
+              throw new Error(imageError.message || "Failed to save product images");
+            }
           }
         }
 
