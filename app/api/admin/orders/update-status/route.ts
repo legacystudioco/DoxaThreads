@@ -139,7 +139,6 @@ async function handleStatusChange(status: string, orderId: string) {
     .from("orders")
     .update({
       status,
-      updated_at: new Date().toISOString(),
     })
     .eq("id", orderId)
     .select("*")

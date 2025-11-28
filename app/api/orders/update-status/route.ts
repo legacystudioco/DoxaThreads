@@ -62,14 +62,13 @@ async function handleStatusChange(status: string, orderId: string) {
   const supa = createServiceClient();
 
   const { data: order, error } = await supa
-    .from("orders")
-    .update({
-      status,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", orderId)
-    .select("*")
-    .single();
+  .from("orders")
+  .update({
+  status,
+  })
+  .eq("id", orderId)
+  .select("*")
+  .single();
 
   if (error || !order) {
     throw new Error(error?.message || "Failed to update order");

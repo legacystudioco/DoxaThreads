@@ -29,7 +29,6 @@ export async function POST(req: NextRequest) {
       .update({
         tracking_number: trackingNumber,
         carrier: carrier || "USPS",
-        updated_at: new Date().toISOString(),
       })
       .eq("id", orderId);
 

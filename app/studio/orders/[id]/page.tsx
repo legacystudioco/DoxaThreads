@@ -30,7 +30,7 @@ interface Order {
   label_url: string | null;
   shippo_transaction_id: string | null;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
 }
 
 export default function OrderDetailPage({
@@ -53,9 +53,23 @@ export default function OrderDetailPage({
 
   async function fetchOrder() {
     try {
-      const res = await fetch(`/api/admin/orders/${params.id}`);
-      if (!res.ok) throw new Error("Failed to fetch order");
+      console.log('Fetching order:', params.id);
+      const res = await fetch(`/api/admin/orders/${params.id}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Failed to fetch order:', res.status, errorText);
+        throw new Error("Failed to fetch order");
+      }
+      
       const data = await res.json();
+      console.log('Order data received:', data);
+      
       setOrder(data.order);
       setItems(data.items);
       setTrackingNumber(data.order.tracking_number || "");
@@ -84,15 +98,25 @@ export default function OrderDetailPage({
 
     setUpdating(true);
     try {
+      console.log('Updating status to:', newStatus);
       const res = await fetch("/api/admin/orders/update-status", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ orderId: params.id, status: newStatus }),
       });
 
-      if (!res.ok) throw new Error("Failed to update status");
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Failed to update status:', res.status, errorText);
+        throw new Error("Failed to update status");
+      }
 
+      const result = await res.json();
+      console.log('Status update result:', result);
+
+      // Refetch the order to get the updated data
       await fetchOrder();
+      
       alert("✅ Status updated successfully!");
     } catch (error) {
       console.error("Error updating status:", error);
@@ -202,12 +226,6 @@ export default function OrderDetailPage({
               Placed on {new Date(order.created_at).toLocaleDateString()} at{" "}
               {new Date(order.created_at).toLocaleTimeString()}
             </p>
-            {order.updated_at !== order.created_at && (
-              <p className="text-neutral-500 text-sm">
-                Last updated: {new Date(order.updated_at).toLocaleDateString()}{" "}
-                at {new Date(order.updated_at).toLocaleTimeString()}
-              </p>
-            )}
           </div>
           <div>
             <span
@@ -232,41 +250,66 @@ export default function OrderDetailPage({
         </div>
 
         <h3 className="font-semibold mb-2 text-sm text-neutral-600">Update Order Status:</h3>
+        {updating && (
+          <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded text-blue-800 text-sm">
+            ⏳ Updating order status...
+          </div>
+        )}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mb-6">
           <button
             onClick={() => updateStatus("PAID")}
             disabled={updating || order.status === "CANCELLED"}
-            className="bg-green-600 hover:bg-green-700 text-white text-xs py-2 px-3 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className={`text-white text-xs py-2 px-3 disabled:opacity-50 disabled:cursor-not-allowed transition-all ${
+              order.status === "PAID" 
+                ? "bg-green-800 ring-2 ring-green-400" 
+                : "bg-green-600 hover:bg-green-700"
+            }`}
           >
-            ✓ Mark as Paid
+            {order.status === "PAID" ? "✓ Currently Paid" : "✓ Mark as Paid"}
           </button>
           <button
             onClick={() => updateStatus("LABEL_PURCHASED")}
             disabled={updating || order.status === "CANCELLED"}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-xs py-2 px-3 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className={`text-white text-xs py-2 px-3 disabled:opacity-50 disabled:cursor-not-allowed transition-all ${
+              order.status === "LABEL_PURCHASED" 
+                ? "bg-blue-800 ring-2 ring-blue-400" 
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
           >
-            🏷️ Label Purchased
+            {order.status === "LABEL_PURCHASED" ? "✓ Label Purchased" : "🏷️ Label Purchased"}
           </button>
           <button
             onClick={() => updateStatus("RECEIVED_BY_PRINTER")}
             disabled={updating || order.status === "CANCELLED"}
-            className="bg-purple-600 hover:bg-purple-700 text-white text-xs py-2 px-3 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className={`text-white text-xs py-2 px-3 disabled:opacity-50 disabled:cursor-not-allowed transition-all ${
+              order.status === "RECEIVED_BY_PRINTER" 
+                ? "bg-purple-800 ring-2 ring-purple-400" 
+                : "bg-purple-600 hover:bg-purple-700"
+            }`}
           >
-            📦 Received by Printer
+            {order.status === "RECEIVED_BY_PRINTER" ? "✓ In Production" : "📦 Received by Printer"}
           </button>
           <button
             onClick={() => updateStatus("SHIPPED")}
             disabled={updating || order.status === "CANCELLED"}
-            className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs py-2 px-3 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className={`text-white text-xs py-2 px-3 disabled:opacity-50 disabled:cursor-not-allowed transition-all ${
+              order.status === "SHIPPED" 
+                ? "bg-cyan-800 ring-2 ring-cyan-400" 
+                : "bg-cyan-600 hover:bg-cyan-700"
+            }`}
           >
-            🚚 Mark as Shipped
+            {order.status === "SHIPPED" ? "✓ Shipped" : "🚚 Mark as Shipped"}
           </button>
           <button
             onClick={() => updateStatus("DELIVERED")}
             disabled={updating || order.status === "CANCELLED"}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs py-2 px-3 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className={`text-white text-xs py-2 px-3 disabled:opacity-50 disabled:cursor-not-allowed transition-all ${
+              order.status === "DELIVERED" 
+                ? "bg-emerald-800 ring-2 ring-emerald-400" 
+                : "bg-emerald-600 hover:bg-emerald-700"
+            }`}
           >
-            ✅ Mark as Delivered
+            {order.status === "DELIVERED" ? "✓ Delivered" : "✅ Mark as Delivered"}
           </button>
         </div>
 
