@@ -48,8 +48,8 @@ export function Header() {
             </div>
           </Link>
 
-          {/* Desktop Navigation - moved up with negative margin */}
-          <nav className="hidden md:flex items-center gap-8 -mb-6 pb-2">
+          {/* Desktop Navigation - moved up higher */}
+          <nav className="hidden md:flex items-center gap-8 -mb-12 pb-4">
             <Link href="/" className="nav-link !text-base lg:!text-lg font-bold uppercase tracking-[0.15em] text-[var(--paper)] hover:text-[var(--mustard-gold)]">
               HOME
             </Link>

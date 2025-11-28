@@ -49,8 +49,8 @@ export default function Home() {
 
   return (
     <>
-      {/* Hero Section */}
-      <section className="hero relative min-h-[18vh] overflow-hidden bg-[radial-gradient(ellipse_at_center,rgba(110,90,60,0.04)_0%,rgba(0,0,0,0)_55%,rgba(0,0,0,0.10)_100%),linear-gradient(to_bottom,#24211B,#1A1713)] bg-no-repeat bg-cover">
+      {/* Hero Section - extended to top to eliminate gap */}
+      <section className="hero relative min-h-[18vh] overflow-hidden bg-[radial-gradient(ellipse_at_center,rgba(110,90,60,0.04)_0%,rgba(0,0,0,0)_55%,rgba(0,0,0,0.10)_100%),linear-gradient(to_bottom,#24211B,#1A1713)] bg-no-repeat bg-cover -mt-12 lg:-mt-16 pt-12 lg:pt-16">
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <Image
             src="/assets/Doxa_Overlay.png"
@@ -75,8 +75,8 @@ export default function Home() {
             </div>
             <h1 className="sr-only">DOXA THREADS</h1>
             <div className="flex flex-col items-center">
-              {/* Mobile: pipe-separated on one line, Desktop: single line with periods */}
-              <p className="text-base sm:text-lg lg:text-xl mb-0 mt-1 max-w-2xl mx-auto font-normal tracking-tight text-[rgba(243,232,216,0.92)] text-center">
+              {/* Mobile: smaller font to fit one line, Desktop: normal size */}
+              <p className="text-[13px] sm:text-lg lg:text-xl mb-0 mt-1 max-w-2xl mx-auto font-normal tracking-tight text-[rgba(243,232,216,0.92)] text-center whitespace-nowrap px-2">
                 <span className="sm:hidden">Greek for Glory. | Worn with Honor. | Backed By Faith.</span>
                 <span className="hidden sm:inline">Greek for Glory. Worn with honor. Backed by faith.</span>
               </p>
