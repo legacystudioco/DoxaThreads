@@ -126,19 +126,53 @@ interface DesignPosition {
 
 type ProductTypePositions = Record<ProductTypeKey, Record<PositionKey, DesignPosition>>;
 
-const createDefaultPosition = (): DesignPosition => ({
-  x: 70,
-  y: 140,
-  width: 120,
-  height: 120,
-  scale: 0.6,
-});
+// Product-specific default positions for front/back views
+const PRODUCT_TYPE_DEFAULTS: Record<ProductTypeKey, { x: number; y: number; scale: number }> = {
+  tee: {
+    x: -248,
+    y: 357,
+    scale: 323,
+  },
+  hoodie: {
+    x: -317,
+    y: 426,
+    scale: 253,
+  },
+  crewneck: {
+    x: -784,
+    y: 616,
+    scale: 634,
+  },
+};
 
-const createDefaultPositionMap = (): Record<PositionKey, DesignPosition> => ({
-  front: createDefaultPosition(),
-  back: createDefaultPosition(),
-  combinedFront: createDefaultPosition(),
-  combinedBack: createDefaultPosition(),
+const createDefaultPosition = (productType?: ProductTypeKey): DesignPosition => {
+  // Use product-specific defaults if provided, otherwise use generic defaults
+  if (productType && PRODUCT_TYPE_DEFAULTS[productType]) {
+    const defaults = PRODUCT_TYPE_DEFAULTS[productType];
+    return {
+      x: defaults.x,
+      y: defaults.y,
+      width: 120,
+      height: 120,
+      scale: defaults.scale,
+    };
+  }
+  
+  // Generic fallback for combined views
+  return {
+    x: 70,
+    y: 140,
+    width: 120,
+    height: 120,
+    scale: 0.6,
+  };
+};
+
+const createDefaultPositionMap = (productType: ProductTypeKey): Record<PositionKey, DesignPosition> => ({
+  front: createDefaultPosition(productType),      // Uses product-specific defaults
+  back: createDefaultPosition(productType),       // Uses product-specific defaults
+  combinedFront: createDefaultPosition(),         // Uses generic defaults
+  combinedBack: createDefaultPosition(),          // Uses generic defaults
 });
 
 const createDefaultGroupOffset = () => ({ x: 0, y: 0 });
@@ -198,9 +232,9 @@ export default function DesignUploadForm({
 
   // Preview dimensions for positioning UI (scaled down so the garment stays visible)
   const [designPositions, setDesignPositions] = useState<ProductTypePositions>({
-    tee: createDefaultPositionMap(),
-    crewneck: createDefaultPositionMap(),
-    hoodie: createDefaultPositionMap(),
+    tee: createDefaultPositionMap('tee'),
+    crewneck: createDefaultPositionMap('crewneck'),
+    hoodie: createDefaultPositionMap('hoodie'),
   });
   const [groupOffsets, setGroupOffsets] = useState<
     Record<ProductTypeKey, { front: { x: number; y: number }; back: { x: number; y: number } }>

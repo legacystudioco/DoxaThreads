@@ -362,12 +362,18 @@ export default function NewProductPage() {
           }))
         );
 
+        // Insert variants in batches of 20 to avoid exceeding Supabase request size limit
         const supabase = createClient();
-        const { error: variantsError } = await supabase
-          .from("variants")
-          .insert(variantsToInsert);
-
-        if (variantsError) throw variantsError;
+        const VARIANT_BATCH_SIZE = 20;
+        
+        for (let i = 0; i < variantsToInsert.length; i += VARIANT_BATCH_SIZE) {
+          const batch = variantsToInsert.slice(i, i + VARIANT_BATCH_SIZE);
+          const { error: variantsError } = await supabase.from("variants").insert(batch);
+          if (variantsError) {
+            console.error("❌ [variants.insert] Full error object:", variantsError);
+            throw new Error(variantsError.message || "Failed to save variants");
+          }
+        }
         created += 1;
       }
 
