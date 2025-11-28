@@ -168,7 +168,11 @@ function ProductClient({ product, variants, images }: any) {
       
       if (combined) return [combined];
       
-      // Fallback: any combined image
+      // Fallback: use primary image if no combined found
+      const primaryImg = images.find((img: any) => img.is_primary);
+      if (primaryImg) return [primaryImg];
+      
+      // Final fallback: any combined image or first image
       const anyCombined = images.find((img: any) => 
         img.url?.toLowerCase().includes("combined") ||
         (img.alt?.toLowerCase().includes("front") && img.alt?.toLowerCase().includes("back"))
@@ -183,6 +187,13 @@ function ProductClient({ product, variants, images }: any) {
         img.url?.toLowerCase().includes("front") && 
         !img.url?.toLowerCase().includes("combined")
       );
+      
+      // If no front image found, use primary image as fallback
+      if (!front) {
+        const primaryImg = images.find((img: any) => img.is_primary);
+        if (primaryImg) return [primaryImg];
+      }
+      
       return front ? [front] : images.slice(0, 1);
       
     } else if (imageView === "back") {
@@ -193,10 +204,19 @@ function ProductClient({ product, variants, images }: any) {
         img.url?.toLowerCase().includes("back") && 
         !img.url?.toLowerCase().includes("combined")
       );
+      
+      // If no back image found, use primary image as fallback
+      if (!back) {
+        const primaryImg = images.find((img: any) => img.is_primary);
+        if (primaryImg) return [primaryImg];
+      }
+      
       return back ? [back] : images.slice(0, 1);
     }
     
-    return images.slice(0, 1);
+    // Default fallback: use primary image if set, otherwise first image
+    const primaryImg = images.find((img: any) => img.is_primary);
+    return primaryImg ? [primaryImg] : images.slice(0, 1);
   };
 
   const displayImages = getDisplayImages();

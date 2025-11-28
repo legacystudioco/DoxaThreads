@@ -130,6 +130,14 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
       }
 
       router.push("/studio/products");
+      
+      // Force reload the product page cache by triggering a revalidation
+      // This ensures the storefront shows the updated primary image
+      await fetch(`/api/revalidate?path=/store/products/${product.slug}`, {
+        method: 'POST',
+      }).catch(() => {
+        // Revalidation is optional, continue even if it fails
+      });
     } catch (err: any) {
       setError(err.message || "Failed to update product");
       console.error("Error updating product:", err);
