@@ -51,6 +51,12 @@ export default function OrderDetailPage({
     fetchOrder();
   }, [params.id]);
 
+  useEffect(() => {
+    if (order) {
+      console.log('Order state updated! Current status:', order.status);
+    }
+  }, [order]);
+
   async function fetchOrder() {
     try {
       console.log('Fetching order:', params.id);
@@ -69,11 +75,16 @@ export default function OrderDetailPage({
       
       const data = await res.json();
       console.log('Order data received:', data);
+      console.log('Setting order state to:', data.order);
+      console.log('Order status from API:', data.order.status);
       
       setOrder(data.order);
       setItems(data.items);
       setTrackingNumber(data.order.tracking_number || "");
       setCarrier(data.order.carrier || "USPS");
+      
+      // Log after state update (will show in next render)
+      console.log('State update queued');
     } catch (error) {
       console.error("Error fetching order:", error);
       alert("Failed to load order");
@@ -258,55 +269,55 @@ export default function OrderDetailPage({
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mb-6">
           <button
             onClick={() => updateStatus("PAID")}
-            disabled={updating || order.status === "CANCELLED"}
-            className={`text-white text-xs py-2 px-3 disabled:opacity-50 disabled:cursor-not-allowed transition-all ${
+            disabled={updating || order.status === "CANCELLED" || order.status === "PAID"}
+            className={`text-white text-xs py-2 px-3 transition-all ${
               order.status === "PAID" 
-                ? "bg-green-800 ring-2 ring-green-400" 
-                : "bg-green-600 hover:bg-green-700"
+                ? "bg-green-800 ring-2 ring-green-400 cursor-not-allowed" 
+                : "bg-green-600 hover:bg-green-700 disabled:opacity-30 disabled:cursor-not-allowed"
             }`}
           >
             {order.status === "PAID" ? "✓ Currently Paid" : "✓ Mark as Paid"}
           </button>
           <button
             onClick={() => updateStatus("LABEL_PURCHASED")}
-            disabled={updating || order.status === "CANCELLED"}
-            className={`text-white text-xs py-2 px-3 disabled:opacity-50 disabled:cursor-not-allowed transition-all ${
+            disabled={updating || order.status === "CANCELLED" || order.status === "LABEL_PURCHASED"}
+            className={`text-white text-xs py-2 px-3 transition-all ${
               order.status === "LABEL_PURCHASED" 
-                ? "bg-blue-800 ring-2 ring-blue-400" 
-                : "bg-blue-600 hover:bg-blue-700"
+                ? "bg-blue-800 ring-2 ring-blue-400 cursor-not-allowed" 
+                : "bg-blue-600 hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed"
             }`}
           >
             {order.status === "LABEL_PURCHASED" ? "✓ Label Purchased" : "🏷️ Label Purchased"}
           </button>
           <button
             onClick={() => updateStatus("RECEIVED_BY_PRINTER")}
-            disabled={updating || order.status === "CANCELLED"}
-            className={`text-white text-xs py-2 px-3 disabled:opacity-50 disabled:cursor-not-allowed transition-all ${
+            disabled={updating || order.status === "CANCELLED" || order.status === "RECEIVED_BY_PRINTER"}
+            className={`text-white text-xs py-2 px-3 transition-all ${
               order.status === "RECEIVED_BY_PRINTER" 
-                ? "bg-purple-800 ring-2 ring-purple-400" 
-                : "bg-purple-600 hover:bg-purple-700"
+                ? "bg-purple-800 ring-2 ring-purple-400 cursor-not-allowed" 
+                : "bg-purple-600 hover:bg-purple-700 disabled:opacity-30 disabled:cursor-not-allowed"
             }`}
           >
             {order.status === "RECEIVED_BY_PRINTER" ? "✓ In Production" : "📦 Received by Printer"}
           </button>
           <button
             onClick={() => updateStatus("SHIPPED")}
-            disabled={updating || order.status === "CANCELLED"}
-            className={`text-white text-xs py-2 px-3 disabled:opacity-50 disabled:cursor-not-allowed transition-all ${
+            disabled={updating || order.status === "CANCELLED" || order.status === "SHIPPED"}
+            className={`text-white text-xs py-2 px-3 transition-all ${
               order.status === "SHIPPED" 
-                ? "bg-cyan-800 ring-2 ring-cyan-400" 
-                : "bg-cyan-600 hover:bg-cyan-700"
+                ? "bg-cyan-800 ring-2 ring-cyan-400 cursor-not-allowed" 
+                : "bg-cyan-600 hover:bg-cyan-700 disabled:opacity-30 disabled:cursor-not-allowed"
             }`}
           >
             {order.status === "SHIPPED" ? "✓ Shipped" : "🚚 Mark as Shipped"}
           </button>
           <button
             onClick={() => updateStatus("DELIVERED")}
-            disabled={updating || order.status === "CANCELLED"}
-            className={`text-white text-xs py-2 px-3 disabled:opacity-50 disabled:cursor-not-allowed transition-all ${
+            disabled={updating || order.status === "CANCELLED" || order.status === "DELIVERED"}
+            className={`text-white text-xs py-2 px-3 transition-all ${
               order.status === "DELIVERED" 
-                ? "bg-emerald-800 ring-2 ring-emerald-400" 
-                : "bg-emerald-600 hover:bg-emerald-700"
+                ? "bg-emerald-800 ring-2 ring-emerald-400 cursor-not-allowed" 
+                : "bg-emerald-600 hover:bg-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed"
             }`}
           >
             {order.status === "DELIVERED" ? "✓ Delivered" : "✅ Mark as Delivered"}
