@@ -235,11 +235,11 @@
     color: rgba(243, 232, 216, 0.82);
   }
 
-  /* PRODUCT GRID - Increased spacing */
+  /* PRODUCT GRID - 2 columns mobile, 4 columns desktop */
   .product-grid {
     @apply grid 
-           grid-cols-1 sm:grid-cols-2 lg:grid-cols-3
-           gap-8 lg:gap-12;
+           grid-cols-2 lg:grid-cols-4
+           gap-4 lg:gap-6;
   }
 
   .product-card {
