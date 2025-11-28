@@ -1,15 +1,16 @@
 import "./../styles/globals.css";
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { CartBadge } from "@/components/CartBadge";
+import { Header } from "@/components/Header";
 
 export const metadata: Metadata = {
   title: "DOXA Threads | Greek for Glory",
   description: "Greek for Glory. Worn with honor. Backed by faith. American Traditional art meets sacred symbolism. Premium streetwear built to last.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
@@ -18,79 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Made to Order • Designed to Honor the Craft • Built to Last
         </div>
 
-        {/* Main header */}
-        <header className="bg-[var(--paper)] sticky top-0 z-50 relative border-b-2 border-brand-accent mb-12 lg:mb-16">
-          <div className="container mx-auto py-0">
-            <div className="flex items-end justify-between">
-              {/* Logo with circular background - overlaps the bottom border at halfway point */}
-              <Link
-                href="/"
-                className="block relative"
-                style={{ zIndex: 10, marginBottom: '-75px' }}
-              >
-                <div className="relative w-[150px] h-[150px] lg:w-[185px] lg:h-[185px]">
-                  {/* Circular background with shadow */}
-                  <div className="absolute inset-0 rounded-full bg-[var(--paper)] border-2 border-[var(--line)] shadow-lg"></div>
-                  {/* Logo */}
-                  <div className="absolute inset-0 flex items-center justify-center p-5">
-                    <Image
-                      src="/assets/Doxa_Circle.png"
-                      alt="DOXA Threads logo"
-                      width={240}
-                      height={240}
-                      priority
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                </div>
-              </Link>
-
-              {/* Desktop Navigation - 40% larger text */}
-              <nav className="hidden md:flex items-center gap-8">
-                <Link href="/" className="nav-link !text-base lg:!text-lg font-bold uppercase tracking-[0.15em]">
-                  HOME
-                </Link>
-                <Link href="/store" className="nav-link !text-base lg:!text-lg font-bold uppercase tracking-[0.15em]">
-                  SHOP
-                </Link>
-                <Link href="/about" className="nav-link !text-base lg:!text-lg font-bold uppercase tracking-[0.15em]">
-                  ABOUT
-                </Link>
-                <Link href="/contact" className="nav-link !text-base lg:!text-lg font-bold uppercase tracking-[0.15em]">
-                  CONTACT
-                </Link>
-                <div className="scale-[1.4]">
-                  <CartBadge />
-                </div>
-              </nav>
-
-              {/* Mobile menu button */}
-              <button className="md:hidden p-2" aria-label="Menu">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Mobile Navigation - horizontal scrollable */}
-            <nav className="md:hidden mt-4 pt-4 border-t border-brand-accent overflow-x-auto">
-              <div className="flex gap-6 pb-2 min-w-max">
-                <Link href="/store" className="nav-link whitespace-nowrap">
-                  Shop
-                </Link>
-                <Link href="/about" className="nav-link whitespace-nowrap">
-                  About
-                </Link>
-                <Link href="/contact" className="nav-link whitespace-nowrap">
-                  Contact
-                </Link>
-                <Link href="/store/cart" className="nav-link whitespace-nowrap">
-                  Cart
-                </Link>
-              </div>
-            </nav>
-          </div>
-        </header>
+        <Header />
 
         {/* Main content */}
         <main className="min-h-screen">

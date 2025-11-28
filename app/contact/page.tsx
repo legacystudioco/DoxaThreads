@@ -21,11 +21,11 @@ export default function ContactPage() {
             <p className="text-neutral-600 mb-4">
               For questions and support
             </p>
-            <a 
-              href="mailto:hello@doxathreads.com" 
+            <a
+              href="mailto:info@doxathreads.com"
               className="text-sm font-bold hover:underline"
             >
-              hello@doxathreads.com
+              info@doxathreads.com
             </a>
           </div>
 
@@ -39,11 +39,11 @@ export default function ContactPage() {
             <p className="text-neutral-600 mb-4">
               Questions about orders or shipping
             </p>
-            <a 
-              href="mailto:orders@doxathreads.com" 
+            <a
+              href="mailto:info@doxathreads.com"
               className="text-sm font-bold hover:underline"
             >
-              orders@doxathreads.com
+              info@doxathreads.com
             </a>
           </div>
         </div>
@@ -102,7 +102,7 @@ export default function ContactPage() {
             </summary>
             <div className="p-4 border-t border-brand-accent text-sm text-neutral-600">
               <p>
-                Open to wholesale and partnerships. Email <a href="mailto:hello@doxathreads.com" className="underline">hello@doxathreads.com</a>.
+                Open to wholesale and partnerships. Email <a href="mailto:info@doxathreads.com" className="underline">info@doxathreads.com</a>.
               </p>
             </div>
           </details>
@@ -125,9 +125,9 @@ export default function ContactPage() {
           <p className="mb-6">
             Email us. We keep it direct.
           </p>
-          <a 
-            href="mailto:hello@doxathreads.com" 
-            className="btn bg-white text-black border-white hover:bg-transparent hover:text-white"
+          <a
+            href="mailto:info@doxathreads.com"
+            className="btn"
           >
             Send Email
           </a>
