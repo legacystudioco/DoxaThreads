@@ -550,11 +550,14 @@ export default function DesignUploadForm({
       ]);
 
       const layout = compositeLayout[productType] || compositeLayout.tee;
-      const scaleFactor = frontBase.width / (previewWidth || frontBase.width);
-
+      
       // Scale down to max 2000px width for web-friendly file sizes
       const MAX_WIDTH = 2000;
       const scaleDown = frontBase.width > MAX_WIDTH ? MAX_WIDTH / frontBase.width : 1;
+
+      // When previewWidth is null (production), scaleFactor should be scaleDown
+      // When previewWidth is provided (preview), scaleFactor scales from preview to full canvas
+      const scaleFactor = previewWidth ? (frontBase.width * scaleDown / previewWidth) : scaleDown;
 
       // Compute scaled rectangles relative to the top-left origin, then shift so nothing is clipped.
       const rectFor = (img: HTMLImageElement, layer: "front" | "back") => {
@@ -585,10 +588,10 @@ export default function DesignUploadForm({
       ) => {
         ctx.drawImage(base, rect.x, rect.y, rect.width, rect.height);
         if (!design || !position) return;
-        const designX = rect.x + position.x * scaleFactor * scaleDown * (rect.width / (base.width * scaleDown));
-        const designY = rect.y + position.y * scaleFactor * scaleDown * (rect.height / (base.height * scaleDown));
-        const designW = position.width * scaleFactor * scaleDown * (rect.width / (base.width * scaleDown));
-        const designH = position.height * scaleFactor * scaleDown * (rect.height / (base.height * scaleDown));
+        const designX = rect.x + position.x * scaleFactor;
+        const designY = rect.y + position.y * scaleFactor;
+        const designW = position.width * scaleFactor;
+        const designH = position.height * scaleFactor;
         ctx.drawImage(design, designX, designY, designW, designH);
       };
 
@@ -617,16 +620,18 @@ export default function DesignUploadForm({
     canvas.width = baseImage.width * scaleDown;
     canvas.height = baseImage.height * scaleDown;
 
-    const scaleFactor = (canvas.width / (previewWidth || baseImage.width));
+    // When previewWidth is null (production), scaleFactor should be scaleDown
+    // When previewWidth is provided (preview), scaleFactor scales from preview to full canvas
+    const scaleFactor = previewWidth ? (canvas.width / previewWidth) : scaleDown;
     const position = isBack ? backPosition || frontPosition : frontPosition;
     const design = isBack ? backDesignImage || designImage : designImage;
 
     ctx.drawImage(baseImage, 0, 0, canvas.width, canvas.height);
     if (position && design) {
-      const scaledX = position.x * scaleFactor * scaleDown;
-      const scaledY = position.y * scaleFactor * scaleDown;
-      const scaledWidth = position.width * scaleFactor * scaleDown;
-      const scaledHeight = position.height * scaleFactor * scaleDown;
+      const scaledX = position.x * scaleFactor;
+      const scaledY = position.y * scaleFactor;
+      const scaledWidth = position.width * scaleFactor;
+      const scaledHeight = position.height * scaleFactor;
       ctx.drawImage(design, scaledX, scaledY, scaledWidth, scaledHeight);
     }
 
@@ -705,11 +710,11 @@ export default function DesignUploadForm({
         throw new Error(`Base mockup color not found for ${type}`);
       }
 
-      // Generate FRONT image using base mockup color (NO previewWidth - full resolution)
+      // Generate FRONT image using base mockup color - use SAME preview width for consistency
       const frontDataUrl = await compositeImage({
         mode: "front",
         productType: type as ProductTypeKey,
-        previewWidth: null,  // Use full resolution for production images
+        previewWidth: previewWidthValue,  // Use same scale as preview for consistent positioning
         frontGroupOffset: groupOffsets[type as ProductTypeKey].front,
         backGroupOffset: groupOffsets[type as ProductTypeKey].back,
         frontBasePath: getBlankImagePath(
@@ -729,11 +734,11 @@ export default function DesignUploadForm({
         view: "front",
       });
 
-      // Generate BACK image using base mockup color (NO previewWidth - full resolution)
+      // Generate BACK image using base mockup color - use SAME preview width for consistency
       const backDataUrl = await compositeImage({
         mode: "back",
         productType: type as ProductTypeKey,
-        previewWidth: null,  // Use full resolution for production images
+        previewWidth: previewWidthValue,  // Use same scale as preview for consistent positioning
         frontGroupOffset: groupOffsets[type as ProductTypeKey].front,
         backGroupOffset: groupOffsets[type as ProductTypeKey].back,
         frontBasePath: getBlankImagePath(
@@ -758,11 +763,11 @@ export default function DesignUploadForm({
       for (let i = 0; i < colorsToProcess.length; i++) {
         const color = colorsToProcess[i];
         
-        // Generate COMBINED views for ALL selected colors (NO previewWidth - full resolution)
+        // Generate COMBINED views for ALL selected colors - use SAME preview width for consistency
         const combinedDataUrl = await compositeImage({
           mode: "combined",
           productType: type as ProductTypeKey,
-          previewWidth: null,  // Use full resolution for production images
+          previewWidth: previewWidthValue,  // Use same scale as preview for consistent positioning
           frontGroupOffset: groupOffsets[type as ProductTypeKey].front,
           backGroupOffset: groupOffsets[type as ProductTypeKey].back,
           frontBasePath: getBlankImagePath(
