@@ -138,8 +138,8 @@ export async function computeCartTotalsAndRate(
             amount_cents: packageShippingCents
           });
         } else {
-          // Use fallback rates based on service type
-          packageShippingCents = pkg.packageType.service === 'FIRST_CLASS' ? 350 : 800;
+          // Use fallback rate when Shippo returns nothing
+          packageShippingCents = 875;
           console.log(`  ⚠️  No rates returned, using fallback: $${(packageShippingCents / 100).toFixed(2)}`);
           
           rateDetails.push({
@@ -153,7 +153,7 @@ export async function computeCartTotalsAndRate(
       } catch (shippoError: any) {
         console.error(`  ❌ Error getting rate for package ${i + 1}:`, shippoError.message);
         // Use fallback rate
-        packageShippingCents = pkg.packageType.service === 'FIRST_CLASS' ? 350 : 800;
+        packageShippingCents = 875;
         console.log(`  Using fallback rate: $${(packageShippingCents / 100).toFixed(2)}`);
         
         rateDetails.push({

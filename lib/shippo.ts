@@ -205,7 +205,7 @@ export async function getRates({ toAddress, parcel }: any) {
     console.error("Message:", error.message);
     console.error("Stack:", error.stack);
     // Fallback: return a single flat-rate estimate so checkout can proceed
-    const fallbackCents = 350;
+    const fallbackCents = 875;
     console.warn("Falling back to flat shipping rate:", fallbackCents, "cents");
     return [
       {
