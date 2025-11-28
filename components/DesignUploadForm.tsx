@@ -593,10 +593,16 @@ export default function DesignUploadForm({
       ) => {
         ctx.drawImage(base, rect.x, rect.y, rect.width, rect.height);
         if (!design || !position) return;
-        const designX = rect.x + position.x * scaleFactor;
-        const designY = rect.y + position.y * scaleFactor;
-        const designW = position.width * scaleFactor;
-        const designH = position.height * scaleFactor;
+        
+        // Calculate the scale of the garment in the combined view
+        const garmentScaleX = rect.width / (base.width * scaleDown);
+        const garmentScaleY = rect.height / (base.height * scaleDown);
+        
+        // Position is in preview coordinates, scale it to match the garment's size in combined view
+        const designX = rect.x + (position.x * scaleFactor * garmentScaleX);
+        const designY = rect.y + (position.y * scaleFactor * garmentScaleY);
+        const designW = position.width * scaleFactor * garmentScaleX;
+        const designH = position.height * scaleFactor * garmentScaleY;
         ctx.drawImage(design, designX, designY, designW, designH);
       };
 
