@@ -13,7 +13,7 @@ export default function Home() {
     async function fetchData() {
       const supa = createClient();
       
-      // Fetch products
+      // Fetch products - use homepage_sort_order for Latest Drops section
       const { data: productsData, error: productsError } = await supa
         .from("products")
         .select(`
@@ -33,7 +33,7 @@ export default function Home() {
           )
         `)
         .eq("active", true)
-        .order("created_at", { ascending: false })
+        .order("homepage_sort_order", { ascending: true, nullsFirst: false })
         .limit(4);
 
       if (productsError) {
@@ -75,14 +75,20 @@ export default function Home() {
             </div>
             <h1 className="sr-only">DOXA THREADS</h1>
             <div className="flex flex-col items-center">
-              <p className="text-lg lg:text-xl mb-0 mt-1 max-w-2xl mx-auto font-normal tracking-tight text-[rgba(243,232,216,0.92)]">
-                Greek for Glory. Worn with honor. Backed by faith.
+              {/* 3-line tagline for mobile, single line for desktop */}
+              <p className="text-base sm:text-lg lg:text-xl mb-0 mt-1 max-w-2xl mx-auto font-normal tracking-tight text-[rgba(243,232,216,0.92)] text-center">
+                <span className="block sm:inline">Greek for Glory.</span>
+                <span className="hidden sm:inline"> </span>
+                <span className="block sm:inline">Worn with honor.</span>
+                <span className="hidden sm:inline"> </span>
+                <span className="block sm:inline">Backed by faith.</span>
               </p>
-              <div className="flex flex-col sm:flex-row gap-1 justify-center mt-0">
-                <Link href="/store" className="btn px-5 py-3 text-sm sm:text-xs">
+              {/* Side-by-side buttons on all screen sizes, smaller on mobile */}
+              <div className="flex flex-row gap-2 justify-center mt-2">
+                <Link href="/store" className="btn px-4 py-2 text-xs sm:px-5 sm:py-3 sm:text-sm whitespace-nowrap">
                   Shop the Collection
                 </Link>
-                <Link href="/about" className="btn-secondary px-5 py-3 text-sm sm:text-xs">
+                <Link href="/about" className="btn-secondary px-4 py-2 text-xs sm:px-5 sm:py-3 sm:text-sm whitespace-nowrap">
                   Our Story
                 </Link>
               </div>
@@ -108,17 +114,18 @@ export default function Home() {
 
         {/* Featured Products */}
         <section className="mb-20">
-          <div className="flex items-end justify-between mb-8">
-            <div>
+          {/* Desktop layout: side-by-side, Mobile: centered stack */}
+          <div className="flex flex-col items-center gap-4 mb-8 md:flex-row md:items-end md:justify-between">
+            <div className="text-center md:text-left">
               <h2 className="text-3xl lg:text-4xl font-bold tracking-tight mb-2">
                 Latest Drops
               </h2>
-              <p className="text-neutral-600">
+              <p className="text-neutral-600 text-sm md:text-base">
                 Built to last. Made to mean something.
               </p>
             </div>
-            <Link href="/store" className="btn-secondary text-xs">
-              View All
+            <Link href="/store" className="btn-secondary px-6 py-2 text-sm whitespace-nowrap">
+              VIEW ALL
             </Link>
           </div>
 

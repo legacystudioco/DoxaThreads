@@ -27,18 +27,18 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         </main>
 
         {/* Footer */}
-        <footer className="border-t border-brand-accent bg-[var(--paper)] mt-20">
+        <footer className="border-t border-brand-accent bg-[var(--paper)] mt-12 md:mt-20">
           <div className="container mx-auto py-12">
             <div className="grid md:grid-cols-3 gap-8 mb-8">
-              {/* Brand column */}
-              <div className="space-y-3">
+              {/* Brand column - centered on mobile */}
+              <div className="space-y-3 flex flex-col items-center md:items-start text-center md:text-left">
                 <div className="mb-2">
                   <Image
                     src="/assets/Doxa_Logo.png"
                     alt="DOXA Threads Logo"
-                    width={200}
-                    height={60}
-                    className="h-14 w-auto"
+                    width={250}
+                    height={75}
+                    className="h-[70px] md:h-14 w-auto"
                   />
                 </div>
                 <p className="text-sm leading-relaxed max-w-xs text-[rgba(30,42,68,0.8)]">
@@ -46,8 +46,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 </p>
               </div>
 
-              {/* Quick links */}
-              <div>
+              {/* Quick links - centered on mobile */}
+              <div className="text-center md:text-left">
                 <h4 className="font-bold text-sm uppercase tracking-wider mb-4">Quick Links</h4>
                 <ul className="space-y-2 text-sm">
                   <li><Link href="/store" className="hover:underline">Shop</Link></li>
@@ -56,8 +56,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 </ul>
               </div>
 
-              {/* Info */}
-              <div>
+              {/* Info - centered on mobile */}
+              <div className="text-center md:text-left">
                 <h4 className="font-bold text-sm uppercase tracking-wider mb-4">Information</h4>
                 <ul className="space-y-2 text-sm text-[rgba(30,42,68,0.8)]">
                   <li>Made to order</li>

@@ -67,44 +67,48 @@ export function Header() {
             </div>
           </nav>
 
-          {/* Mobile menu button */}
-          <button
-            className="md:hidden p-2"
-            aria-label="Menu"
-            aria-expanded={mobileOpen}
-            aria-controls="mobile-nav"
-            onClick={() => setMobileOpen((prev) => !prev)}
-          >
-            {mobileOpen ? (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            ) : (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            )}
-          </button>
+          {/* Mobile menu button and cart */}
+          <div className="md:hidden flex items-center gap-3">
+            <CartBadge />
+            <button
+              className="p-2"
+              aria-label="Menu"
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-nav"
+              onClick={() => setMobileOpen((prev) => !prev)}
+            >
+              {mobileOpen ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
 
-        {/* Mobile Navigation - toggled by hamburger */}
+        {/* Mobile Navigation - dropdown from the right */}
         <nav
           id="mobile-nav"
-          className={`md:hidden transition-all duration-200 ${
-            mobileOpen ? "mt-4 pt-4 border-t border-brand-accent opacity-100" : "max-h-0 opacity-0 overflow-hidden"
+          className={`md:hidden absolute right-0 top-full bg-[var(--paper)] border-2 border-brand-accent rounded-bl-lg shadow-lg transition-all duration-200 ${
+            mobileOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
           }`}
+          style={{ minWidth: '200px' }}
         >
-          <div className="flex flex-col gap-3 pb-2">
-            <Link href="/store" className="nav-link whitespace-nowrap" onClick={closeMenu}>
+          <div className="flex flex-col py-2">
+            <Link href="/store" className="nav-link px-6 py-3 hover:bg-neutral-50 whitespace-nowrap" onClick={closeMenu}>
               Shop
             </Link>
-            <Link href="/about" className="nav-link whitespace-nowrap" onClick={closeMenu}>
+            <Link href="/about" className="nav-link px-6 py-3 hover:bg-neutral-50 whitespace-nowrap" onClick={closeMenu}>
               About
             </Link>
-            <Link href="/contact" className="nav-link whitespace-nowrap" onClick={closeMenu}>
+            <Link href="/contact" className="nav-link px-6 py-3 hover:bg-neutral-50 whitespace-nowrap" onClick={closeMenu}>
               Contact
             </Link>
-            <Link href="/store/cart" className="nav-link whitespace-nowrap" onClick={closeMenu}>
+            <Link href="/store/cart" className="nav-link px-6 py-3 hover:bg-neutral-50 whitespace-nowrap" onClick={closeMenu}>
               Cart
             </Link>
           </div>
