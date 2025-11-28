@@ -76,6 +76,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                 url: img.url,
                 alt: img.alt,
                 sort: img.sort,
+                is_primary: img.is_primary || false,
               });
             if (imgError) console.error("Image insert error:", imgError);
           } else {
@@ -87,6 +88,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                 url: img.url,
                 alt: img.alt,
                 sort: img.sort,
+                is_primary: img.is_primary || false,
               })
               .eq("id", img.id);
             if (imgError) console.error("Image update error:", imgError);
@@ -145,6 +147,14 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   const updateImage = (index: number, field: string, value: any) => {
     const updated = [...product.product_images];
     updated[index] = { ...updated[index], [field]: value };
+    setProduct({ ...product, product_images: updated });
+  };
+
+  const setPrimaryImage = (index: number) => {
+    const updated = product.product_images.map((img: any, i: number) => ({
+      ...img,
+      is_primary: i === index,
+    }));
     setProduct({ ...product, product_images: updated });
   };
 
@@ -341,14 +351,30 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
               )}
               {product.product_images?.map((img: any, index: number) => (
                 <div key={img.id} className="border-2 border-black p-4 relative">
-                  <button
-                    type="button"
-                    onClick={() => removeImage(index)}
-                    className="absolute top-2 right-2 text-red-600 hover:text-red-800 font-bold"
-                  >
-                    × Remove
-                  </button>
-                  <div className="grid grid-cols-2 gap-4 mb-4">
+                  {img.is_primary && (
+                    <div className="absolute top-2 left-2 bg-brand-blood text-brand-paper px-2 py-1 text-xs font-bold uppercase tracking-wide">
+                      Default Image
+                    </div>
+                  )}
+                  <div className="flex gap-2 absolute top-2 right-2">
+                    {!img.is_primary && (
+                      <button
+                        type="button"
+                        onClick={() => setPrimaryImage(index)}
+                        className="bg-brand-accent text-brand-paper px-3 py-1 text-xs font-bold hover:bg-opacity-80 transition-colors"
+                      >
+                        Set as Default
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="text-red-600 hover:text-red-800 font-bold"
+                    >
+                      × Remove
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 mb-4 mt-8">
                     <div>
                       <label className="label text-xs">Image URL</label>
                       <input
