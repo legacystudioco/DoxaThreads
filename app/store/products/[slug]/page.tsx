@@ -154,35 +154,49 @@ function ProductClient({ product, variants, images }: any) {
 
   // Get the images to display based on selected color and view
   const getDisplayImages = () => {
-    let filteredImages = selectedColor 
-      ? images.filter((img: any) => img.color_name === selectedColor)
-      : images;
-
     if (imageView === "combined") {
-      // Show the combined front/back image - look for images with "both" in the URL or alt
-      const combined = filteredImages.find((img: any) => 
-        img.url?.toLowerCase().includes("both") || 
+      // For combined view, filter by selected color first
+      const filteredByColor = selectedColor 
+        ? images.filter((img: any) => img.color_name === selectedColor)
+        : images;
+      
+      // Find combined image for this color
+      const combined = filteredByColor.find((img: any) => 
         img.url?.toLowerCase().includes("combined") ||
         (img.alt?.toLowerCase().includes("front") && img.alt?.toLowerCase().includes("back"))
       );
-      return combined ? [combined] : filteredImages.slice(0, 1);
+      
+      if (combined) return [combined];
+      
+      // Fallback: any combined image
+      const anyCombined = images.find((img: any) => 
+        img.url?.toLowerCase().includes("combined") ||
+        (img.alt?.toLowerCase().includes("front") && img.alt?.toLowerCase().includes("back"))
+      );
+      return anyCombined ? [anyCombined] : images.slice(0, 1);
+      
     } else if (imageView === "front") {
-      // Show only front view - look for images with "front" in URL or alt (but not "back")
-      const front = filteredImages.find((img: any) => 
-        (img.url?.toLowerCase().includes("front") && !img.url?.toLowerCase().includes("back")) ||
-        (img.alt?.toLowerCase().includes("front") && !img.alt?.toLowerCase().includes("back"))
+      // For front view, DO NOT filter by selected color
+      // Front images only exist for the base mockup color
+      // Search ALL images for a front view
+      const front = images.find((img: any) => 
+        img.url?.toLowerCase().includes("front") && 
+        !img.url?.toLowerCase().includes("combined")
       );
-      return front ? [front] : filteredImages.slice(0, 1);
+      return front ? [front] : images.slice(0, 1);
+      
     } else if (imageView === "back") {
-      // Show only back view - look for images with "back" in URL or alt (but not "front")
-      const back = filteredImages.find((img: any) => 
-        (img.url?.toLowerCase().includes("back") && !img.url?.toLowerCase().includes("front")) ||
-        (img.alt?.toLowerCase().includes("back") && !img.alt?.toLowerCase().includes("front"))
+      // For back view, DO NOT filter by selected color
+      // Back images only exist for the base mockup color
+      // Search ALL images for a back view
+      const back = images.find((img: any) => 
+        img.url?.toLowerCase().includes("back") && 
+        !img.url?.toLowerCase().includes("combined")
       );
-      return back ? [back] : filteredImages.slice(0, 1);
+      return back ? [back] : images.slice(0, 1);
     }
     
-    return filteredImages.slice(0, 1);
+    return images.slice(0, 1);
   };
 
   const displayImages = getDisplayImages();
