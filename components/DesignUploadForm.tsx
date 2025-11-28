@@ -494,8 +494,8 @@ export default function DesignUploadForm({
             reject(new Error("Failed to create blob"));
           }
         },
-        "image/png",  // Changed from "image/jpeg" to "image/png" for transparency
-        1.0  // Maximum quality
+        "image/png",
+        0.95  // 95% quality for PNGs - slight compression while maintaining quality
       );
     });
 
@@ -552,23 +552,27 @@ export default function DesignUploadForm({
       const layout = compositeLayout[productType] || compositeLayout.tee;
       const scaleFactor = frontBase.width / (previewWidth || frontBase.width);
 
+      // Scale down to max 2000px width for web-friendly file sizes
+      const MAX_WIDTH = 2000;
+      const scaleDown = frontBase.width > MAX_WIDTH ? MAX_WIDTH / frontBase.width : 1;
+
       // Compute scaled rectangles relative to the top-left origin, then shift so nothing is clipped.
       const rectFor = (img: HTMLImageElement, layer: "front" | "back") => {
         const cfg = layout[layer];
-        const width = img.width * cfg.scale;
-        const height = img.height * cfg.scale;
+        const width = img.width * cfg.scale * scaleDown;
+        const height = img.height * cfg.scale * scaleDown;
         return {
           width,
           height,
-          x: cfg.x + (layer === "front" ? frontGroupOffset?.x || 0 : backGroupOffset?.x || 0),
-          y: cfg.y + (layer === "front" ? frontGroupOffset?.y || 0 : backGroupOffset?.y || 0),
+          x: (cfg.x + (layer === "front" ? frontGroupOffset?.x || 0 : backGroupOffset?.x || 0)) * scaleDown,
+          y: (cfg.y + (layer === "front" ? frontGroupOffset?.y || 0 : backGroupOffset?.y || 0)) * scaleDown,
         };
       };
 
       const frontRect = rectFor(frontBase, "front");
       const backRect = rectFor(backBase, "back");
-      canvas.width = frontBase.width;
-      canvas.height = frontBase.height;
+      canvas.width = frontBase.width * scaleDown;
+      canvas.height = frontBase.height * scaleDown;
       ctx.save();
       ctx.rect(0, 0, canvas.width, canvas.height);
       ctx.clip();
@@ -581,10 +585,10 @@ export default function DesignUploadForm({
       ) => {
         ctx.drawImage(base, rect.x, rect.y, rect.width, rect.height);
         if (!design || !position) return;
-        const designX = rect.x + position.x * scaleFactor * (rect.width / base.width);
-        const designY = rect.y + position.y * scaleFactor * (rect.height / base.height);
-        const designW = position.width * scaleFactor * (rect.width / base.width);
-        const designH = position.height * scaleFactor * (rect.height / base.height);
+        const designX = rect.x + position.x * scaleFactor * scaleDown * (rect.width / (base.width * scaleDown));
+        const designY = rect.y + position.y * scaleFactor * scaleDown * (rect.height / (base.height * scaleDown));
+        const designW = position.width * scaleFactor * scaleDown * (rect.width / (base.width * scaleDown));
+        const designH = position.height * scaleFactor * scaleDown * (rect.height / (base.height * scaleDown));
         ctx.drawImage(design, designX, designY, designW, designH);
       };
 
@@ -605,19 +609,24 @@ export default function DesignUploadForm({
     const isBack = mode === "back";
     const basePath = isBack && backBasePath ? backBasePath : frontBasePath;
     const baseImage = await loadImage(basePath);
-    canvas.width = baseImage.width;
-    canvas.height = baseImage.height;
+    
+    // Scale down to max 2000px width for web-friendly file sizes
+    const MAX_WIDTH = 2000;
+    const scaleDown = baseImage.width > MAX_WIDTH ? MAX_WIDTH / baseImage.width : 1;
+    
+    canvas.width = baseImage.width * scaleDown;
+    canvas.height = baseImage.height * scaleDown;
 
-    const scaleFactor = canvas.width / (previewWidth || baseImage.width);
+    const scaleFactor = (canvas.width / (previewWidth || baseImage.width));
     const position = isBack ? backPosition || frontPosition : frontPosition;
     const design = isBack ? backDesignImage || designImage : designImage;
 
-    ctx.drawImage(baseImage, 0, 0, baseImage.width, baseImage.height);
+    ctx.drawImage(baseImage, 0, 0, canvas.width, canvas.height);
     if (position && design) {
-      const scaledX = position.x * scaleFactor;
-      const scaledY = position.y * scaleFactor;
-      const scaledWidth = position.width * scaleFactor;
-      const scaledHeight = position.height * scaleFactor;
+      const scaledX = position.x * scaleFactor * scaleDown;
+      const scaledY = position.y * scaleFactor * scaleDown;
+      const scaledWidth = position.width * scaleFactor * scaleDown;
+      const scaledHeight = position.height * scaleFactor * scaleDown;
       ctx.drawImage(design, scaledX, scaledY, scaledWidth, scaledHeight);
     }
 
@@ -634,12 +643,12 @@ export default function DesignUploadForm({
     const response = await fetch(dataUrl);
     const blob = await response.blob();
     
-    const fileName = `${Date.now()}-${designName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${productType}-${color}-${view}.png`;  // Changed to .png
+    const fileName = `${Date.now()}-${designName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${productType}-${color}-${view}.png`;
     const filePath = `products/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
       .from("product-images")
-      .upload(filePath, blob, { cacheControl: "3600", upsert: false, contentType: "image/png" });  // Added contentType
+      .upload(filePath, blob, { cacheControl: "3600", upsert: false, contentType: "image/png" });
 
     if (uploadError) throw uploadError;
 
