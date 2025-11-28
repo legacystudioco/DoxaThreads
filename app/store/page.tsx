@@ -31,7 +31,8 @@ export default function StorePage() {
             id,
             url,
             alt,
-            sort
+            sort,
+            is_primary
           ),
           variants (
             id,
@@ -117,7 +118,11 @@ export default function StorePage() {
       {filteredProducts && filteredProducts.length > 0 ? (
         <div className="product-grid">
           {filteredProducts.map((product: any) => {
-            const firstImage = product.product_images?.sort((a: any, b: any) => a.sort - b.sort)[0];
+            // First try to find the primary image, fallback to sorted images
+            const primaryImage = product.product_images?.find((img: any) => img.is_primary);
+            const sortedImages = product.product_images?.sort((a: any, b: any) => a.sort - b.sort);
+            const firstImage = primaryImage || sortedImages?.[0];
+            
             const activeVariants = product.variants?.filter((v: any) => v.active) || [];
             const minPrice = activeVariants.length 
               ? Math.min(...activeVariants.map((v: any) => v.price_cents))
