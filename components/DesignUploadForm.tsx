@@ -405,6 +405,11 @@ export default function DesignUploadForm({
     mode: PreviewMode = activePreviewMode,
     layer: "front" | "back" = activeLayer
   ): PositionKey => {
+    // In combined mode, use combinedFront/combinedBack keys
+    // In front/back only modes, use front/back keys
+    if (mode === "combined") {
+      return layer === "front" ? "combinedFront" : "combinedBack";
+    }
     return layer;
   };
 
