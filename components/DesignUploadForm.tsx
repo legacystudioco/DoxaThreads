@@ -705,11 +705,11 @@ export default function DesignUploadForm({
         throw new Error(`Base mockup color not found for ${type}`);
       }
 
-      // Generate FRONT image using base mockup color
+      // Generate FRONT image using base mockup color (NO previewWidth - full resolution)
       const frontDataUrl = await compositeImage({
         mode: "front",
         productType: type as ProductTypeKey,
-        previewWidth: previewWidthValue,
+        previewWidth: null,  // Use full resolution for production images
         frontGroupOffset: groupOffsets[type as ProductTypeKey].front,
         backGroupOffset: groupOffsets[type as ProductTypeKey].back,
         frontBasePath: getBlankImagePath(
@@ -729,11 +729,11 @@ export default function DesignUploadForm({
         view: "front",
       });
 
-      // Generate BACK image using base mockup color
+      // Generate BACK image using base mockup color (NO previewWidth - full resolution)
       const backDataUrl = await compositeImage({
         mode: "back",
         productType: type as ProductTypeKey,
-        previewWidth: previewWidthValue,
+        previewWidth: null,  // Use full resolution for production images
         frontGroupOffset: groupOffsets[type as ProductTypeKey].front,
         backGroupOffset: groupOffsets[type as ProductTypeKey].back,
         frontBasePath: getBlankImagePath(
@@ -758,10 +758,11 @@ export default function DesignUploadForm({
       for (let i = 0; i < colorsToProcess.length; i++) {
         const color = colorsToProcess[i];
         
+        // Generate COMBINED views for ALL selected colors (NO previewWidth - full resolution)
         const combinedDataUrl = await compositeImage({
           mode: "combined",
           productType: type as ProductTypeKey,
-          previewWidth: previewWidthValue,
+          previewWidth: null,  // Use full resolution for production images
           frontGroupOffset: groupOffsets[type as ProductTypeKey].front,
           backGroupOffset: groupOffsets[type as ProductTypeKey].back,
           frontBasePath: getBlankImagePath(
