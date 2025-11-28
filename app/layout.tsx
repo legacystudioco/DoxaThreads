@@ -14,8 +14,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
-        {/* Top announcement bar - Brown color with different spacing for mobile */}
-        <div className="bg-[#6E5A3C] text-[var(--paper)] text-center py-2 text-[11px] font-semibold uppercase tracking-[0.16em] border-b border-brand-accent">
+        {/* Top announcement bar - Tan background with brown text */}
+        <div className="bg-[var(--paper)] text-[#6E5A3C] text-center py-2 text-[11px] font-semibold uppercase tracking-[0.16em] border-b border-brand-accent">
           <span className="hidden md:inline">Made to Order • Designed to Honor the Craft • Built to Last</span>
           <span className="md:hidden">Made to Order * Designed to Honor the Craft * Backed by Faith</span>
         </div>

@@ -21,14 +21,14 @@ export function Header() {
   const closeMenu = () => setMobileOpen(false);
 
   return (
-    <header className="bg-[#24211B] sticky top-0 z-50 relative border-b-2 border-brand-accent mb-12 lg:mb-16">
+    <header className="bg-[var(--paper)] sticky top-0 z-50 relative border-b-2 border-brand-accent mb-12 lg:mb-16">
       <div className="w-full max-w-[1400px] mx-auto px-4 md:px-4 py-0">
-        <div className="flex items-end justify-between">
+        <div className="flex items-start justify-between pt-4">
           {/* Logo with circular background - overlaps the bottom border at halfway point */}
           <Link
             href="/"
             className="block relative -ml-4 md:-ml-4"
-            style={{ zIndex: 10, marginBottom: "-75px" }}
+            style={{ zIndex: 10, marginTop: "20px" }}
             onClick={closeMenu}
           >
             <div className="relative w-[150px] h-[150px] lg:w-[185px] lg:h-[185px]">
@@ -48,18 +48,18 @@ export function Header() {
             </div>
           </Link>
 
-          {/* Desktop Navigation - moved up higher */}
-          <nav className="hidden md:flex items-center gap-8 -mb-12 pb-4">
-            <Link href="/" className="nav-link !text-base lg:!text-lg font-bold uppercase tracking-[0.15em] text-[var(--paper)] hover:text-[var(--mustard-gold)]">
+          {/* Desktop Navigation - positioned at top with brown text */}
+          <nav className="hidden md:flex items-center gap-8 pt-2 pb-6">
+            <Link href="/" className="nav-link !text-base lg:!text-lg font-bold uppercase tracking-[0.15em] text-[#6E5A3C] hover:text-[var(--mustard-gold)]">
               HOME
             </Link>
-            <Link href="/store" className="nav-link !text-base lg:!text-lg font-bold uppercase tracking-[0.15em] text-[var(--paper)] hover:text-[var(--mustard-gold)]">
+            <Link href="/store" className="nav-link !text-base lg:!text-lg font-bold uppercase tracking-[0.15em] text-[#6E5A3C] hover:text-[var(--mustard-gold)]">
               SHOP
             </Link>
-            <Link href="/about" className="nav-link !text-base lg:!text-lg font-bold uppercase tracking-[0.15em] text-[var(--paper)] hover:text-[var(--mustard-gold)]">
+            <Link href="/about" className="nav-link !text-base lg:!text-lg font-bold uppercase tracking-[0.15em] text-[#6E5A3C] hover:text-[var(--mustard-gold)]">
               ABOUT
             </Link>
-            <Link href="/contact" className="nav-link !text-base lg:!text-lg font-bold uppercase tracking-[0.15em] text-[var(--paper)] hover:text-[var(--mustard-gold)]">
+            <Link href="/contact" className="nav-link !text-base lg:!text-lg font-bold uppercase tracking-[0.15em] text-[#6E5A3C] hover:text-[var(--mustard-gold)]">
               CONTACT
             </Link>
             <div className="scale-[1.4]">
@@ -67,11 +67,11 @@ export function Header() {
             </div>
           </nav>
 
-          {/* Mobile menu button and cart - removed right padding */}
-          <div className="md:hidden flex items-center gap-3 -mr-4">
+          {/* Mobile menu button and cart */}
+          <div className="md:hidden flex items-center gap-3 -mr-4 pt-2">
             <CartBadge />
             <button
-              className="p-2 text-[var(--paper)]"
+              className="p-2 text-[#6E5A3C]"
               aria-label="Menu"
               aria-expanded={mobileOpen}
               aria-controls="mobile-nav"
