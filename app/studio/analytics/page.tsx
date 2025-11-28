@@ -10,6 +10,10 @@ interface AnalyticsData {
   pendingOrders: number;
   todayRevenue: number;
   todayOrders: number;
+  totalVisitors: number;
+  visitorsByDay: { date: string; count: number }[];
+  peakHours: { hour: number; count: number }[];
+  topCities: { city: string; region?: string; country?: string; count: number }[];
   revenueByStatus: { status: string; revenue: number; count: number }[];
   topProducts: { product_name: string; quantity: number; revenue: number }[];
   revenueByDay: { date: string; revenue: number; orders: number }[];
@@ -60,6 +64,34 @@ export default function StudioAnalyticsPage() {
       const { data: orders, error: ordersError } = await ordersQuery;
 
       if (ordersError) throw ordersError;
+
+      // Visitor metrics (best-effort; skip if table is missing)
+      let visitors: {
+        created_at: string;
+        city?: string | null;
+        region?: string | null;
+        country?: string | null;
+      }[] = [];
+
+      try {
+        let visitorQuery = supa
+          .from("visitor_events")
+          .select("created_at, city, region, country");
+
+        if (startDate) {
+          visitorQuery = visitorQuery.gte("created_at", startDate.toISOString());
+        }
+
+        const { data: visitorData, error: visitorError } = await visitorQuery;
+        if (!visitorError && visitorData) {
+          visitors = visitorData;
+        } else if (visitorError?.code !== "42P01") {
+          // 42P01 = relation does not exist; only log unexpected issues
+          console.warn("Visitor analytics error:", visitorError);
+        }
+      } catch (visitorFetchError) {
+        console.warn("Visitor analytics fetch failed:", visitorFetchError);
+      }
 
       // Calculate basic metrics
       const totalRevenue = orders?.reduce((sum, order) => sum + (order.total_cents || 0), 0) || 0;
@@ -143,6 +175,50 @@ export default function StudioAnalyticsPage() {
         .map(([date, data]) => ({ date, ...data }))
         .sort((a, b) => a.date.localeCompare(b.date));
 
+      // Visitor metrics aggregation
+      const visitorDayMap = new Map<string, number>();
+      visitors.forEach((visit) => {
+        const visitDate = new Date(visit.created_at);
+        const dateStr = visitDate.toISOString().split("T")[0];
+        visitorDayMap.set(dateStr, (visitorDayMap.get(dateStr) || 0) + 1);
+      });
+
+      const visitorsByDay = Array.from(visitorDayMap.entries())
+        .map(([date, count]) => ({ date, count }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      const hourlyCounts = Array.from({ length: 24 }, () => 0);
+      visitors.forEach((visit) => {
+        const hour = new Date(visit.created_at).getHours();
+        hourlyCounts[hour] += 1;
+      });
+      const peakHours = hourlyCounts
+        .map((count, hour) => ({ hour, count }))
+        .sort((a, b) => b.count - a.count || a.hour - b.hour)
+        .slice(0, 5);
+
+      const cityMap = new Map<string, { city: string; region?: string; country?: string; count: number }>();
+      visitors.forEach((visit) => {
+        const keyParts = [
+          visit.city || "Unknown City",
+          visit.region || "",
+          visit.country || "",
+        ];
+        const key = keyParts.join("|");
+        const existing = cityMap.get(key);
+        if (existing) {
+          existing.count += 1;
+        } else {
+          cityMap.set(key, {
+            city: visit.city || "Unknown City",
+            region: visit.region || undefined,
+            country: visit.country || undefined,
+            count: 1,
+          });
+        }
+      });
+      const topCities = Array.from(cityMap.values()).sort((a, b) => b.count - a.count).slice(0, 5);
+
       // Production stats
       const productionStats = {
         pending: orders?.filter(o => o.status === "PAID").length || 0,
@@ -158,6 +234,10 @@ export default function StudioAnalyticsPage() {
         pendingOrders,
         todayRevenue,
         todayOrders: todayOrders.length,
+        totalVisitors: visitors.length,
+        visitorsByDay,
+        peakHours,
+        topCities,
         revenueByStatus,
         topProducts,
         revenueByDay,
@@ -301,6 +381,131 @@ export default function StudioAnalyticsPage() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Visitor Snapshot */}
+      <div className="card border-2 border-black p-6 mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-xl font-bold">Visitor Snapshot</h2>
+            <p className="text-neutral-600 text-sm">Traffic activity in the selected range</p>
+          </div>
+          <div className="text-sm text-neutral-500">
+            Peak hour is calculated from the busiest hours recorded
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 border-2 border-black bg-neutral-50">
+            <div className="text-sm text-neutral-600 mb-1">Visitors</div>
+            <div className="text-3xl font-bold">{analytics.totalVisitors}</div>
+            <div className="text-xs text-neutral-500 mt-1">Total visits captured</div>
+          </div>
+          <div className="p-4 border-2 border-black bg-neutral-50">
+            <div className="text-sm text-neutral-600 mb-1">Peak Hour</div>
+            <div className="text-3xl font-bold">
+              {analytics.peakHours[0]
+                ? `${analytics.peakHours[0].hour}:00`
+                : "—"}
+            </div>
+            <div className="text-xs text-neutral-500 mt-1">
+              {analytics.peakHours[0]?.count || 0} visits
+            </div>
+          </div>
+          <div className="p-4 border-2 border-black bg-neutral-50">
+            <div className="text-sm text-neutral-600 mb-1">Top City</div>
+            <div className="text-2xl font-bold leading-tight">
+              {analytics.topCities[0]
+                ? analytics.topCities[0].city
+                : "No data"}
+            </div>
+            <div className="text-xs text-neutral-500 mt-1">
+              {analytics.topCities[0]
+                ? [analytics.topCities[0].region, analytics.topCities[0].country].filter(Boolean).join(", ")
+                : "—"}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Visitor Trends */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="card border-2 border-black p-6">
+          <h2 className="text-xl font-bold mb-4">Visitors by Day</h2>
+          <div className="space-y-2">
+            {analytics.visitorsByDay.length === 0 && (
+              <div className="text-neutral-500 text-sm">No visitor data available.</div>
+            )}
+            {analytics.visitorsByDay.slice(-14).reverse().map((day) => (
+              <div key={day.date} className="flex items-center gap-4">
+                <div className="w-24 text-sm text-neutral-600">
+                  {new Date(day.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                </div>
+                <div className="flex-1 bg-neutral-100 h-6 relative">
+                  <div
+                    className="bg-black h-full flex items-center justify-end pr-2 text-white text-xs font-medium"
+                    style={{
+                      width: `${Math.max(
+                        5,
+                        (day.count / Math.max(...analytics.visitorsByDay.map(d => d.count || 1))) * 100
+                      )}%`,
+                    }}
+                  >
+                    {day.count}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="card border-2 border-black p-6">
+          <h2 className="text-xl font-bold mb-4">Peak Hours</h2>
+          {analytics.peakHours.length === 0 ? (
+            <div className="text-neutral-500 text-sm">No visitor data available.</div>
+          ) : (
+            <div className="space-y-3">
+              {analytics.peakHours.map((slot) => (
+                <div key={slot.hour} className="flex items-center justify-between">
+                  <div className="font-medium">{`${slot.hour}:00`}</div>
+                  <div className="flex-1 mx-4 bg-neutral-100 h-4">
+                    <div
+                      className="bg-black h-full"
+                      style={{
+                        width: `${Math.max(
+                          5,
+                          (slot.count / Math.max(...analytics.peakHours.map(h => h.count || 1))) * 100
+                        )}%`,
+                      }}
+                    />
+                  </div>
+                  <div className="text-sm text-neutral-700 min-w-[48px] text-right">{slot.count}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Top Cities */}
+      <div className="card border-2 border-black p-6 mb-8">
+        <h2 className="text-xl font-bold mb-4">Top Visitor Cities</h2>
+        {analytics.topCities.length === 0 ? (
+          <div className="text-neutral-500 text-sm">No visitor data available.</div>
+        ) : (
+          <div className="space-y-3">
+            {analytics.topCities.map((city) => (
+              <div key={`${city.city}-${city.region}-${city.country}`} className="flex items-center justify-between">
+                <div>
+                  <div className="font-medium">{city.city}</div>
+                  <div className="text-xs text-neutral-500">
+                    {[city.region, city.country].filter(Boolean).join(", ") || "Location unknown"}
+                  </div>
+                </div>
+                <div className="text-sm font-bold">{city.count} visit{city.count === 1 ? "" : "s"}</div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
