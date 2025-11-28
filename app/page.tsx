@@ -50,18 +50,18 @@ export default function Home() {
   return (
     <>
       {/* Hero Section */}
-      <section className="hero min-h-[18vh] overflow-hidden bg-[radial-gradient(ellipse_at_center,rgba(110,90,60,0.04)_0%,rgba(0,0,0,0)_55%,rgba(0,0,0,0.10)_100%),linear-gradient(to_bottom,#24211B,#1A1713)] bg-no-repeat bg-cover">
-        <div className="relative container text-center flex flex-col items-center gap-0 py-0 pt-1 pb-0">
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <Image
-              src="/assets/Doxa_Overlay.png"
-              alt="DOXA Threads hero overlay"
-              width={4461}
-              height={1529}
-              className="w-[88%] max-w-5xl h-auto opacity-90"
-              priority
-            />
-          </div>
+      <section className="hero relative min-h-[18vh] overflow-hidden bg-[radial-gradient(ellipse_at_center,rgba(110,90,60,0.04)_0%,rgba(0,0,0,0)_55%,rgba(0,0,0,0.10)_100%),linear-gradient(to_bottom,#24211B,#1A1713)] bg-no-repeat bg-cover">
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <Image
+            src="/assets/Doxa_Overlay.png"
+            alt="DOXA Threads hero overlay"
+            width={4461}
+            height={1529}
+            className="w-full h-full object-cover opacity-90"
+            priority
+          />
+        </div>
+        <div className="relative z-10 container text-center flex flex-col items-center gap-0 py-0 pt-1 pb-0">
           <div className="relative z-10 flex flex-col items-center gap-0.5">
             <div className="flex items-start justify-center w-full pt-0 -mb-1">
               <Image
