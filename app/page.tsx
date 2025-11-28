@@ -22,7 +22,8 @@ export default function Home() {
             id,
             url,
             alt,
-            sort
+            sort,
+            is_primary
           ),
           variants (
             id,
@@ -51,6 +52,16 @@ export default function Home() {
       {/* Hero Section */}
       <section className="hero min-h-[18vh] overflow-hidden bg-[radial-gradient(ellipse_at_center,rgba(110,90,60,0.04)_0%,rgba(0,0,0,0)_55%,rgba(0,0,0,0.10)_100%),linear-gradient(to_bottom,#24211B,#1A1713)] bg-no-repeat bg-cover">
         <div className="relative container text-center flex flex-col items-center gap-0 py-0 pt-1 pb-0">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <Image
+              src="/assets/Doxa_Overlay.png"
+              alt="DOXA Threads hero overlay"
+              width={4461}
+              height={1529}
+              className="w-[88%] max-w-5xl h-auto opacity-90"
+              priority
+            />
+          </div>
           <div className="relative z-10 flex flex-col items-center gap-0.5">
             <div className="flex items-start justify-center w-full pt-0 -mb-1">
               <Image
@@ -119,7 +130,9 @@ export default function Home() {
           ) : products.length > 0 ? (
             <div className="product-grid">
               {products.map((product: any) => {
-                const firstImage = product.product_images?.sort((a: any, b: any) => a.sort - b.sort)[0];
+                const primaryImage = product.product_images?.find((img: any) => img.is_primary);
+                const sortedImages = [...(product.product_images || [])].sort((a: any, b: any) => a.sort - b.sort);
+                const firstImage = primaryImage || sortedImages[0];
                 const activeVariants = product.variants?.filter((v: any) => v.active) || [];
                 const minPrice = activeVariants.length 
                   ? Math.min(...activeVariants.map((v: any) => v.price_cents))
