@@ -69,19 +69,16 @@ export default function Home() {
                 alt="DOXA Threads logo"
                 width={1200}
                 height={400}
-                className="w-[65%] max-w-[820px] h-auto object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.2)]"
+                className="w-[75%] sm:w-[65%] max-w-[820px] h-auto object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.2)]"
                 priority
               />
             </div>
             <h1 className="sr-only">DOXA THREADS</h1>
             <div className="flex flex-col items-center">
-              {/* 3-line tagline for mobile, single line for desktop */}
+              {/* Mobile: pipe-separated on one line, Desktop: single line with periods */}
               <p className="text-base sm:text-lg lg:text-xl mb-0 mt-1 max-w-2xl mx-auto font-normal tracking-tight text-[rgba(243,232,216,0.92)] text-center">
-                <span className="block sm:inline">Greek for Glory.</span>
-                <span className="hidden sm:inline"> </span>
-                <span className="block sm:inline">Worn with honor.</span>
-                <span className="hidden sm:inline"> </span>
-                <span className="block sm:inline">Backed by faith.</span>
+                <span className="sm:hidden">Greek for Glory. | Worn with Honor. | Backed By Faith.</span>
+                <span className="hidden sm:inline">Greek for Glory. Worn with honor. Backed by faith.</span>
               </p>
               {/* Side-by-side buttons on all screen sizes, smaller on mobile */}
               <div className="flex flex-row gap-2 justify-center mt-2">
