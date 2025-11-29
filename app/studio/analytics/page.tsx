@@ -442,34 +442,34 @@ export default function StudioAnalyticsPage() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="p-4 border-2 border-green-500 bg-green-50">
-            <div className="text-sm text-neutral-600 mb-1">Active Now</div>
-            <div className="text-3xl font-bold text-green-700">{analytics.activeVisitors || 0}</div>
-            <div className="text-xs text-neutral-500 mt-1">Last 5 minutes</div>
+            <div className="text-sm text-neutral-700 mb-1">Active Now</div>
+            <div className="text-3xl font-bold text-green-800">{analytics.activeVisitors || 0}</div>
+            <div className="text-xs text-neutral-700 mt-1">Last 5 minutes</div>
           </div>
           <div className="p-4 border-2 border-black bg-neutral-50">
-            <div className="text-sm text-neutral-600 mb-1">Total Visitors</div>
-            <div className="text-3xl font-bold">{analytics.totalVisitors}</div>
-            <div className="text-xs text-neutral-500 mt-1">In selected range</div>
+            <div className="text-sm text-neutral-700 mb-1">Total Visitors</div>
+            <div className="text-3xl font-bold text-neutral-800">{analytics.totalVisitors}</div>
+            <div className="text-xs text-neutral-700 mt-1">In selected range</div>
           </div>
           <div className="p-4 border-2 border-black bg-neutral-50">
-            <div className="text-sm text-neutral-600 mb-1">Peak Hour</div>
-            <div className="text-3xl font-bold">
+            <div className="text-sm text-neutral-700 mb-1">Peak Hour</div>
+            <div className="text-3xl font-bold text-neutral-800">
               {analytics.peakHours[0]
                 ? `${analytics.peakHours[0].hour}:00`
                 : "—"}
             </div>
-            <div className="text-xs text-neutral-500 mt-1">
+            <div className="text-xs text-neutral-700 mt-1">
               {analytics.peakHours[0]?.count || 0} visits
             </div>
           </div>
           <div className="p-4 border-2 border-black bg-neutral-50">
-            <div className="text-sm text-neutral-600 mb-1">Top City</div>
-            <div className="text-2xl font-bold leading-tight">
+            <div className="text-sm text-neutral-700 mb-1">Top City</div>
+            <div className="text-2xl font-bold text-neutral-800 leading-tight">
               {analytics.topCities[0]
                 ? analytics.topCities[0].city
                 : "No data"}
             </div>
-            <div className="text-xs text-neutral-500 mt-1">
+            <div className="text-xs text-neutral-700 mt-1">
               {analytics.topCities[0]
                 ? [analytics.topCities[0].region, analytics.topCities[0].country].filter(Boolean).join(", ")
                 : "—"}
@@ -597,20 +597,20 @@ export default function StudioAnalyticsPage() {
           <h2 className="text-xl font-bold mb-4">Production Pipeline</h2>
           <div className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-yellow-50 border-2 border-yellow-200">
-              <div className="font-medium">Awaiting Production</div>
-              <div className="text-2xl font-bold">{analytics.productionStats.pending}</div>
+              <div className="font-medium text-neutral-800">Awaiting Production</div>
+              <div className="text-2xl font-bold text-neutral-800">{analytics.productionStats.pending}</div>
             </div>
             <div className="flex items-center justify-between p-4 bg-purple-50 border-2 border-purple-200">
-              <div className="font-medium">In Production</div>
-              <div className="text-2xl font-bold">{analytics.productionStats.inProduction}</div>
+              <div className="font-medium text-neutral-800">In Production</div>
+              <div className="text-2xl font-bold text-neutral-800">{analytics.productionStats.inProduction}</div>
             </div>
             <div className="flex items-center justify-between p-4 bg-blue-50 border-2 border-blue-200">
-              <div className="font-medium">Shipped</div>
-              <div className="text-2xl font-bold">{analytics.productionStats.shipped}</div>
+              <div className="font-medium text-neutral-800">Shipped</div>
+              <div className="text-2xl font-bold text-neutral-800">{analytics.productionStats.shipped}</div>
             </div>
             <div className="flex items-center justify-between p-4 bg-green-50 border-2 border-green-200">
-              <div className="font-medium">Delivered</div>
-              <div className="text-2xl font-bold">{analytics.productionStats.delivered}</div>
+              <div className="font-medium text-neutral-800">Delivered</div>
+              <div className="text-2xl font-bold text-neutral-800">{analytics.productionStats.delivered}</div>
             </div>
           </div>
         </div>
