@@ -23,6 +23,7 @@ interface AnalyticsData {
     shipped: number;
     delivered: number;
   };
+  activeVisitors?: number; // New: visitors in last 5 minutes
 }
 
 function formatCurrency(cents: number) {
@@ -32,10 +33,18 @@ function formatCurrency(cents: number) {
 export default function StudioAnalyticsPage() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState<"7d" | "30d" | "all">("30d");
+  const [timeRange, setTimeRange] = useState<"24h" | "7d" | "30d" | "all">("24h");
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
   useEffect(() => {
     fetchAnalytics();
+    
+    // Auto-refresh every 30 seconds for live data
+    const interval = setInterval(() => {
+      fetchAnalytics();
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, [timeRange]);
 
   async function fetchAnalytics() {
@@ -46,7 +55,9 @@ export default function StudioAnalyticsPage() {
       // Calculate date range
       const now = new Date();
       let startDate: Date | null = null;
-      if (timeRange === "7d") {
+      if (timeRange === "24h") {
+        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      } else if (timeRange === "7d") {
         startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       } else if (timeRange === "30d") {
         startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -65,18 +76,19 @@ export default function StudioAnalyticsPage() {
 
       if (ordersError) throw ordersError;
 
-      // Visitor metrics (best-effort; skip if table is missing)
+      // Visitor metrics
       let visitors: {
         created_at: string;
         city?: string | null;
         region?: string | null;
         country?: string | null;
+        session_id?: string | null;
       }[] = [];
 
       try {
         let visitorQuery = supa
           .from("visitor_events")
-          .select("created_at, city, region, country");
+          .select("created_at, city, region, country, session_id");
 
         if (startDate) {
           visitorQuery = visitorQuery.gte("created_at", startDate.toISOString());
@@ -86,12 +98,17 @@ export default function StudioAnalyticsPage() {
         if (!visitorError && visitorData) {
           visitors = visitorData;
         } else if (visitorError?.code !== "42P01") {
-          // 42P01 = relation does not exist; only log unexpected issues
           console.warn("Visitor analytics error:", visitorError);
         }
       } catch (visitorFetchError) {
         console.warn("Visitor analytics fetch failed:", visitorFetchError);
       }
+
+      // Calculate active visitors (last 5 minutes)
+      const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+      const recentVisitors = visitors.filter(v => new Date(v.created_at) >= fiveMinutesAgo);
+      const uniqueActiveSessions = new Set(recentVisitors.map(v => v.session_id).filter(Boolean));
+      const activeVisitors = uniqueActiveSessions.size;
 
       // Calculate basic metrics
       const totalRevenue = orders?.reduce((sum, order) => sum + (order.total_cents || 0), 0) || 0;
@@ -147,21 +164,26 @@ export default function StudioAnalyticsPage() {
         .sort((a, b) => b.revenue - a.revenue)
         .slice(0, 10);
 
-      // Revenue by day (last 30 days for chart)
-      const last30Days = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      // Revenue by day - adjust based on time range
+      let daysToShow = 30;
+      if (timeRange === "24h") daysToShow = 1;
+      else if (timeRange === "7d") daysToShow = 7;
+      else if (timeRange === "30d") daysToShow = 30;
+
       const dayMap = new Map<string, { revenue: number; orders: number }>();
       
-      // Initialize all days with 0
-      for (let i = 0; i < 30; i++) {
+      // Initialize days
+      for (let i = 0; i < daysToShow; i++) {
         const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
         const dateStr = date.toISOString().split("T")[0];
         dayMap.set(dateStr, { revenue: 0, orders: 0 });
       }
 
       // Fill in actual data
+      const rangeStart = new Date(now.getTime() - daysToShow * 24 * 60 * 60 * 1000);
       orders?.forEach(order => {
         const orderDate = new Date(order.created_at);
-        if (orderDate >= last30Days) {
+        if (orderDate >= rangeStart) {
           const dateStr = orderDate.toISOString().split("T")[0];
           const existing = dayMap.get(dateStr);
           if (existing) {
@@ -235,6 +257,7 @@ export default function StudioAnalyticsPage() {
         todayRevenue,
         todayOrders: todayOrders.length,
         totalVisitors: visitors.length,
+        activeVisitors,
         visitorsByDay,
         peakHours,
         topCities,
@@ -243,6 +266,8 @@ export default function StudioAnalyticsPage() {
         revenueByDay,
         productionStats,
       });
+      
+      setLastUpdate(new Date());
     } catch (error) {
       console.error("Error fetching analytics:", error);
     } finally {
@@ -250,7 +275,7 @@ export default function StudioAnalyticsPage() {
     }
   }
 
-  if (loading) {
+  if (loading && !analytics) {
     return (
       <div className="container mx-auto px-4 py-12">
         <div className="text-center">Loading analytics...</div>
@@ -280,12 +305,25 @@ export default function StudioAnalyticsPage() {
     <div className="container mx-auto px-4 py-12">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Analytics</h1>
+          <h1 className="text-3xl font-bold">Live Analytics</h1>
           <p className="text-neutral-600">
-            Track sales, products, and fulfillment metrics
+            Real-time tracking of sales, visitors, and fulfillment
+          </p>
+          <p className="text-xs text-neutral-500 mt-1">
+            Last updated: {lastUpdate.toLocaleTimeString()}
           </p>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={() => setTimeRange("24h")}
+            className={`text-sm px-4 py-2 border-2 border-black ${
+              timeRange === "24h"
+                ? "bg-black text-white"
+                : "bg-white hover:bg-neutral-100"
+            }`}
+          >
+            Last 24 Hours
+          </button>
           <button
             onClick={() => setTimeRange("7d")}
             className={`text-sm px-4 py-2 border-2 border-black ${
@@ -356,7 +394,9 @@ export default function StudioAnalyticsPage() {
 
       {/* Revenue Chart */}
       <div className="card border-2 border-black p-6 mb-8">
-        <h2 className="text-xl font-bold mb-4">Revenue Trend (Last 30 Days)</h2>
+        <h2 className="text-xl font-bold mb-4">
+          Revenue Trend {timeRange === "24h" ? "(Today)" : `(Last ${timeRange === "7d" ? "7" : "30"} Days)`}
+        </h2>
         <div className="space-y-2">
           {analytics.revenueByDay.slice(-14).reverse().map((day) => (
             <div key={day.date} className="flex items-center gap-4">
@@ -367,7 +407,7 @@ export default function StudioAnalyticsPage() {
                 <div
                   className="bg-black h-full flex items-center justify-end pr-2"
                   style={{
-                    width: `${Math.max(5, (day.revenue / Math.max(...analytics.revenueByDay.map(d => d.revenue))) * 100)}%`,
+                    width: `${Math.max(5, (day.revenue / Math.max(...analytics.revenueByDay.map(d => d.revenue), 1)) * 100)}%`,
                   }}
                 >
                   <span className="text-xs text-white font-medium">
@@ -383,22 +423,33 @@ export default function StudioAnalyticsPage() {
         </div>
       </div>
 
-      {/* Visitor Snapshot */}
+      {/* Live Visitor Snapshot */}
       <div className="card border-2 border-black p-6 mb-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-bold">Visitor Snapshot</h2>
-            <p className="text-neutral-600 text-sm">Traffic activity in the selected range</p>
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              Live Visitor Snapshot
+              <span className="inline-flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+              </span>
+            </h2>
+            <p className="text-neutral-600 text-sm">Real-time traffic in the selected range</p>
           </div>
           <div className="text-sm text-neutral-500">
-            Peak hour is calculated from the busiest hours recorded
+            Auto-refreshes every 30 seconds
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="p-4 border-2 border-green-500 bg-green-50">
+            <div className="text-sm text-neutral-600 mb-1">Active Now</div>
+            <div className="text-3xl font-bold text-green-700">{analytics.activeVisitors || 0}</div>
+            <div className="text-xs text-neutral-500 mt-1">Last 5 minutes</div>
+          </div>
           <div className="p-4 border-2 border-black bg-neutral-50">
-            <div className="text-sm text-neutral-600 mb-1">Visitors</div>
+            <div className="text-sm text-neutral-600 mb-1">Total Visitors</div>
             <div className="text-3xl font-bold">{analytics.totalVisitors}</div>
-            <div className="text-xs text-neutral-500 mt-1">Total visits captured</div>
+            <div className="text-xs text-neutral-500 mt-1">In selected range</div>
           </div>
           <div className="p-4 border-2 border-black bg-neutral-50">
             <div className="text-sm text-neutral-600 mb-1">Peak Hour</div>
@@ -446,7 +497,7 @@ export default function StudioAnalyticsPage() {
                     style={{
                       width: `${Math.max(
                         5,
-                        (day.count / Math.max(...analytics.visitorsByDay.map(d => d.count || 1))) * 100
+                        (day.count / Math.max(...analytics.visitorsByDay.map(d => d.count || 1), 1)) * 100
                       )}%`,
                     }}
                   >
@@ -473,7 +524,7 @@ export default function StudioAnalyticsPage() {
                       style={{
                         width: `${Math.max(
                           5,
-                          (slot.count / Math.max(...analytics.peakHours.map(h => h.count || 1))) * 100
+                          (slot.count / Math.max(...analytics.peakHours.map(h => h.count || 1), 1)) * 100
                         )}%`,
                       }}
                     />
@@ -525,7 +576,7 @@ export default function StudioAnalyticsPage() {
                       <div
                         className="bg-black h-full"
                         style={{
-                          width: `${Math.max(2, (item.revenue / analytics.totalRevenue) * 100)}%`,
+                          width: `${Math.max(2, (item.revenue / Math.max(analytics.totalRevenue, 1)) * 100)}%`,
                         }}
                       />
                     </div>
