@@ -90,8 +90,9 @@ function ProductClient({ product, variants, images }: any) {
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [qty, setQty] = useState(1);
-  const [imageView, setImageView] = useState<ImageView>("combined");
-  const previewMode: PreviewMode = (product.preview_mode as PreviewMode) || "front";
+  // Use preview_mode from database to set initial view, default to 'combined'
+  const previewMode: PreviewMode = (product.preview_mode as PreviewMode) || "combined";
+  const [imageView, setImageView] = useState<ImageView>(previewMode);
 
   // Get unique colors from images - deduplicate by color name
   const availableColors = images
