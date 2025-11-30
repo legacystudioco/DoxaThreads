@@ -36,9 +36,12 @@ export default function ProductSortManager({ products, type, onSave }: ProductSo
     setItems(newItems);
   };
 
-  const handleRandomize = () => {
+  const handleRandomize = async () => {
     // Only randomize for store page, not homepage
     if (type !== 'store') return;
+    
+    setSaving(true);
+    setMessage(null);
     
     // Fisher-Yates shuffle algorithm
     const shuffled = [...items];
@@ -48,7 +51,39 @@ export default function ProductSortManager({ products, type, onSave }: ProductSo
     }
     
     setItems(shuffled);
-    setMessage({ type: 'success', text: 'Products randomized! Click "Save Order" to apply changes.' });
+    
+    try {
+      // Automatically save the randomized order
+      const sortedProducts = shuffled.map((product, index) => ({
+        id: product.id,
+        sort_order: index + 1 // 1-based indexing
+      }));
+
+      const response = await fetch('/api/admin/products/sort-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          products: sortedProducts,
+          type
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save randomized order');
+      }
+
+      setMessage({ type: 'success', text: 'Products randomized and saved successfully!' });
+      onSave();
+    } catch (error) {
+      console.error('Error saving randomized order:', error);
+      setMessage({ type: 'error', text: 'Failed to save randomized order' });
+      // Revert to original order on error
+      setItems(products);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSave = async () => {

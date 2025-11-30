@@ -8,6 +8,9 @@ import { Header } from "@/components/Header";
 export const metadata: Metadata = {
   title: "DOXA Threads | Greek for Glory",
   description: "Greek for Glory. Worn with honor. Backed by faith. American Traditional art meets sacred symbolism. Premium streetwear built to last.",
+  icons: {
+    icon: "/assets/Doxa_FIVACON.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
