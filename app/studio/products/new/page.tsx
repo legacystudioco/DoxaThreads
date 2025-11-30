@@ -112,6 +112,7 @@ export default function NewProductPage() {
     (() => Promise<Record<string, { url: string; colorName?: string; colorHex?: string }[]>>) | null
   >(null);
   const [previewMode, setPreviewMode] = useState<PreviewMode>("front");
+  const [isFrontOnly, setIsFrontOnly] = useState(false);
 
   const [productionCalcByType, setProductionCalcByType] = useState<
     Record<ProductTypeKey, Record<ProductionCalcKey, number>>
@@ -223,7 +224,7 @@ export default function NewProductPage() {
         const print_cost_cents = Math.round(
           (calc.blankCost + calc.transferCost + baseOrderFee) * 100
         );
-        const modeForProduct: PreviewMode = type === "tee" ? previewMode : "front";
+        const modeForProduct: PreviewMode = isFrontOnly ? "front" : (type === "tee" ? previewMode : "front");
 
         setProgress({
           percent: 10 + Math.round((created / activeTypes.length) * 60),
@@ -429,9 +430,31 @@ export default function NewProductPage() {
             hideActions
             onDesignNameChange={setDesignName}
             onSelectedTypesChange={(types) => setSelectedTypes(new Set(types as Set<ProductTypeKey>))}
-            previewMode={previewMode}
+            previewMode={isFrontOnly ? "front" : previewMode}
             onPreviewModeChange={setPreviewMode}
-            setAssetGenerator={setAssetGenerator}
+            setAssetGenerator={(generator) => {
+              // Wrap the generator to handle front-only mode
+              setAssetGenerator(() => async () => {
+                const assets = await generator();
+                
+                // If front-only mode, filter to keep only front images
+                if (isFrontOnly) {
+                  const frontOnlyAssets: typeof assets = {};
+                  for (const [type, images] of Object.entries(assets)) {
+                    frontOnlyAssets[type] = images
+                      .filter(img => {
+                        // Keep images that are front views
+                        const isFront = img.url.includes('-Front') && !img.url.includes('-Back');
+                        return isFront;
+                      })
+                      .map(img => ({ ...img, view: 'front' }));
+                  }
+                  return frontOnlyAssets;
+                }
+                
+                return assets;
+              });
+            }}
           />
           
           {/* Product Description Field */}
@@ -450,31 +473,69 @@ export default function NewProductPage() {
           </div>
         </div>
 
+        {/* Front-Only Design Checkbox */}
+        <div className="card">
+          <label className="flex items-center gap-3 cursor-pointer p-4">
+            <input
+              type="checkbox"
+              checked={isFrontOnly}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                setIsFrontOnly(checked);
+                if (checked) {
+                  setPreviewMode("front");
+                }
+              }}
+              className="w-5 h-5"
+            />
+            <div>
+              <span className="font-bold text-brand-paper text-lg">⭐ Front Only Design</span>
+              <p className="text-sm text-brand-accent mt-1">
+                Enable this for designs that only appear on the front of the garment. 
+                All selected colors will get front-view images generated. Back and combined views will be skipped.
+              </p>
+            </div>
+          </label>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="card">
             <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-brand-accent">
               <h2 className="text-xl font-bold text-brand-paper">Preview Mode (Customer View)</h2>
-              <span className="badge-outline text-xs bg-transparent text-brand-paper border-brand-accent">Admin only</span>
+              <span className="badge-outline text-xs bg-transparent text-brand-paper border-brand-accent">
+                {isFrontOnly ? "Locked to Front" : "Admin only"}
+              </span>
             </div>
-            <p className="text-sm text-brand-accent mb-4">
-              Pick which garment preview is surfaced to shoppers. This selection stays in sync with the live editor above.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              {(["front", "back", "combined"] as PreviewMode[]).map((mode) => (
-                <button
-                  key={`preview-${mode}`}
-                  type="button"
-                  onClick={() => setPreviewMode(mode)}
-                  className={`px-4 py-2 border-2 text-sm font-semibold ${
-                    previewMode === mode
-                      ? "bg-brand-blood text-brand-paper border-brand-accent"
-                      : "bg-transparent text-brand-paper border-brand-accent"
-                  }`}
-                >
-                  {mode === "front" ? "Front only" : mode === "back" ? "Back only" : "Front + Back combined"}
-                </button>
-              ))}
-            </div>
+            {isFrontOnly ? (
+              <div className="p-4 bg-[rgba(36,33,27,0.7)] border-2 border-brand-accent rounded">
+                <p className="text-brand-accent text-sm">
+                  ℹ️ Preview mode is locked to "Front only" when Front Only Design is enabled. 
+                  Uncheck "Front Only Design" above to customize preview modes.
+                </p>
+              </div>
+            ) : (
+              <>
+                <p className="text-sm text-brand-accent mb-4">
+                  Pick which garment preview is surfaced to shoppers. This selection stays in sync with the live editor above.
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  {(["front", "back", "combined"] as PreviewMode[]).map((mode) => (
+                    <button
+                      key={`preview-${mode}`}
+                      type="button"
+                      onClick={() => setPreviewMode(mode)}
+                      className={`px-4 py-2 border-2 text-sm font-semibold ${
+                        previewMode === mode
+                          ? "bg-brand-blood text-brand-paper border-brand-accent"
+                          : "bg-transparent text-brand-paper border-brand-accent"
+                      }`}
+                    >
+                      {mode === "front" ? "Front only" : mode === "back" ? "Back only" : "Front + Back combined"}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
 
           <div className="card">

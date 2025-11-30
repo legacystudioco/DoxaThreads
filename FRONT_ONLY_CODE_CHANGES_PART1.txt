@@ -1,0 +1,49 @@
+// ADD THIS TO DesignUploadForm.tsx PROPS INTERFACE (around line 250)
+export interface DesignUploadFormProps {
+  hideActions?: boolean;
+  onDesignNameChange?: (name: string) => void;
+  onSelectedTypesChange?: (types: Set<string>) => void;
+  previewMode?: PreviewMode;
+  onPreviewModeChange?: (mode: PreviewMode) => void;
+  isFrontOnly?: boolean;  // ADD THIS
+  onFrontOnlyChange?: (isFrontOnly: boolean) => void;  // ADD THIS
+  setAssetGenerator?: (
+    generator: () => Promise<
+      Record<
+        string,
+        {
+          url: string;
+          colorName?: string;
+          colorHex?: string;
+          view?: string;  // ADD THIS to track which view this image is
+        }[]
+      >
+    >
+  ) => void;
+}
+
+// IN THE COMPONENT FUNCTION (around line 260), ADD TO DESTRUCTURED PROPS:
+export default function DesignUploadForm({
+  hideActions = false,
+  onDesignNameChange,
+  onSelectedTypesChange,
+  previewMode: previewModeProp,
+  onPreviewModeChange,
+  isFrontOnly,  // ADD THIS
+  onFrontOnlyChange,  // ADD THIS
+  setAssetGenerator,
+}: DesignUploadFormProps) {
+
+// ADD THIS STATE (around line 280):
+const [internalFrontOnly, setInternalFrontOnly] = useState(false);
+const effectiveFrontOnly = isFrontOnly ?? internalFrontOnly;
+
+// ADD THIS HANDLER (around line 290):
+const handleFrontOnlyChange = (checked: boolean) => {
+  setInternalFrontOnly(checked);
+  onFrontOnlyChange?.(checked);
+  if (checked) {
+    // Auto-set preview mode to front when front-only is enabled
+    handlePreviewModeChange("front");
+  }
+};
