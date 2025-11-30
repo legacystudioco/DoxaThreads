@@ -1,146 +1,208 @@
-# ⚡ QUICK REFERENCE - Front-Only Design Feature
+# 🚀 Quick Reference Card - Product Sizing
 
-## What Changed?
+## Installation (10 minutes)
 
-### New Feature Added ✅
-**"Front Only Design" checkbox** in product creation page
+### Step 1: Database (2 min)
+```bash
+1. Open Supabase → SQL Editor
+2. Copy/paste: migrations/add_product_descriptions_and_sizing.sql
+3. Click "Run"
+4. Done ✅
+```
 
-### Files Modified ✅
-1. `/app/studio/products/new/page.tsx` - Added checkbox and logic
-2. `/app/store/products/[slug]/page.tsx` - Fixed preview mode initialization
+### Step 2: Add Component (5 min)
+```tsx
+// app/store/products/[slug]/page.tsx
+import { ProductDetails } from '@/components/ProductDetails';
 
-### Database Fix Available ✅
-`fix_all_product_views.sql` - Auto-fixes existing products
+// Add in your JSX:
+<ProductDetails product={product} />
+```
 
----
-
-## When to Use Front-Only Mode
-
-✅ **USE IT FOR:**
-- Logo-only designs (front chest placement)
-- Text-based designs (front only)
-- Simple graphics (front placement)
-- Pocket designs
-- Any design without a back component
-
-❌ **DON'T USE IT FOR:**
-- Designs with front AND back artwork
-- Full-coverage designs
-- Products where you want to show back view
-
----
-
-## How to Use
-
-### Creating Front-Only Product:
-1. Upload front design ✅
-2. **Check "⭐ Front Only Design"** ✅
-3. Select colors (all get front images) ✅
-4. Create product ✅
-
-### Creating Normal Product:
-1. Upload front/back designs ✅
-2. **Leave "Front Only Design" unchecked** ✅
-3. Choose base mockup color ✅
-4. Select additional colors ✅
-5. Choose preview mode ✅
-6. Create product ✅
+### Step 3: Verify (3 min)
+```bash
+1. Visit any product page
+2. See "Size Guide" tab
+3. Click through tabs
+4. All working ✅
+```
 
 ---
 
-## What Happens in Front-Only Mode?
+## File Locations
 
-| Feature | Normal Mode | Front-Only Mode |
-|---------|-------------|-----------------|
-| Images Generated | Base: Front + Back + Combined<br>Others: Combined only | ALL colors: Front only |
-| Preview Mode | User choice | Locked to "Front" |
-| Database `preview_mode` | User choice | "front" |
-| Image Count | Base: 3 images<br>Each other color: 1 image | Each color: 1 image |
+```
+DoxaThreads/
+├── migrations/
+│   ├── add_product_descriptions_and_sizing.sql  ← RUN THIS FIRST
+│   ├── verify_sizing_migration.sql              ← Test queries
+│   └── manual_product_updates.sql               ← Reference
+├── lib/
+│   └── product-sizing.ts                        ← Helper functions
+├── components/
+│   └── ProductDetails.tsx                       ← Main component
+├── types/
+│   └── product.ts                               ← Type definitions
+└── docs/
+    ├── PRODUCT_SIZING_README.md                 ← START HERE
+    ├── IMPLEMENTATION_CHECKLIST.md              ← Step by step
+    └── UI_GUIDE.md                              ← Visual reference
+```
 
 ---
 
-## Fixing Existing Products
+## Common Tasks
 
-Your existing hoodies/crewnecks showing as "front only" when they have back designs?
-
-**Run this in Supabase SQL Editor:**
-
+### Update Product Type
 ```sql
-UPDATE products
-SET preview_mode = CASE 
-  WHEN (
-    SELECT COUNT(*) 
-    FROM product_images pi 
-    WHERE pi.product_id = products.id 
-      AND (pi.url ILIKE '%combined%' OR pi.url ILIKE '%back%')
-  ) > 0 THEN 'combined'
-  ELSE 'front'
-END
-WHERE active = true;
+UPDATE products 
+SET product_type = 'hoodie'
+WHERE slug = 'my-product';
 ```
 
-This automatically fixes all products! ✅
+### Update Materials
+```sql
+UPDATE products 
+SET material_description = 'New description'
+WHERE id = 'product-id';
+```
+
+### Update Sizing
+```sql
+UPDATE products 
+SET sizing_info = '{...}'::jsonb
+WHERE id = 'product-id';
+```
 
 ---
 
-## Visual Guide
+## Component Usage
 
+### Basic
+```tsx
+<ProductDetails product={product} />
 ```
-┌─────────────────────────────────────────┐
-│  ⭐ Front Only Design                   │
-│  ☐ Enable this for designs that only   │
-│     appear on the front of the garment  │
-└─────────────────────────────────────────┘
-              ↓
-         [UNCHECKED]              [CHECKED]
-              ↓                        ↓
-    ┌──────────────────┐     ┌──────────────────┐
-    │  Normal Mode     │     │  Front-Only Mode │
-    ├──────────────────┤     ├──────────────────┤
-    │ • Base mockup    │     │ • ALL colors get │
-    │   gets 3 images  │     │   front images   │
-    │ • Other colors   │     │ • No back/       │
-    │   get combined   │     │   combined       │
-    │ • User chooses   │     │ • Locked to      │
-    │   preview mode   │     │   "front"        │
-    └──────────────────┘     └──────────────────┘
+
+### With Helper Functions
+```tsx
+import { getMaterialDescription, getSizingInfo } from '@/lib/product-sizing';
+
+const materials = getMaterialDescription(product);
+const sizing = getSizingInfo(product);
+```
+
+---
+
+## Database Fields Added
+
+- `product_type` → 'hoodie' | 'crewneck' | 'tshirt' | 'other'
+- `material_description` → Text description
+- `sizing_info` → JSONB with measurements
+
+---
+
+## Sizing Data Structure
+
+```json
+{
+  "measurements": {
+    "M": {
+      "body_length": 28,
+      "chest": 21.5,
+      "sleeve_length": 25.5
+    }
+  },
+  "size_chart": {
+    "M": { "chest_range": "38-41" }
+  },
+  "measurement_notes": {
+    "body_length": "How to measure...",
+    "chest": "How to measure...",
+    "sleeve_length": "How to measure..."
+  }
+}
+```
+
+---
+
+## Product Types & Materials
+
+| Type | Weight | Blend | Sizes |
+|------|--------|-------|-------|
+| Hoodie | 7.4 oz | 80/20 cotton/poly | S-3XL |
+| Crewneck | 5.3 oz | 60/40 cotton/poly | S-3XL |
+| T-Shirt | 3.5 oz | 65/35 poly/cotton | S-3XL |
+
+---
+
+## Helper Functions
+
+```tsx
+getMaterialDescription(product)  // → "7.4-ounce, 80/20..."
+getSizingInfo(product)           // → { measurements, size_chart... }
+getSizeMeasurements(product, 'M') // → { body_length: 28, chest: 21.5... }
+getChestRange(product, 'M')      // → "38-41"
+formatMaterialFeatures(desc)     // → ["Feature 1", "Feature 2"...]
+getAvailableSizes(product)       // → ['S', 'M', 'L'...]
 ```
 
 ---
 
 ## Troubleshooting
 
-**Problem:** Front-only checkbox doesn't appear
-- **Solution:** Clear browser cache and refresh
-
-**Problem:** Images still showing back/combined in front-only mode
-- **Solution:** Check console for errors, verify checkbox is checked
-
-**Problem:** Existing products showing wrong view
-- **Solution:** Run the SQL fix script
-
-**Problem:** Preview mode won't change
-- **Solution:** Uncheck "Front Only Design" first
+| Issue | Solution |
+|-------|----------|
+| No sizing shown | Check `product_type` is set |
+| Wrong type | Update in database |
+| Missing data | Re-run migration |
+| Styling issues | Check Tailwind classes |
+| TypeScript errors | Import from types/product.ts |
 
 ---
 
-## Files You Can Reference
+## Testing Checklist
 
-1. `IMPLEMENTATION_SUMMARY.md` - Full documentation
-2. `SIMPLE_FRONT_ONLY_GUIDE.md` - Step-by-step guide
-3. `fix_all_product_views.sql` - Database fix
-4. This file - Quick reference
-
----
-
-## Key Benefits
-
-💰 **Save Storage** - Fewer images per product
-⚡ **Faster Creation** - Skip back/combined generation  
-🎨 **More Colors** - All colors get full images
-👀 **Better UX** - Right view for each design type
-🔧 **Flexible** - Choose per product
+- [ ] Hoodie shows size guide
+- [ ] Crewneck shows size guide  
+- [ ] T-shirt shows size guide
+- [ ] All 3 tabs work
+- [ ] Mobile responsive
+- [ ] No console errors
 
 ---
 
-**That's it! The feature is live and ready to use!** 🚀
+## Documentation Quick Links
+
+- 📖 **Overview:** PRODUCT_SIZING_README.md
+- ✅ **Checklist:** IMPLEMENTATION_CHECKLIST.md
+- 🎨 **UI Guide:** UI_GUIDE.md
+- 📝 **Details:** PRODUCT_SIZING_IMPLEMENTATION.md
+- 💻 **Example:** EXAMPLE_PRODUCT_PAGE_INTEGRATION.tsx
+
+---
+
+## Support
+
+See `migrations/manual_product_updates.sql` for update examples
+See `migrations/verify_sizing_migration.sql` for test queries
+
+---
+
+## Verification Query
+
+```sql
+-- Check everything is set up
+SELECT 
+  title,
+  product_type,
+  CASE WHEN material_description IS NOT NULL THEN '✓' ELSE '✗' END as materials,
+  CASE WHEN sizing_info IS NOT NULL THEN '✓' ELSE '✗' END as sizing
+FROM products
+WHERE active = true;
+```
+
+Expected: All active products have ✓ for materials and sizing
+
+---
+
+**Keep this card handy for quick reference!**
