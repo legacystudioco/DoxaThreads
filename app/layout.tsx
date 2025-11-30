@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Header } from "@/components/Header";
+import { VisitorTracker } from "@/components/VisitorTracker";
 
 export const metadata: Metadata = {
   title: "DOXA Threads | Greek for Glory",
@@ -17,6 +18,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
+        {/* Visitor tracking component */}
+        <VisitorTracker />
+        
         {/* Top announcement bar - Tan background with brown text */}
         <div className="bg-[var(--paper)] text-[#6E5A3C] text-center py-2 text-[11px] font-semibold uppercase tracking-[0.16em] border-b border-brand-accent">
           <span className="hidden md:inline">Made to Order • Designed to Honor the Craft • Built to Last</span>

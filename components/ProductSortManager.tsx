@@ -25,6 +25,8 @@ export default function ProductSortManager({ products, type, onSave }: ProductSo
   const [items, setItems] = useState(products);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [tempPosition, setTempPosition] = useState<string>("");
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
@@ -86,6 +88,26 @@ export default function ProductSortManager({ products, type, onSave }: ProductSo
     }
   };
 
+  const handlePositionChange = (currentIndex: number, newPosition: string) => {
+    const pos = parseInt(newPosition);
+    
+    // Validate the input
+    if (isNaN(pos) || pos < 1 || pos > items.length) {
+      setEditingIndex(null);
+      setTempPosition("");
+      return;
+    }
+
+    // Move the item to the new position
+    const newItems = Array.from(items);
+    const [movedItem] = newItems.splice(currentIndex, 1);
+    newItems.splice(pos - 1, 0, movedItem);
+    
+    setItems(newItems);
+    setEditingIndex(null);
+    setTempPosition("");
+  };
+
   const handleSave = async () => {
     setSaving(true);
     setMessage(null);
@@ -135,7 +157,7 @@ export default function ProductSortManager({ products, type, onSave }: ProductSo
             {type === 'homepage' ? 'Latest Drops Order' : 'Store Page Order'}
           </h2>
           <p className="text-neutral-600 text-sm mt-1">
-            Drag and drop to reorder products. Changes are saved when you click "Save Order".
+            Drag and drop to reorder products, or click the number to jump to a specific position. Click "Save Order" to apply changes.
           </p>
         </div>
         <div className="flex gap-2">
@@ -189,8 +211,38 @@ export default function ProductSortManager({ products, type, onSave }: ProductSo
                         snapshot.isDragging ? 'shadow-lg border-neutral-900' : 'border-neutral-200'
                       }`}
                     >
-                      <div className="flex items-center justify-center w-8 h-8 bg-neutral-100 rounded font-bold text-sm">
-                        {index + 1}
+                      <div 
+                        className="flex items-center justify-center w-8 h-8 bg-neutral-100 rounded font-bold text-sm cursor-pointer hover:bg-neutral-200 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingIndex(index);
+                          setTempPosition((index + 1).toString());
+                        }}
+                        title="Click to change position"
+                      >
+                        {editingIndex === index ? (
+                          <input
+                            type="number"
+                            min="1"
+                            max={items.length}
+                            value={tempPosition}
+                            onChange={(e) => setTempPosition(e.target.value)}
+                            onBlur={() => handlePositionChange(index, tempPosition)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handlePositionChange(index, tempPosition);
+                              } else if (e.key === 'Escape') {
+                                setEditingIndex(null);
+                                setTempPosition("");
+                              }
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            autoFocus
+                            className="w-full h-full text-center bg-white border-2 border-black rounded font-bold text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                          />
+                        ) : (
+                          index + 1
+                        )}
                       </div>
                       
                       <div className="relative w-16 h-16 bg-neutral-100 rounded overflow-hidden flex-shrink-0">

@@ -258,6 +258,9 @@ export default function StudioProductsPage() {
           <Link href="/studio/dashboard" className="btn-secondary text-sm">
             ← Dashboard
           </Link>
+          <Link href="/studio/products/arrange" className="btn-secondary text-sm">
+            🔀 Arrange Products
+          </Link>
           <Link href="/studio/products/new" className="btn text-sm">
             + Add Product
           </Link>
