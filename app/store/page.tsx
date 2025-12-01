@@ -7,16 +7,34 @@ import Image from "next/image";
 
 export default function StorePage() {
   const [products, setProducts] = useState<any[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedCategory, setSelectedCategory] = useState<string>("adult");
+  const [selectedStyle, setSelectedStyle] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const categories = [
+  // Category tabs (Adult vs Kids)
+  const categoryTabs = [
+    { id: "adult", label: "Adult" },
+    { id: "kids", label: "Kids" },
+  ];
+
+  // Style filters for Adult
+  const adultStyles = [
     { id: "all", label: "All" },
     { id: "tees", label: "Tees" },
     { id: "hoodies", label: "Hoodies" },
     { id: "crewnecks", label: "Crewnecks" },
   ];
+
+  // Style filters for Kids
+  const kidsStyles = [
+    { id: "all", label: "All" },
+    { id: "youth_tees", label: "Youth Tees" },
+    { id: "youth_hoodies", label: "Youth Hoodies" },
+    { id: "youth_longsleeves", label: "Youth Longsleeves" },
+  ];
+
+  const currentStyles = selectedCategory === "adult" ? adultStyles : kidsStyles;
 
   useEffect(() => {
     async function fetchProducts() {
@@ -57,12 +75,30 @@ export default function StorePage() {
     fetchProducts();
   }, []);
 
+  // Reset style filter when category changes
+  useEffect(() => {
+    setSelectedStyle("all");
+  }, [selectedCategory]);
+
   const filteredProducts = products.filter((product: any) => {
-    if (selectedCategory === "all") return true;
-    const title = (product.title || "").toLowerCase();
-    if (selectedCategory === "hoodies") return title.includes("hoodie");
-    if (selectedCategory === "crewnecks") return title.includes("crewneck") || title.includes("crew neck");
-    if (selectedCategory === "tees") return title.includes("tee") || title.includes("t-shirt") || title.includes("shirt");
+    const style = (product.style || "").toLowerCase();
+    
+    // Filter by category first
+    const isYouthProduct = style.includes("youth");
+    if (selectedCategory === "adult" && isYouthProduct) return false;
+    if (selectedCategory === "kids" && !isYouthProduct) return false;
+    
+    // Then filter by style
+    if (selectedStyle === "all") return true;
+    
+    if (selectedStyle === "hoodies") return style.includes("hoodie") && !style.includes("youth");
+    if (selectedStyle === "crewnecks") return style.includes("crewneck") || style.includes("crew neck");
+    if (selectedStyle === "tees") return (style.includes("tee") || style.includes("t-shirt") || style.includes("shirt")) && !style.includes("youth") && !style.includes("longsleeve");
+    
+    if (selectedStyle === "youth_tees") return style.includes("youth") && (style.includes("tee") || style.includes("t-shirt")) && !style.includes("longsleeve");
+    if (selectedStyle === "youth_hoodies") return style.includes("youth") && style.includes("hoodie");
+    if (selectedStyle === "youth_longsleeves") return style.includes("youth") && style.includes("longsleeve");
+    
     return true;
   });
 
@@ -91,17 +127,36 @@ export default function StorePage() {
         </div>
       </div>
 
-      {/* Category Filter */}
-      <div className="flex flex-wrap justify-center gap-3 mb-10">
-        {categories.map((cat) => (
+      {/* Category Tabs (Adult vs Kids) */}
+      <div className="flex justify-center gap-4 mb-6">
+        {categoryTabs.map((tab) => (
           <button
-            key={cat.id}
-            onClick={() => setSelectedCategory(cat.id)}
-            className={`px-4 py-2 border-2 text-sm font-bold uppercase tracking-wider transition-colors ${
-              selectedCategory === cat.id ? "bg-black text-white border-black" : "border-black text-black hover:bg-black hover:text-white"
+            key={tab.id}
+            onClick={() => setSelectedCategory(tab.id)}
+            className={`px-8 py-3 border-2 text-base font-bold uppercase tracking-wider transition-colors ${
+              selectedCategory === tab.id 
+                ? "bg-black text-white border-black" 
+                : "border-black text-black hover:bg-black hover:text-white"
             }`}
           >
-            {cat.label}
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Style Filter */}
+      <div className="flex flex-wrap justify-center gap-3 mb-10">
+        {currentStyles.map((style) => (
+          <button
+            key={style.id}
+            onClick={() => setSelectedStyle(style.id)}
+            className={`px-4 py-2 border-2 text-sm font-bold uppercase tracking-wider transition-colors ${
+              selectedStyle === style.id 
+                ? "bg-black text-white border-black" 
+                : "border-black text-black hover:bg-black hover:text-white"
+            }`}
+          >
+            {style.label}
           </button>
         ))}
       </div>
@@ -179,7 +234,9 @@ export default function StorePage() {
           <svg className="w-20 h-20 mx-auto mb-6 text-neutral-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
           </svg>
-          <h3 className="text-2xl font-bold mb-2">New pieces in production</h3>
+          <h3 className="text-2xl font-bold mb-2">
+            {selectedCategory === "kids" ? "Kids collection coming soon" : "New pieces in production"}
+          </h3>
           <p className="text-neutral-600 mb-6">Check back soon.</p>
           <Link href="/" className="btn">
             Back to Home

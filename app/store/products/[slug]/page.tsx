@@ -94,6 +94,9 @@ function ProductClient({ product, variants, images }: any) {
   const previewMode: PreviewMode = (product.preview_mode as PreviewMode) || "combined";
   const [imageView, setImageView] = useState<ImageView>(previewMode);
 
+  // Check if this is a youth product
+  const isYouthProduct = (product.style || "").toLowerCase().includes("youth");
+
   // Get unique colors from images - deduplicate by color name
   const availableColors = images
     .filter((img: any) => img.color_name && img.color_hex)
@@ -108,12 +111,19 @@ function ProductClient({ product, variants, images }: any) {
       return acc;
     }, []);
 
-  // Get unique sizes from variants
+  // Get unique sizes from variants with proper sorting for youth vs adult
   const availableSizes = Array.from(
     new Set(variants.map((v: any) => v.size))
   ).sort((a: string, b: string) => {
-    const sizeOrder = ['S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
-    return sizeOrder.indexOf(a) - sizeOrder.indexOf(b);
+    if (isYouthProduct) {
+      // Youth size order
+      const youthSizeOrder = ['YXS', 'YS', 'YM', 'YL', 'YXL'];
+      return youthSizeOrder.indexOf(a) - youthSizeOrder.indexOf(b);
+    } else {
+      // Adult size order
+      const sizeOrder = ['S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
+      return sizeOrder.indexOf(a) - sizeOrder.indexOf(b);
+    }
   });
 
   // Set initial selected color
@@ -439,6 +449,54 @@ function ProductClient({ product, variants, images }: any) {
     );
   };
 
+  // Render appropriate size chart based on product type
+  const renderSizeChart = () => {
+    if (isYouthProduct) {
+      return (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border border-brand-accent">
+            <thead>
+              <tr className="border-b border-brand-accent bg-neutral-100">
+                <th className="text-left py-2 px-4">Size</th>
+                <th className="text-left py-2 px-4">Chest (in)</th>
+                <th className="text-left py-2 px-4">Length (in)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-b border-brand-accent"><td className="py-2 px-4">YXS</td><td className="px-4">26-28</td><td className="px-4">19</td></tr>
+              <tr className="border-b border-brand-accent"><td className="py-2 px-4">YS</td><td className="px-4">28-30</td><td className="px-4">21</td></tr>
+              <tr className="border-b border-brand-accent"><td className="py-2 px-4">YM</td><td className="px-4">30-32</td><td className="px-4">23</td></tr>
+              <tr className="border-b border-brand-accent"><td className="py-2 px-4">YL</td><td className="px-4">32-34</td><td className="px-4">25</td></tr>
+              <tr><td className="py-2 px-4">YXL</td><td className="px-4">34-36</td><td className="px-4">27</td></tr>
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    // Adult size chart
+    return (
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm border border-brand-accent">
+          <thead>
+            <tr className="border-b border-brand-accent bg-neutral-100">
+              <th className="text-left py-2 px-4">Size</th>
+              <th className="text-left py-2 px-4">Chest (in)</th>
+              <th className="text-left py-2 px-4">Length (in)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="border-b border-brand-accent"><td className="py-2 px-4">S</td><td className="px-4">34-36</td><td className="px-4">28</td></tr>
+            <tr className="border-b border-brand-accent"><td className="py-2 px-4">M</td><td className="px-4">38-40</td><td className="px-4">29</td></tr>
+            <tr className="border-b border-brand-accent"><td className="py-2 px-4">L</td><td className="px-4">42-44</td><td className="px-4">30</td></tr>
+            <tr className="border-b border-brand-accent"><td className="py-2 px-4">XL</td><td className="px-4">46-48</td><td className="px-4">31</td></tr>
+            <tr><td className="py-2 px-4">2XL</td><td className="px-4">50-52</td><td className="px-4">32</td></tr>
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
   return (
     <div className="container mx-auto px-4 py-12">
       {/* Breadcrumb */}
@@ -538,7 +596,7 @@ function ProductClient({ product, variants, images }: any) {
             )}
 
             <div className="badge-outline mb-4">
-              Made to order • Monochrome palette
+              Made to order • {isYouthProduct ? "Youth Sizes" : "Adult Sizes"}
             </div>
 
             {product.description && (
@@ -649,26 +707,9 @@ function ProductClient({ product, variants, images }: any) {
               </summary>
               <div className="p-4 border-t border-brand-accent">
                 <p className="text-sm text-neutral-600 mb-3">
-                  {product.sku ? `${product.sku} Size Chart` : "Standard Size Chart"}
+                  {isYouthProduct ? "Youth" : "Adult"} Size Chart
                 </p>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm border border-brand-accent">
-                    <thead>
-                      <tr className="border-b border-brand-accent bg-neutral-100">
-                        <th className="text-left py-2 px-4">Size</th>
-                        <th className="text-left py-2 px-4">Chest (in)</th>
-                        <th className="text-left py-2 px-4">Length (in)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className="border-b border-brand-accent"><td className="py-2 px-4">S</td><td className="px-4">34-36</td><td className="px-4">28</td></tr>
-                      <tr className="border-b border-brand-accent"><td className="py-2 px-4">M</td><td className="px-4">38-40</td><td className="px-4">29</td></tr>
-                      <tr className="border-b border-brand-accent"><td className="py-2 px-4">L</td><td className="px-4">42-44</td><td className="px-4">30</td></tr>
-                      <tr className="border-b border-brand-accent"><td className="py-2 px-4">XL</td><td className="px-4">46-48</td><td className="px-4">31</td></tr>
-                      <tr><td className="py-2 px-4">2XL</td><td className="px-4">50-52</td><td className="px-4">32</td></tr>
-                    </tbody>
-                  </table>
-                </div>
+                {renderSizeChart()}
               </div>
             </details>
 
