@@ -566,174 +566,87 @@ export default function NewProductPage() {
           </div>
         )}
 
-        {/* Conditional Editor: Live Editor for Adults, Simple Form for Kids */}
-        {activeCategory === "adult" ? (
-          <>
-            {/* Live Editor for Adult Products */}
-            <div className="card mb-8">
-              <h2 className="text-xl font-bold mb-4 pb-3 border-b-2 border-brand-accent text-brand-paper">
-                🎨 Live Editor
-              </h2>
-              <p className="text-sm text-brand-accent mb-4">
-                Use the live editor to visualize designs and color selections. The design name will be used for all product types.
+        {/* Live Editor Section - Now shared between both categories */}
+        <div className="card mb-8">
+          <h2 className="text-xl font-bold mb-4 pb-3 border-b-2 border-brand-accent text-brand-paper">
+            🎨 Live Editor
+          </h2>
+          <p className="text-sm text-brand-accent mb-4">
+            {activeCategory === "adult" 
+              ? "Use the live editor to visualize designs and color selections. The design name will be used for all product types."
+              : "Upload your design and preview how it will look. Youth products support design uploads and previews."}
+          </p>
+          <DesignUploadForm
+            hideActions
+            onDesignNameChange={setDesignName}
+            onSelectedTypesChange={(types) => setSelectedTypes(new Set(types as Set<ProductTypeKey>))}
+            previewMode={isFrontOnly ? "front" : previewMode}
+            onPreviewModeChange={setPreviewMode}
+            setAssetGenerator={(generator) => {
+              // Wrap the generator to handle front-only mode
+              setAssetGenerator(() => async () => {
+                const assets = await generator();
+                
+                // If front-only mode, filter to keep only front images
+                if (isFrontOnly) {
+                  const frontOnlyAssets: typeof assets = {};
+                  for (const [type, images] of Object.entries(assets)) {
+                    frontOnlyAssets[type] = images
+                      .filter(img => {
+                        // Keep images that are front views
+                        const isFront = img.url.includes('-Front') && !img.url.includes('-Back');
+                        return isFront;
+                      })
+                      .map(img => ({ ...img, view: 'front' }));
+                  }
+                  return frontOnlyAssets;
+                }
+                
+                return assets;
+              });
+            }}
+          />
+          
+          {/* Product Description Field */}
+          <div className="mt-6 pt-6 border-t-2 border-brand-accent">
+            <label className="label text-brand-paper mb-2">Product Description (Optional)</label>
+            <p className="text-xs text-brand-accent mb-3">
+              Add a custom description for this product. If left empty, a default description will be generated.
+            </p>
+            <textarea
+              className="input w-full text-brand-paper"
+              value={productDescription}
+              onChange={(e) => setProductDescription(e.target.value)}
+              rows={3}
+              placeholder="Enter a custom description for your product..."
+            />
+          </div>
+        </div>
+
+        {/* Front-Only Design Checkbox */}
+        <div className="card mb-8">
+          <label className="flex items-center gap-3 cursor-pointer p-4">
+            <input
+              type="checkbox"
+              checked={isFrontOnly}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                setIsFrontOnly(checked);
+                if (checked) {
+                  setPreviewMode("front");
+                }
+              }}
+              className="w-5 h-5"
+            />
+            <div>
+              <span className="font-bold text-brand-paper text-lg">⭐ Front Only Design</span>
+              <p className="text-sm text-brand-accent mt-1">
+                Enable this for designs that only appear on the front of the garment. 
+                All selected colors will get front-view images generated. Back and combined views will be skipped.
               </p>
-              <DesignUploadForm
-                hideActions
-                onDesignNameChange={setDesignName}
-                onSelectedTypesChange={(types) => setSelectedTypes(new Set(types as Set<ProductTypeKey>))}
-                previewMode={isFrontOnly ? "front" : previewMode}
-                onPreviewModeChange={setPreviewMode}
-                setAssetGenerator={(generator) => {
-                  // Wrap the generator to handle front-only mode
-                  setAssetGenerator(() => async () => {
-                    const assets = await generator();
-                    
-                    // If front-only mode, filter to keep only front images
-                    if (isFrontOnly) {
-                      const frontOnlyAssets: typeof assets = {};
-                      for (const [type, images] of Object.entries(assets)) {
-                        frontOnlyAssets[type] = images
-                          .filter(img => {
-                            // Keep images that are front views
-                            const isFront = img.url.includes('-Front') && !img.url.includes('-Back');
-                            return isFront;
-                          })
-                          .map(img => ({ ...img, view: 'front' }));
-                      }
-                      return frontOnlyAssets;
-                    }
-                    
-                    return assets;
-                  });
-                }}
-              />
-              
-              {/* Product Description Field */}
-              <div className="mt-6 pt-6 border-t-2 border-brand-accent">
-                <label className="label text-brand-paper mb-2">Product Description (Optional)</label>
-                <p className="text-xs text-brand-accent mb-3">
-                  Add a custom description for this product. If left empty, a default description will be generated.
-                </p>
-                <textarea
-                  className="input w-full text-brand-paper"
-                  value={productDescription}
-                  onChange={(e) => setProductDescription(e.target.value)}
-                  rows={3}
-                  placeholder="Enter a custom description for your product..."
-                />
-              </div>
             </div>
-
-            {/* Front-Only Design Checkbox */}
-            <div className="card mb-8">
-              <label className="flex items-center gap-3 cursor-pointer p-4">
-                <input
-                  type="checkbox"
-                  checked={isFrontOnly}
-                  onChange={(e) => {
-                    const checked = e.target.checked;
-                    setIsFrontOnly(checked);
-                    if (checked) {
-                      setPreviewMode("front");
-                    }
-                  }}
-                  className="w-5 h-5"
-                />
-                <div>
-                  <span className="font-bold text-brand-paper text-lg">⭐ Front Only Design</span>
-                  <p className="text-sm text-brand-accent mt-1">
-                    Enable this for designs that only appear on the front of the garment. 
-                    All selected colors will get front-view images generated. Back and combined views will be skipped.
-                  </p>
-                </div>
-              </label>
-            </div>
-          </>
-        ) : (
-          <>
-            {/* Simple Form for Youth Products */}
-            <div className="card mb-8">
-              <h2 className="text-xl font-bold mb-4 pb-3 border-b-2 border-brand-accent text-brand-paper">
-                👕 Youth Product Setup
-              </h2>
-              <p className="text-sm text-brand-accent mb-4">
-                Configure your youth product. Youth products don't currently support the visual mockup editor.
-              </p>
-              
-              {/* Design Name */}
-              <div className="mb-6">
-                <label className="label text-brand-paper mb-2">Design Name *</label>
-                <p className="text-xs text-brand-accent mb-3">
-                  This will be used as the product title (e.g., "Lion of Judah")
-                </p>
-                <input
-                  type="text"
-                  className="input w-full text-brand-paper"
-                  value={designName}
-                  onChange={(e) => setDesignName(e.target.value)}
-                  placeholder="Enter design name..."
-                  required
-                />
-              </div>
-
-              {/* Product Type Selection */}
-              <div className="mb-6">
-                <label className="label text-brand-paper mb-2">Select Youth Product Types *</label>
-                <p className="text-xs text-brand-accent mb-3">
-                  Choose which youth product types to create. You can select multiple.
-                </p>
-                <div className="space-y-3">
-                  {availableTypes.map((type) => (
-                    <label key={type} className="flex items-center gap-3 p-4 border-2 border-brand-accent rounded cursor-pointer hover:bg-[rgba(36,33,27,0.3)]">
-                      <input
-                        type="checkbox"
-                        checked={selectedTypes.has(type)}
-                        onChange={(e) => {
-                          const newTypes = new Set(selectedTypes);
-                          if (e.target.checked) {
-                            newTypes.add(type);
-                          } else {
-                            newTypes.delete(type);
-                          }
-                          setSelectedTypes(newTypes);
-                        }}
-                        className="w-5 h-5"
-                      />
-                      <div className="flex-1">
-                        <span className="font-bold text-brand-paper text-lg">{PRODUCT_TYPE_CONFIGS[type].label}</span>
-                        <p className="text-sm text-brand-accent mt-1">
-                          Sizes: {type === 'youth_longsleeve' ? 'YXS-YL' : 'YXS-YXL'}
-                        </p>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Product Description Field */}
-              <div className="pt-6 border-t-2 border-brand-accent">
-                <label className="label text-brand-paper mb-2">Product Description (Optional)</label>
-                <p className="text-xs text-brand-accent mb-3">
-                  Add a custom description for this product. If left empty, a default description will be generated.
-                </p>
-                <textarea
-                  className="input w-full text-brand-paper"
-                  value={productDescription}
-                  onChange={(e) => setProductDescription(e.target.value)}
-                  rows={3}
-                  placeholder="Enter a custom description for your product..."
-                />
-              </div>
-
-              {/* Note about mockups */}
-              <div className="mt-6 p-4 bg-[rgba(203,184,155,0.1)] border-2 border-brand-accent rounded">
-                <p className="text-sm text-brand-accent">
-                  <strong>Note:</strong> Youth products will be created without mockup images. You can add product images manually after creation, or they will use placeholder images on the store.
-                </p>
-              </div>
-            </div>
-          </>
-        )}
+          </label>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Preview Mode - Only for Adult Products */}
