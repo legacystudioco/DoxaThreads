@@ -1,4 +1,4 @@
- "use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -16,8 +16,9 @@ type ProductionCalcKey =
   | "retail3XL"
   | "retail4XL";
 
-type ProductTypeKey = "tee" | "hoodie" | "crewneck";
+type ProductTypeKey = "tee" | "hoodie" | "crewneck" | "youth_tee" | "youth_hoodie" | "youth_longsleeve";
 type PreviewMode = "front" | "back" | "combined";
+type ProductCategory = "adult" | "kids";
 
 const PRODUCT_TYPE_CONFIGS: Record<
   ProductTypeKey,
@@ -25,10 +26,12 @@ const PRODUCT_TYPE_CONFIGS: Record<
     label: string;
     defaultVariants: VariantForm[];
     defaultCalc: Record<ProductionCalcKey, number>;
+    category: ProductCategory;
   }
 > = {
   tee: {
     label: "T-Shirt",
+    category: "adult",
     defaultVariants: [
       { size: "S", price_dollars: 28.99, weight_oz: 5.0 },
       { size: "M", price_dollars: 28.99, weight_oz: 5.5 },
@@ -50,6 +53,7 @@ const PRODUCT_TYPE_CONFIGS: Record<
   },
   hoodie: {
     label: "Hoodie",
+    category: "adult",
     defaultVariants: [
       { size: "S", price_dollars: 44.99, weight_oz: 12.0 },
       { size: "M", price_dollars: 44.99, weight_oz: 12.5 },
@@ -71,6 +75,7 @@ const PRODUCT_TYPE_CONFIGS: Record<
   },
   crewneck: {
     label: "Crewneck",
+    category: "adult",
     defaultVariants: [
       { size: "S", price_dollars: 38.99, weight_oz: 8.0 },
       { size: "M", price_dollars: 38.99, weight_oz: 8.5 },
@@ -90,6 +95,65 @@ const PRODUCT_TYPE_CONFIGS: Record<
       retail4XL: 42.99,
     },
   },
+  youth_tee: {
+    label: "Youth T-Shirt",
+    category: "kids",
+    defaultVariants: [
+      { size: "YXS", price_dollars: 24.99, weight_oz: 3.5 },
+      { size: "YS", price_dollars: 24.99, weight_oz: 4.0 },
+      { size: "YM", price_dollars: 24.99, weight_oz: 4.5 },
+      { size: "YL", price_dollars: 24.99, weight_oz: 5.0 },
+      { size: "YXL", price_dollars: 26.99, weight_oz: 5.5 },
+    ],
+    defaultCalc: {
+      transferCost: 3.0,
+      blankCost: 7.0,
+      retailSL: 24.99,
+      retailXL: 26.99,
+      retail2XL: 26.99,
+      retail3XL: 26.99,
+      retail4XL: 26.99,
+    },
+  },
+  youth_hoodie: {
+    label: "Youth Hoodie",
+    category: "kids",
+    defaultVariants: [
+      { size: "YXS", price_dollars: 38.99, weight_oz: 9.0 },
+      { size: "YS", price_dollars: 38.99, weight_oz: 9.5 },
+      { size: "YM", price_dollars: 38.99, weight_oz: 10.0 },
+      { size: "YL", price_dollars: 38.99, weight_oz: 10.5 },
+      { size: "YXL", price_dollars: 40.99, weight_oz: 11.0 },
+    ],
+    defaultCalc: {
+      transferCost: 3.0,
+      blankCost: 10.0,
+      retailSL: 38.99,
+      retailXL: 40.99,
+      retail2XL: 40.99,
+      retail3XL: 40.99,
+      retail4XL: 40.99,
+    },
+  },
+  youth_longsleeve: {
+    label: "Youth Longsleeve",
+    category: "kids",
+    defaultVariants: [
+      { size: "YXS", price_dollars: 28.99, weight_oz: 5.0 },
+      { size: "YS", price_dollars: 28.99, weight_oz: 5.5 },
+      { size: "YM", price_dollars: 28.99, weight_oz: 6.0 },
+      { size: "YL", price_dollars: 28.99, weight_oz: 6.5 },
+    ],
+    defaultCalc: {
+      transferCost: 3.0,
+      blankCost: 8.0,
+      retailSL: 28.99,
+      retailXL: 28.99,
+      retail2XL: 28.99,
+      retail3XL: 28.99,
+      retail4XL: 28.99,
+    },
+  },
 };
 
 export default function NewProductPage() {
@@ -104,6 +168,7 @@ export default function NewProductPage() {
   }, [authLoading, isAuthenticated, router]);
   
   const baseOrderFee = 5;
+  const [activeCategory, setActiveCategory] = useState<ProductCategory>("adult");
   const [designName, setDesignName] = useState("");
   const [productDescription, setProductDescription] = useState("");
   const [selectedTypes, setSelectedTypes] = useState<Set<ProductTypeKey>>(new Set(["tee"]));
@@ -120,6 +185,9 @@ export default function NewProductPage() {
     tee: { ...PRODUCT_TYPE_CONFIGS.tee.defaultCalc },
     hoodie: { ...PRODUCT_TYPE_CONFIGS.hoodie.defaultCalc },
     crewneck: { ...PRODUCT_TYPE_CONFIGS.crewneck.defaultCalc },
+    youth_tee: { ...PRODUCT_TYPE_CONFIGS.youth_tee.defaultCalc },
+    youth_hoodie: { ...PRODUCT_TYPE_CONFIGS.youth_hoodie.defaultCalc },
+    youth_longsleeve: { ...PRODUCT_TYPE_CONFIGS.youth_longsleeve.defaultCalc },
   });
 
   const productionSizeTiers: { label: string; retailKey: ProductionCalcKey }[] = [
@@ -134,6 +202,17 @@ export default function NewProductPage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  // When switching categories, update selected types to the first product of that category
+  useEffect(() => {
+    const firstTypeOfCategory = (Object.keys(PRODUCT_TYPE_CONFIGS) as ProductTypeKey[]).find(
+      type => PRODUCT_TYPE_CONFIGS[type].category === activeCategory
+    );
+    if (firstTypeOfCategory) {
+      setSelectedTypes(new Set([firstTypeOfCategory]));
+      setActiveCalcTab(firstTypeOfCategory);
+    }
+  }, [activeCategory]);
 
   const parseMoneyInput = (value: string) => {
     const parsed = parseFloat(value);
@@ -157,8 +236,8 @@ export default function NewProductPage() {
   const getRetailPriceForSize = (type: ProductTypeKey, size: string) => {
     const calc = productionCalcByType[type];
     const upper = size.toUpperCase();
-    if (["S", "M", "L"].includes(upper)) return calc.retailSL;
-    if (upper === "XL") return calc.retailXL;
+    if (["S", "M", "L", "YXS", "YS", "YM", "YL"].includes(upper)) return calc.retailSL;
+    if (upper === "XL" || upper === "YXL") return calc.retailXL;
     if (upper === "2XL") return calc.retail2XL;
     if (upper === "3XL") return calc.retail3XL;
     if (upper === "4XL") return calc.retail4XL;
@@ -399,6 +478,11 @@ export default function NewProductPage() {
     );
   }
 
+  // Get available product types for current category
+  const availableTypes = (Object.keys(PRODUCT_TYPE_CONFIGS) as ProductTypeKey[]).filter(
+    type => PRODUCT_TYPE_CONFIGS[type].category === activeCategory
+  );
+
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-4xl mx-auto">
@@ -410,6 +494,40 @@ export default function NewProductPage() {
           <Link href="/studio/products" className="btn-secondary text-sm">
             ← Back
           </Link>
+        </div>
+
+        {/* Category Selection - NEW */}
+        <div className="card mb-8">
+          <h2 className="text-xl font-bold mb-4 pb-3 border-b-2 border-brand-accent text-brand-paper">
+            👕 Product Category
+          </h2>
+          <p className="text-sm text-brand-accent mb-4">
+            Select whether you're creating adult or kids products. Each category has its own garment types, sizing, and colors.
+          </p>
+          <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={() => setActiveCategory("adult")}
+              className={`flex-1 px-6 py-4 border-2 font-bold text-lg ${
+                activeCategory === "adult"
+                  ? "bg-brand-blood text-brand-paper border-brand-accent"
+                  : "bg-transparent text-brand-paper border-brand-accent"
+              }`}
+            >
+              Adult Sizes
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveCategory("kids")}
+              className={`flex-1 px-6 py-4 border-2 font-bold text-lg ${
+                activeCategory === "kids"
+                  ? "bg-brand-blood text-brand-paper border-brand-accent"
+                  : "bg-transparent text-brand-paper border-brand-accent"
+              }`}
+            >
+              Kids / Youth
+            </button>
+          </div>
         </div>
 
         {error && (
@@ -541,11 +659,13 @@ export default function NewProductPage() {
           <div className="card">
             <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-brand-accent">
               <h2 className="text-xl font-bold text-brand-paper">Production Cost Calculator</h2>
-              <span className="badge-outline text-xs bg-transparent text-brand-paper border-brand-accent">Tabbed by garment</span>
+              <span className="badge-outline text-xs bg-transparent text-brand-paper border-brand-accent">
+                {activeCategory === "adult" ? "Adult Sizes" : "Youth Sizes"}
+              </span>
             </div>
 
             <div className="flex flex-wrap gap-2 mb-6">
-              {(Object.keys(PRODUCT_TYPE_CONFIGS) as ProductTypeKey[]).map((type) => (
+              {availableTypes.map((type) => (
                 <button
                   key={`tab-${type}`}
                   type="button"
