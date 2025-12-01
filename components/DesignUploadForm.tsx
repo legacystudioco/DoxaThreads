@@ -84,9 +84,97 @@ const PRODUCT_TYPES = {
     ],
     supportsAllPreviewModes: true, // Hoodies support all three preview modes
   },
+  youth_tee: {
+    label: "Youth T-Shirt",
+    folder: "Youth/Tees",
+    colors: [
+      { name: "Cactus", filePrefix: "Cactus", hex: "#6B8E23" },
+      { name: "Caribbean Mist", filePrefix: "Caribbean_Mist", hex: "#A7D8DE" },
+      { name: "Cement", filePrefix: "Cement", hex: "#9E9E9E" },
+      { name: "Daisy Mist", filePrefix: "Daisy_Mist", hex: "#FFF8DC" },
+      { name: "Dusty Rose", filePrefix: "Dusty_Rose", hex: "#DCAE96" },
+      { name: "Navy Mist", filePrefix: "Navy_Mist", hex: "#4A5C7A" },
+      { name: "Pink Lemonade", filePrefix: "Pink_Lemonade", hex: "#FFB6C1" },
+      { name: "Black", filePrefix: "Black", hex: "#000000" },
+      { name: "Red", filePrefix: "Red", hex: "#DC143C" },
+      { name: "Royal", filePrefix: "Royal", hex: "#4169E1" },
+      { name: "Blue", filePrefix: "Blue", hex: "#0000FF" },
+    ],
+    defaultPricing: [
+      { size: "YXS", price: 24.99, weight: 3.5 },
+      { size: "YS", price: 24.99, weight: 4.0 },
+      { size: "YM", price: 24.99, weight: 4.5 },
+      { size: "YL", price: 24.99, weight: 5.0 },
+      { size: "YXL", price: 26.99, weight: 5.5 },
+    ],
+    supportsAllPreviewModes: true,
+  },
+  youth_hoodie: {
+    label: "Youth Hoodie",
+    folder: "Youth/Hoodies",
+    colors: [
+      { name: "Black", filePrefix: "Black", hex: "#000000" },
+      { name: "Daisy", filePrefix: "Daisy", hex: "#FFF8DC" },
+      { name: "Dark Heather", filePrefix: "Dark_Heather", hex: "#4A4A4A" },
+      { name: "Forest Green", filePrefix: "Forest_Green", hex: "#228B22" },
+      { name: "Light Pink", filePrefix: "Light_Pink", hex: "#FFB6C1" },
+      { name: "Maroon", filePrefix: "Maroon", hex: "#800000" },
+      { name: "Military Green", filePrefix: "Military_Green", hex: "#5A5F4A" },
+      { name: "Pink Lemonade", filePrefix: "Pink_Lemonade", hex: "#FFB6C1" },
+      { name: "Red", filePrefix: "Red", hex: "#DC143C" },
+      { name: "Sport Grey", filePrefix: "Sport_Grey", hex: "#B8B8B8" },
+      { name: "Royal", filePrefix: "Royal", hex: "#4169E1" },
+      { name: "Sand", filePrefix: "Sand", hex: "#D7C4A0" },
+      { name: "White", filePrefix: "White", hex: "#FFFFFF" },
+    ],
+    defaultPricing: [
+      { size: "YXS", price: 38.99, weight: 9.0 },
+      { size: "YS", price: 38.99, weight: 9.5 },
+      { size: "YM", price: 38.99, weight: 10.0 },
+      { size: "YL", price: 38.99, weight: 10.5 },
+      { size: "YXL", price: 40.99, weight: 11.0 },
+    ],
+    supportsAllPreviewModes: true,
+  },
+  youth_longsleeve: {
+    label: "Youth Longsleeve",
+    folder: "Youth/Longsleeve",
+    colors: [
+      { name: "Black", filePrefix: "Black", hex: "#000000" },
+      { name: "Carolina Blue", filePrefix: "Carolina_Blue", hex: "#56A0D3" },
+      { name: "Forest Green", filePrefix: "Forest_Green", hex: "#228B22" },
+      { name: "Gold", filePrefix: "Gold", hex: "#FFD700" },
+      { name: "Irish Green", filePrefix: "Irish_Green", hex: "#009A49" },
+      { name: "Navy", filePrefix: "Navy", hex: "#000080" },
+      { name: "Purple", filePrefix: "Purple", hex: "#800080" },
+      { name: "Red", filePrefix: "Red", hex: "#DC143C" },
+      { name: "Royal", filePrefix: "Royal", hex: "#4169E1" },
+      { name: "Sport Grey", filePrefix: "Sport_Grey", hex: "#B8B8B8" },
+      { name: "White", filePrefix: "White", hex: "#FFFFFF" },
+    ],
+    defaultPricing: [
+      { size: "YXS", price: 28.99, weight: 5.0 },
+      { size: "YS", price: 28.99, weight: 5.5 },
+      { size: "YM", price: 28.99, weight: 6.0 },
+      { size: "YL", price: 28.99, weight: 6.5 },
+    ],
+    supportsAllPreviewModes: true,
+  },
 };
 
 type ProductTypeKey = keyof typeof PRODUCT_TYPES;
+
+const MULTI_VIEW_PRODUCT_TYPES: Set<ProductTypeKey> = new Set([
+  "tee",
+  "hoodie",
+  "crewneck",
+  "youth_tee",
+  "youth_hoodie",
+  "youth_longsleeve",
+]);
+
+const isMultiViewProduct = (type: ProductTypeKey) => MULTI_VIEW_PRODUCT_TYPES.has(type);
+const isHoodieType = (type: ProductTypeKey) => type === "hoodie" || type === "youth_hoodie";
 
 const compositeLayout: Record<
   ProductTypeKey,
@@ -106,6 +194,18 @@ const compositeLayout: Record<
   crewneck: {
     front: { scale: 0.85, x: -135, y: 0 },
     back: { scale: 1.0, x: 115, y: -20 },
+  },
+  youth_tee: {
+    front: { scale: 0.85, x: -140, y: 0 },
+    back: { scale: 1.0, x: 120, y: -20 },
+  },
+  youth_hoodie: {
+    front: { scale: 0.85, x: -130, y: 0 },
+    back: { scale: 1.0, x: 110, y: -20 },
+  },
+  youth_longsleeve: {
+    front: { scale: 0.85, x: -140, y: 0 },
+    back: { scale: 1.0, x: 120, y: -20 },
   },
 };
 
@@ -176,6 +276,54 @@ const DESIGN_POSITION_DEFAULTS: Record<ProductTypeKey, { front: DesignPosition; 
       scale: 1.55,
     },
   },
+  youth_tee: {
+    front: {
+      x: 269,
+      y: 100,
+      width: 120,
+      height: 120,
+      scale: 0.6,
+    },
+    back: {
+      x: 80,
+      y: 52,
+      width: 120,
+      height: 120,
+      scale: 1.75,
+    },
+  },
+  youth_hoodie: {
+    front: {
+      x: 244,
+      y: 170,
+      width: 120,
+      height: 120,
+      scale: 0.55,
+    },
+    back: {
+      x: 112,
+      y: 140,
+      width: 120,
+      height: 120,
+      scale: 1.5,
+    },
+  },
+  youth_longsleeve: {
+    front: {
+      x: 269,
+      y: 100,
+      width: 120,
+      height: 120,
+      scale: 0.6,
+    },
+    back: {
+      x: 80,
+      y: 52,
+      width: 120,
+      height: 120,
+      scale: 1.75,
+    },
+  },
 };
 
 const createDefaultPosition = (): DesignPosition => ({
@@ -206,6 +354,18 @@ const PRODUCT_GROUP_OFFSET_DEFAULTS: Record<ProductTypeKey, { front: { x: number
   crewneck: {
     front: { x: -784, y: 616 },
     back: { x: 634, y: 0 },
+  },
+  youth_tee: {
+    front: { x: -248, y: 357 },
+    back: { x: 323, y: 0 },
+  },
+  youth_hoodie: {
+    front: { x: -317, y: 426 },
+    back: { x: 253, y: 0 },
+  },
+  youth_longsleeve: {
+    front: { x: -248, y: 357 },
+    back: { x: 323, y: 0 },
   },
 };
 
@@ -255,6 +415,9 @@ export default function DesignUploadForm({
     tee: {},
     crewneck: {},
     hoodie: {},
+    youth_tee: {},
+    youth_hoodie: {},
+    youth_longsleeve: {},
   });
 
   // Base mockup color for generating front/back images (one per product type)
@@ -262,6 +425,9 @@ export default function DesignUploadForm({
     tee: PRODUCT_TYPES.tee.colors[0].filePrefix,
     crewneck: PRODUCT_TYPES.crewneck.colors[0].filePrefix,
     hoodie: PRODUCT_TYPES.hoodie.colors[0].filePrefix,
+    youth_tee: PRODUCT_TYPES.youth_tee.colors[0].filePrefix,
+    youth_hoodie: PRODUCT_TYPES.youth_hoodie.colors[0].filePrefix,
+    youth_longsleeve: PRODUCT_TYPES.youth_longsleeve.colors[0].filePrefix,
   });
 
   // Preview dimensions for positioning UI (scaled down so the garment stays visible)
@@ -269,6 +435,9 @@ export default function DesignUploadForm({
     tee: createDefaultPositionMap('tee'),
     crewneck: createDefaultPositionMap('crewneck'),
     hoodie: createDefaultPositionMap('hoodie'),
+    youth_tee: createDefaultPositionMap('youth_tee'),
+    youth_hoodie: createDefaultPositionMap('youth_hoodie'),
+    youth_longsleeve: createDefaultPositionMap('youth_longsleeve'),
   });
   const [groupOffsets, setGroupOffsets] = useState<
     Record<ProductTypeKey, { front: { x: number; y: number }; back: { x: number; y: number } }>
@@ -276,6 +445,9 @@ export default function DesignUploadForm({
     tee: PRODUCT_GROUP_OFFSET_DEFAULTS.tee,
     crewneck: PRODUCT_GROUP_OFFSET_DEFAULTS.crewneck,
     hoodie: PRODUCT_GROUP_OFFSET_DEFAULTS.hoodie,
+    youth_tee: PRODUCT_GROUP_OFFSET_DEFAULTS.youth_tee,
+    youth_hoodie: PRODUCT_GROUP_OFFSET_DEFAULTS.youth_hoodie,
+    youth_longsleeve: PRODUCT_GROUP_OFFSET_DEFAULTS.youth_longsleeve,
   });
 
   const [currentEditingType, setCurrentEditingType] = useState<ProductTypeKey>("tee");
@@ -415,7 +587,7 @@ export default function DesignUploadForm({
 
   const updatePosition = (field: keyof DesignPosition, value: number) => {
     setDesignPositions(prev => {
-      const modeForType: PreviewMode = (currentEditingType === "tee" || currentEditingType === "hoodie" || currentEditingType === "crewneck") ? activePreviewMode : "front";
+      const modeForType: PreviewMode = isMultiViewProduct(currentEditingType) ? activePreviewMode : "front";
       const positionKey = getPositionKeyForMode(modeForType, activeLayer);
       const currentMap = prev[currentEditingType];
       const current = currentMap[positionKey];
@@ -465,21 +637,35 @@ export default function DesignUploadForm({
   ) => {
     const config = PRODUCT_TYPES[type];
     const encodedPrefix = encodeURIComponent(colorPrefix);
-    
-    if (type === "tee") {
-      const base = `/assets/Blanks/${config.folder}/Tee-${encodedPrefix}-`;
-      if (view === "back") return `${base}Back.png`;
-      return `${base}Front.png`;
-    } else if (type === "crewneck") {
-      const base = `/assets/Blanks/${config.folder}/Crew-${encodedPrefix}-`;
-      if (view === "back") return `${base}Back.png`;
-      return `${base}Front.png`;
-    } else if (type === "hoodie") {
-      const base = `/assets/Blanks/${config.folder}/Hoodie-${encodedPrefix}-`;
-      if (view === "back") return `${base}Back.png`;
-      return `${base}Front.png`;
+
+    switch (type) {
+      case "tee": {
+        const base = `/assets/Blanks/${config.folder}/Tee-${encodedPrefix}-`;
+        return view === "back" ? `${base}Back.png` : `${base}Front.png`;
+      }
+      case "crewneck": {
+        const base = `/assets/Blanks/${config.folder}/Crew-${encodedPrefix}-`;
+        return view === "back" ? `${base}Back.png` : `${base}Front.png`;
+      }
+      case "hoodie": {
+        const base = `/assets/Blanks/${config.folder}/Hoodie-${encodedPrefix}-`;
+        return view === "back" ? `${base}Back.png` : `${base}Front.png`;
+      }
+      case "youth_tee": {
+        const base = `/assets/Blanks/${config.folder}/Y-Tees-${encodedPrefix}-`;
+        return view === "back" ? `${base}Back.png` : `${base}Front.png`;
+      }
+      case "youth_hoodie": {
+        const base = `/assets/Blanks/${config.folder}/Y-Hoodie-${encodedPrefix}-`;
+        return view === "back" ? `${base}Back.png` : `${base}Front.png`;
+      }
+      case "youth_longsleeve": {
+        const base = `/assets/Blanks/${config.folder}/Y-Longsleeve-${encodedPrefix}-`;
+        return view === "back" ? `${base}Back.png` : `${base}Front.png`;
+      }
+      default:
+        return "";
     }
-    return "";
   };
 
   const getHoodieStringsPath = (colorPrefix: string) => {
@@ -610,7 +796,7 @@ export default function DesignUploadForm({
       drawLayer(backBase, backRect, backDesignImage || designImage, backPosition);
       drawLayer(frontBase, frontRect, designImage, frontPosition);
 
-      if (productType === "hoodie") {
+      if (isHoodieType(productType)) {
         const colorPrefix = frontBasePath.match(/Hoodie-([^-]+)-/)?.[1] || "Black";
         const stringsImg = await loadImage(getHoodieStringsPath(colorPrefix));
         ctx.drawImage(stringsImg, frontRect.x, frontRect.y, frontRect.width, frontRect.height);
@@ -646,7 +832,7 @@ export default function DesignUploadForm({
       ctx.drawImage(design, scaledX, scaledY, scaledWidth, scaledHeight);
     }
 
-    if (productType === "hoodie" && mode !== "back") {
+    if (isHoodieType(productType) && mode !== "back") {
       const colorPrefix = basePath.match(/Hoodie-([^-]+)-/)?.[1] || "Black";
       const stringsImg = await loadImage(getHoodieStringsPath(colorPrefix));
       ctx.drawImage(stringsImg, 0, 0, canvas.width, canvas.height);
@@ -880,7 +1066,7 @@ export default function DesignUploadForm({
 
       for (const type of selectedTypeList) {
         const config = PRODUCT_TYPES[type as ProductTypeKey];
-        const modeForProduct: PreviewMode = (type === "tee" || type === "hoodie" || type === "crewneck") ? activePreviewMode : "front";
+        const modeForProduct: PreviewMode = isMultiViewProduct(type as ProductTypeKey) ? activePreviewMode : "front";
         const positionMap = designPositions[type as ProductTypeKey];
         const selectedColors = colorSelections[type];
 
@@ -911,7 +1097,7 @@ export default function DesignUploadForm({
         // Process colors and add them with proper color data
         for (let i = 0; i < colorsToProcess.length; i++) {
           const color = colorsToProcess[i];
-          const modeForType: PreviewMode = (type === "tee" || type === "hoodie" || type === "crewneck") ? activePreviewMode : "front";
+          const modeForType: PreviewMode = isMultiViewProduct(type as ProductTypeKey) ? activePreviewMode : "front";
           const compositedDataUrl = await compositeImage({
             mode: modeForType,
             productType: type as ProductTypeKey,
@@ -990,8 +1176,7 @@ export default function DesignUploadForm({
     }
   }, [generateAssets, setAssetGenerator]);
 
-  const effectivePreviewMode: PreviewMode =
-    currentEditingType === "tee" || currentEditingType === "hoodie" || currentEditingType === "crewneck" ? activePreviewMode : "front";
+  const effectivePreviewMode: PreviewMode = isMultiViewProduct(currentEditingType) ? activePreviewMode : "front";
   const currentConfig = PRODUCT_TYPES[currentEditingType];
   const currentPreviewColor = currentConfig.colors[previewColorIndex];
   const currentPositionKey = getPositionKeyForMode(effectivePreviewMode, activeLayer);
@@ -1133,7 +1318,7 @@ export default function DesignUploadForm({
                   onClick={() => {
                     setCurrentEditingType(type as ProductTypeKey);
                     setPreviewColorIndex(0);
-                    if (type !== "tee" && type !== "hoodie" && type !== "crewneck" && effectivePreviewMode !== "front") {
+                    if (!isMultiViewProduct(type as ProductTypeKey) && effectivePreviewMode !== "front") {
                       handlePreviewModeChange("front");
                     }
                   }} 
@@ -1157,7 +1342,7 @@ export default function DesignUploadForm({
                 <div className="flex items-center gap-2">
                   <label className="text-sm font-medium text-brand-accent">Preview Mode:</label>
                   {(["front", "back", "combined"] as PreviewMode[]).map((mode) => {
-                    const disabled = currentEditingType !== "tee" && currentEditingType !== "hoodie" && currentEditingType !== "crewneck" && mode !== "front";
+                    const disabled = !isMultiViewProduct(currentEditingType) && mode !== "front";
                     return (
                       <button
                         key={mode}
@@ -1260,7 +1445,7 @@ export default function DesignUploadForm({
                       />
                     )}
                     {/* Hoodie strings overlay (only for hoodies on front or combined views) */}
-                    {currentEditingType === "hoodie" && effectivePreviewMode !== "back" && (
+                    {isHoodieType(currentEditingType) && effectivePreviewMode !== "back" && (
                       <img
                         src={getHoodieStringsPath(currentPreviewColor.filePrefix)}
                         alt="Hoodie strings overlay"
@@ -1278,8 +1463,8 @@ export default function DesignUploadForm({
                 )}
                 <p className="text-xs text-brand-accent mt-2 px-3 py-2">
                   Adjust sliders to reposition your design. The preview updates in real-time.
-                  {currentEditingType === "hoodie" && effectivePreviewMode === "front" && " (Hoodie strings overlay shown on top)"}
-                  {currentEditingType === "hoodie" && effectivePreviewMode === "combined" &&
+                  {isHoodieType(currentEditingType) && effectivePreviewMode === "front" && " (Hoodie strings overlay shown on top)"}
+                  {isHoodieType(currentEditingType) && effectivePreviewMode === "combined" &&
                     " Hoodie combined order: Back base → Back design → Front base → Front design → Strings (top)."}
                   {currentEditingType === "crewneck" && effectivePreviewMode === "combined" &&
                     " Crewneck combined order: Back base → Back design → Front base → Front design."}
@@ -1505,7 +1690,7 @@ export default function DesignUploadForm({
 
             <p className="text-sm text-brand-accent mb-4">
               Check the colors that will be available for purchase (combined view generated for each)
-              {type === "hoodie" && " • Hoodie strings will be overlaid on all colors"}
+              {isHoodieType(type as ProductTypeKey) && " • Hoodie strings will be overlaid on all colors"}
             </p>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {config.colors.map(color => (
