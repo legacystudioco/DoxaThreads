@@ -250,11 +250,19 @@ export default function StudioAnalyticsPage() {
       });
       const topCities = Array.from(cityMap.values()).sort((a, b) => b.count - a.count).slice(0, 5);
 
-      // Top pages calculation
+      // Top pages calculation (filter out assets like images, fonts, etc.)
       const pageMap = new Map<string, number>();
       visitors.forEach((visit) => {
         const page = visit.page_path || "/";
-        pageMap.set(page, (pageMap.get(page) || 0) + 1);
+
+        // Filter out asset files (images, fonts, favicons, etc.)
+        const isAsset = page.startsWith('/assets/') ||
+                       page.startsWith('/_next/') ||
+                       page.match(/\.(png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot|css|js)$/i);
+
+        if (!isAsset) {
+          pageMap.set(page, (pageMap.get(page) || 0) + 1);
+        }
       });
       const topPages = Array.from(pageMap.entries())
         .map(([page_path, count]) => ({ page_path, count }))

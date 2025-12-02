@@ -22,10 +22,10 @@ export default function ContactPage() {
               For questions and support
             </p>
             <a
-              href="mailto:info@doxathreads.com"
+              href="mailto:info@doxa-threads.com"
               className="text-sm font-bold hover:underline"
             >
-              info@doxathreads.com
+              info@doxa-threads.com
             </a>
           </div>
 
@@ -40,10 +40,10 @@ export default function ContactPage() {
               Questions about orders or shipping
             </p>
             <a
-              href="mailto:info@doxathreads.com"
+              href="mailto:info@doxa-threads.com"
               className="text-sm font-bold hover:underline"
             >
-              info@doxathreads.com
+              info@doxa-threads.com
             </a>
           </div>
         </div>
@@ -102,7 +102,7 @@ export default function ContactPage() {
             </summary>
             <div className="p-4 border-t border-brand-accent text-sm text-neutral-600">
               <p>
-                Open to wholesale and partnerships. Email <a href="mailto:info@doxathreads.com" className="underline">info@doxathreads.com</a>.
+                Open to wholesale and partnerships. Email <a href="mailto:info@doxa-threads.com" className="underline">info@doxa-threads.com</a>.
               </p>
             </div>
           </details>
@@ -126,7 +126,7 @@ export default function ContactPage() {
             Email us. We keep it direct.
           </p>
           <a
-            href="mailto:info@doxathreads.com"
+            href="mailto:info@doxa-threads.com"
             className="btn"
           >
             Send Email
