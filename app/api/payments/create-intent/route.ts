@@ -9,11 +9,12 @@ export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json(); // { cart, email?, address? }
-    
+    const body = await req.json(); // { cart, email?, address?, discount? }
+
     console.log("=== CREATE INTENT DEBUG ===");
     console.log("Cart received:", JSON.stringify(body.cart));
     console.log("Address received:", JSON.stringify(body.address));
+    console.log("Discount received:", JSON.stringify(body.discount));
     const shippoToken = (process.env.SHIPPO_API_TOKEN || "").trim();
     console.log(
       "Shippo token present:",
@@ -22,11 +23,11 @@ export async function POST(req: NextRequest) {
       shippoToken.length,
       shippoToken ? `mask:${shippoToken.slice(0, 6)}...${shippoToken.slice(-4)}` : ""
     );
-    
+
     const supa = createServiceClient();
 
     console.log("Computing cart totals and shipping rate...");
-    const {
+    let {
       subtotal_cents,
       shipping_cents,
       tax_cents,
@@ -39,16 +40,41 @@ export async function POST(req: NextRequest) {
       rateDetails
     } = await computeCartTotalsAndRate(body.cart, body.address);
 
-    // Optional: calculate tax via Stripe
+    // Apply discount if provided
+    let discount_cents = 0;
+    let discountCode = null;
+    if (body.discount) {
+      if (body.discount.type === 'percentage') {
+        // Percentage discount applies to subtotal only
+        discount_cents = Math.round((subtotal_cents * body.discount.value) / 100);
+      } else if (body.discount.type === 'fixed') {
+        // Fixed discount in cents
+        discount_cents = body.discount.value;
+      }
+      discountCode = body.discount.code;
+
+      // Apply discount to subtotal
+      subtotal_cents = Math.max(0, subtotal_cents - discount_cents);
+
+      console.log("Discount applied:", {
+        code: discountCode,
+        type: body.discount.type,
+        value: body.discount.value,
+        discount_cents,
+        new_subtotal_cents: subtotal_cents
+      });
+    }
+
+    // Optional: calculate tax via Stripe (tax is calculated on discounted subtotal)
     let final_tax_cents = tax_cents;
-    let final_total_cents = total_cents;
+    let final_total_cents = subtotal_cents + shipping_cents + tax_cents;
     try {
       if (address) {
         const calc = await stripe.tax.calculations.create({
           currency: "usd",
           line_items: [
             {
-              amount: subtotal_cents,
+              amount: subtotal_cents, // Use discounted subtotal for tax calculation
               reference: "merch",
               tax_behavior: "exclusive",
             },
@@ -79,18 +105,26 @@ export async function POST(req: NextRequest) {
     console.log("Totals calculated:", { subtotal_cents, shipping_cents, tax_cents, total_cents });
 
     console.log("Creating order in database...");
+    const orderData: any = {
+      email: body.email ?? "unknown@example.com",
+      shipping_address: address ?? {},
+      subtotal_cents,
+      shipping_cents,
+      tax_cents: final_tax_cents,
+      total_cents: final_total_cents,
+      status: "PENDING",
+      base_printer_fee_cents: 500
+    };
+
+    // Add discount information if present
+    if (discountCode) {
+      orderData.discount_code = discountCode;
+      orderData.discount_cents = discount_cents;
+    }
+
     const { data: order, error: orderError } = await supa
       .from("orders")
-      .insert({
-        email: body.email ?? "unknown@example.com",
-        shipping_address: address ?? {},
-        subtotal_cents,
-        shipping_cents,
-        tax_cents: final_tax_cents,
-        total_cents: final_total_cents,
-        status: "PENDING",
-        base_printer_fee_cents: 500
-      })
+      .insert(orderData)
       .select("*")
       .single();
 
@@ -156,19 +190,27 @@ export async function POST(req: NextRequest) {
     }
 
     console.log("Creating Stripe payment intent...");
+    const paymentIntentMetadata: any = {
+      order_id: order.id,
+      rate_id: rateId,
+      carrier,
+      service,
+      rate_ids_json: rateDetails ? JSON.stringify(rateDetails) : undefined,
+      order_id_for_redirect: order.id
+    };
+
+    // Add discount to metadata if present
+    if (discountCode) {
+      paymentIntentMetadata.discount_code = discountCode;
+      paymentIntentMetadata.discount_cents = discount_cents.toString();
+    }
+
     const paymentIntent = await stripe.paymentIntents.create({
       amount: final_total_cents,
       currency: "usd",
       // Limit to card to avoid Link/hCaptcha/alt methods issues
       payment_method_types: ["card"],
-      metadata: { 
-        order_id: order.id, 
-        rate_id: rateId, 
-        carrier, 
-        service,
-        rate_ids_json: rateDetails ? JSON.stringify(rateDetails) : undefined,
-        order_id_for_redirect: order.id
-      }
+      metadata: paymentIntentMetadata
     });
 
     console.log("Payment intent created:", paymentIntent.id);
@@ -178,15 +220,21 @@ export async function POST(req: NextRequest) {
       .update({ stripe_payment_intent_id: paymentIntent.id })
       .eq("id", order.id);
 
+    // Increment discount code usage count if discount was applied
+    if (discountCode) {
+      await supa.rpc('increment_discount_usage', { code_text: discountCode });
+    }
+
     console.log("Success! Returning client secret with totals");
-    return NextResponse.json({ 
+    return NextResponse.json({
       clientSecret: paymentIntent.client_secret,
       orderId: order.id,
       totals: {
         subtotal_cents,
         shipping_cents,
         tax_cents: final_tax_cents,
-        total_cents: final_total_cents
+        total_cents: final_total_cents,
+        discount_cents: discount_cents || 0
       }
     });
     

@@ -121,6 +121,63 @@ export default function CheckoutPage() {
   });
   const [addressComplete, setAddressComplete] = useState(false);
   const [shouldCreateIntent, setShouldCreateIntent] = useState(false);
+  const [discountCode, setDiscountCode] = useState("");
+  const [appliedDiscount, setAppliedDiscount] = useState<{
+    code: string;
+    type: string;
+    value: number;
+  } | null>(null);
+  const [discountError, setDiscountError] = useState<string | null>(null);
+  const [validatingDiscount, setValidatingDiscount] = useState(false);
+
+  const handleApplyDiscount = async () => {
+    if (!discountCode.trim()) {
+      setDiscountError("Please enter a discount code");
+      return;
+    }
+
+    setValidatingDiscount(true);
+    setDiscountError(null);
+
+    try {
+      const response = await fetch("/api/discount/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: discountCode.trim(),
+          email: customerEmail
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.valid) {
+        setAppliedDiscount(data.discount);
+        setDiscountError(null);
+        // Reset payment intent so it recalculates with discount
+        setClientSecret(null);
+        setShouldCreateIntent(true);
+      } else {
+        setDiscountError(data.error || "Invalid discount code");
+        setAppliedDiscount(null);
+      }
+    } catch (err) {
+      console.error("Discount validation error:", err);
+      setDiscountError("Failed to validate discount code");
+      setAppliedDiscount(null);
+    } finally {
+      setValidatingDiscount(false);
+    }
+  };
+
+  const handleRemoveDiscount = () => {
+    setAppliedDiscount(null);
+    setDiscountCode("");
+    setDiscountError(null);
+    // Reset payment intent so it recalculates without discount
+    setClientSecret(null);
+    setShouldCreateIntent(true);
+  };
 
   const updateAddress = (field: string, value: string) => {
     const updated = { ...shippingAddress, [field]: value };
@@ -189,6 +246,7 @@ export default function CheckoutPage() {
         cart: cartItems,
         address: shippingAddress,
         email: customerEmail,
+        discount: appliedDiscount,
       }),
     })
       .then((res) => res.json())
@@ -500,6 +558,60 @@ export default function CheckoutPage() {
               })}
             </div>
 
+            {/* Discount Code Input */}
+            <div className="mb-6 pb-6 border-b border-brand-accent">
+              {!appliedDiscount ? (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Discount Code</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={discountCode}
+                      onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                      onKeyPress={(e) => e.key === 'Enter' && handleApplyDiscount()}
+                      placeholder="Enter code"
+                      className="flex-1 border border-brand-accent px-3 py-2 rounded-none bg-[var(--storm-blue)] text-[var(--paper)] placeholder:text-[rgba(243,232,216,0.6)] text-sm"
+                      disabled={validatingDiscount || !customerEmail}
+                    />
+                    <button
+                      onClick={handleApplyDiscount}
+                      disabled={validatingDiscount || !customerEmail || !discountCode.trim()}
+                      className="btn-secondary px-4 py-2 text-sm"
+                    >
+                      {validatingDiscount ? "..." : "Apply"}
+                    </button>
+                  </div>
+                  {discountError && (
+                    <p className="text-xs text-red-600">{discountError}</p>
+                  )}
+                  {!customerEmail && (
+                    <p className="text-xs text-neutral-600">Enter your email first to apply a discount code</p>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-green-50 border border-green-200 p-3 rounded">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-green-800">
+                        Code Applied: {appliedDiscount.code}
+                      </p>
+                      <p className="text-xs text-green-600">
+                        {appliedDiscount.type === 'percentage'
+                          ? `${appliedDiscount.value}% off`
+                          : `$${(appliedDiscount.value / 100).toFixed(2)} off`}
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleRemoveDiscount}
+                      className="text-xs text-red-600 hover:text-red-800 font-medium"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="space-y-3 mb-6 pb-6 border-b border-brand-accent">
               <div className="flex justify-between text-sm">
                 <span>Subtotal</span>
@@ -509,6 +621,16 @@ export default function CheckoutPage() {
                   )}
                 </span>
               </div>
+              {appliedDiscount && orderTotals && (
+                <div className="flex justify-between text-sm text-green-600">
+                  <span>Discount ({appliedDiscount.code})</span>
+                  <span className="font-medium">
+                    -{appliedDiscount.type === 'percentage'
+                      ? `$${((orderTotals.subtotal * appliedDiscount.value) / 100).toFixed(2)}`
+                      : `$${(appliedDiscount.value / 100).toFixed(2)}`}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between text-sm">
                 <span>Shipping</span>
                 <span className="font-medium">
