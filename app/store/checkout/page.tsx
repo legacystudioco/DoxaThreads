@@ -59,6 +59,9 @@ function CheckoutForm({ customerEmail, shippingAddress, orderId }: { customerEma
       {/* Shipping Address */}
       {/* Payment */}
       <div>
+        <p className="text-sm text-[rgba(243,232,216,0.8)] mb-3">
+          You will be prompted to enter your promo code after your shipping information is entered.
+        </p>
         <h3 className="font-bold text-lg uppercase tracking-wider mb-4">
           Payment Information
         </h3>
@@ -466,31 +469,37 @@ export default function CheckoutPage() {
                   appearance: {
                     theme: "flat",
                     variables: {
-                      colorPrimary: "#000000",
-                      colorBackground: "#ffffff",
-                      colorText: "#000000",
-                      colorDanger: "#000000",
-                      fontFamily: "Inter, system-ui, sans-serif",
+                      colorPrimary: "var(--mustard-gold)",
+                      colorBackground: "#1f1b17",
+                      colorText: "var(--paper)",
+                      colorTextSecondary: "rgba(243,232,216,0.78)",
+                      colorTextPlaceholder: "rgba(243,232,216,0.65)",
+                      colorIcon: "rgba(243,232,216,0.85)",
+                      colorDanger: "#ffb4b4",
+                      fontFamily: "'Manrope', system-ui, sans-serif",
                       spacingUnit: "4px",
                       borderRadius: "4px",
-                      focusBoxShadow: "0 0 0 2px rgba(0, 0, 0, 0.2)",
+                      focusBoxShadow: "0 0 0 2px rgba(212, 160, 23, 0.3)",
                     },
                     rules: {
                       '.Input': {
-                        border: '1px solid #cfcfcf',
+                        backgroundColor: '#17130f',
+                        border: '1px solid rgba(243, 232, 216, 0.28)',
                         boxShadow: 'none',
                         padding: '12px',
+                        color: 'var(--paper)',
                       },
                       '.Input:focus': {
-                        border: '1px solid #000000',
-                        boxShadow: '0 0 0 2px rgba(0, 0, 0, 0.1)',
+                        border: '1px solid rgba(212, 160, 23, 0.65)',
+                        boxShadow: '0 0 0 2px rgba(212, 160, 23, 0.2)',
                       },
                       '.Input--invalid': {
-                        border: '1px solid #000000',
+                        border: '1px solid #ffb4b4',
                       },
                       '.Label': {
-                        fontWeight: '500',
+                        fontWeight: '600',
                         marginBottom: '8px',
+                        color: 'rgba(243,232,216,0.9)',
                       },
                     },
                   },
@@ -589,13 +598,13 @@ export default function CheckoutPage() {
                   )}
                 </div>
               ) : (
-                <div className="bg-green-50 border border-green-200 p-3 rounded">
+                <div className="bg-green-50 border border-green-200 p-3 rounded text-green-900">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-green-800">
+                      <p className="text-sm font-semibold">
                         Code Applied: {appliedDiscount.code}
                       </p>
-                      <p className="text-xs text-green-600">
+                      <p className="text-xs text-green-800">
                         {appliedDiscount.type === 'percentage'
                           ? `${appliedDiscount.value}% off`
                           : `$${(appliedDiscount.value / 100).toFixed(2)} off`}
