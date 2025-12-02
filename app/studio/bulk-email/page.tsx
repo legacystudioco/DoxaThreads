@@ -429,7 +429,7 @@ export default function BulkEmailPage() {
               <label className="block text-sm font-medium mb-2">
                 Email Content
               </label>
-              <div className="bg-white rounded-lg">
+              <div className="bulk-email-editor-wrapper rounded-lg">
                 <ReactQuill
                   theme="snow"
                   value={htmlContent}
@@ -437,6 +437,7 @@ export default function BulkEmailPage() {
                   placeholder="Compose your email... Use {{first_name}}, {{last_name}}, {{email}} for personalization"
                   readOnly={sendingBulk}
                   style={{ height: "300px", marginBottom: "50px" }}
+                  className="bulk-email-editor"
                   modules={{
                     toolbar: [
                       [{ header: [1, 2, 3, false] }],

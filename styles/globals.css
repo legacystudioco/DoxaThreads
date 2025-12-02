@@ -205,6 +205,52 @@
     color: inherit !important;
   }
 
+  /* BULK EMAIL EDITOR - Light, high-contrast canvas */
+  .bulk-email-editor-wrapper {
+    background: var(--paper);
+    border: 1px solid rgba(17, 17, 17, 0.12);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  }
+
+  .bulk-email-editor .ql-toolbar {
+    background: #efe2c7;
+    border: 0;
+    border-bottom: 1px solid rgba(17, 17, 17, 0.12);
+  }
+
+  .bulk-email-editor .ql-container {
+    background: var(--paper);
+    border: 0;
+  }
+
+  .bulk-email-editor .ql-editor {
+    background: var(--paper);
+    color: var(--ink-black);
+  }
+
+  .bulk-email-editor .ql-editor::before {
+    color: rgba(17, 17, 17, 0.55);
+  }
+
+  .bulk-email-editor .ql-stroke {
+    stroke: var(--ink-black);
+  }
+
+  .bulk-email-editor .ql-fill {
+    fill: var(--ink-black);
+  }
+
+  .bulk-email-editor .ql-picker,
+  .bulk-email-editor .ql-picker-label,
+  .bulk-email-editor .ql-picker-item {
+    color: var(--ink-black);
+  }
+
+  .bulk-email-editor .ql-picker-options {
+    background: var(--paper);
+    border-color: rgba(17, 17, 17, 0.12);
+  }
+
   /* HERO SECTION */
   .hero {
     @apply relative overflow-hidden 
