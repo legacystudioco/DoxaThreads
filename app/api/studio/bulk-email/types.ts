@@ -1,0 +1,67 @@
+// Shared TypeScript types for Bulk Email feature
+
+export interface Contact {
+  id: string;
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  created_at?: string;
+  unsubscribed?: boolean;
+}
+
+export interface GetContactsResponse {
+  success: boolean;
+  contacts: Contact[];
+  totalContacts: number;
+  error?: string;
+}
+
+export interface SendTestEmailRequest {
+  testEmail: string;
+  subject: string;
+  htmlContent: string;
+}
+
+export interface SendTestEmailResponse {
+  success: boolean;
+  message: string;
+  emailId?: string;
+  error?: string;
+  details?: any;
+}
+
+export interface SendBulkEmailRequest {
+  subject: string;
+  htmlContent: string;
+  fromName?: string;
+  replyTo?: string;
+}
+
+export interface BatchResult {
+  batchNumber: number;
+  sent: number;
+  failed: number;
+  errors?: any[];
+}
+
+export interface SendBulkEmailResponse {
+  success: boolean;
+  message: string;
+  results: {
+    total: number;
+    sent: number;
+    failed: number;
+    batches: BatchResult[];
+    errors: any[];
+  };
+  error?: string;
+  details?: any;
+}
+
+export interface BatchProgressUpdate {
+  currentBatch: number;
+  totalBatches: number;
+  progress: number; // 0-100
+  sent: number;
+  failed: number;
+}
