@@ -256,7 +256,10 @@ export default function BulkEmailPage() {
                   : `${totalContacts.toLocaleString()} active contacts will receive this email`}
               </p>
               <p className="text-sm text-gray-500 mt-1">
-                Personalization: Use {{"{{"}}first_name{{"}}"}}, {{"{{"}}last_name{{"}}"}}, {{"{{"}}email{{"}}"}} in your content
+                Personalization: Use{" "}
+                <code className="text-gray-300">{'{{first_name}}'}</code>,{" "}
+                <code className="text-gray-300">{'{{last_name}}'}</code>,{" "}
+                <code className="text-gray-300">{'{{email}}'}</code> in your content
               </p>
             </div>
             <button
@@ -516,7 +519,8 @@ export default function BulkEmailPage() {
                   <p className="text-sm text-gray-400 mb-1">Subject:</p>
                   <p className="text-lg font-semibold">{subject}</p>
                   <p className="text-xs text-gray-500 mt-1">
-                    ({{"{{"}}first_name{{"}}"}} will be replaced with recipient's name)
+                    (<code className="text-gray-300">{'{{first_name}}'}</code> will be
+                    replaced with recipient's name)
                   </p>
                 </div>
               ) : (
