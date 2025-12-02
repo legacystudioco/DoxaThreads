@@ -43,12 +43,39 @@ export async function GET(req: NextRequest): Promise<NextResponse<GetContactsRes
 
     const data = await response.json();
 
-    // Resend returns { data: { data: [...contacts], ...pagination } }
-    const contacts: Contact[] = data.data?.data || [];
+    // Debug logging - let's see what Resend actually returns
+    console.log("[get-contacts] Raw response from Resend:", JSON.stringify(data, null, 2));
+    console.log("[get-contacts] Response structure:", {
+      hasData: !!data.data,
+      dataKeys: data.data ? Object.keys(data.data) : [],
+      topLevelKeys: Object.keys(data),
+    });
+
+    // Try different possible response structures from Resend
+    let contacts: Contact[] = [];
+
+    if (data.data?.data) {
+      // Nested structure: { data: { data: [...] } }
+      contacts = data.data.data;
+      console.log("[get-contacts] Using nested structure (data.data.data)");
+    } else if (data.data) {
+      // Single level: { data: [...] }
+      contacts = Array.isArray(data.data) ? data.data : [];
+      console.log("[get-contacts] Using single level (data.data)");
+    } else if (Array.isArray(data)) {
+      // Direct array: [...]
+      contacts = data;
+      console.log("[get-contacts] Using direct array");
+    }
+
+    console.log("[get-contacts] Total contacts found:", contacts.length);
 
     // Filter out unsubscribed contacts
     const activeContacts = contacts.filter(contact => !contact.unsubscribed);
     const totalContacts = activeContacts.length;
+
+    console.log("[get-contacts] Active contacts (after filtering):", totalContacts);
+    console.log("[get-contacts] Sample contact:", activeContacts[0]);
 
     return NextResponse.json({
       success: true,
