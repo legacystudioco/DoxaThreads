@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/db";
+import { createClient } from "@/lib/supabase-client";
 
 interface AnalyticsData {
   totalRevenue: number;
@@ -14,6 +14,7 @@ interface AnalyticsData {
   visitorsByDay: { date: string; count: number }[];
   peakHours: { hour: number; count: number }[];
   topCities: { city: string; region?: string; country?: string; count: number }[];
+  topPages: { page_path: string; count: number }[];
   revenueByStatus: { status: string; revenue: number; count: number }[];
   topProducts: { product_name: string; quantity: number; revenue: number }[];
   revenueByDay: { date: string; revenue: number; orders: number }[];
@@ -28,6 +29,13 @@ interface AnalyticsData {
 
 function formatCurrency(cents: number) {
   return `$${(cents / 100).toFixed(2)}`;
+}
+
+function formatHour(hour: number) {
+  if (hour === 0) return "12:00 AM";
+  if (hour === 12) return "12:00 PM";
+  if (hour < 12) return `${hour}:00 AM`;
+  return `${hour - 12}:00 PM`;
 }
 
 export default function StudioAnalyticsPage() {
@@ -83,12 +91,13 @@ export default function StudioAnalyticsPage() {
         region?: string | null;
         country?: string | null;
         session_id?: string | null;
+        page_path?: string | null;
       }[] = [];
 
       try {
         let visitorQuery = supa
           .from("visitor_events")
-          .select("created_at, city, region, country, session_id");
+          .select("created_at, city, region, country, session_id, page_path");
 
         if (startDate) {
           visitorQuery = visitorQuery.gte("created_at", startDate.toISOString());
@@ -241,6 +250,17 @@ export default function StudioAnalyticsPage() {
       });
       const topCities = Array.from(cityMap.values()).sort((a, b) => b.count - a.count).slice(0, 5);
 
+      // Top pages calculation
+      const pageMap = new Map<string, number>();
+      visitors.forEach((visit) => {
+        const page = visit.page_path || "/";
+        pageMap.set(page, (pageMap.get(page) || 0) + 1);
+      });
+      const topPages = Array.from(pageMap.entries())
+        .map(([page_path, count]) => ({ page_path, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10);
+
       // Production stats
       const productionStats = {
         pending: orders?.filter(o => o.status === "PAID").length || 0,
@@ -261,6 +281,7 @@ export default function StudioAnalyticsPage() {
         visitorsByDay,
         peakHours,
         topCities,
+        topPages,
         revenueByStatus,
         topProducts,
         revenueByDay,
@@ -453,9 +474,9 @@ export default function StudioAnalyticsPage() {
           </div>
           <div className="p-4 border-2 border-black bg-neutral-50">
             <div className="text-sm text-neutral-700 mb-1">Peak Hour</div>
-            <div className="text-3xl font-bold text-neutral-800">
+            <div className="text-2xl font-bold text-neutral-800 leading-tight">
               {analytics.peakHours[0]
-                ? `${analytics.peakHours[0].hour}:00`
+                ? formatHour(analytics.peakHours[0].hour)
                 : "—"}
             </div>
             <div className="text-xs text-neutral-700 mt-1">
@@ -517,7 +538,7 @@ export default function StudioAnalyticsPage() {
             <div className="space-y-3">
               {analytics.peakHours.map((slot) => (
                 <div key={slot.hour} className="flex items-center justify-between">
-                  <div className="font-medium">{`${slot.hour}:00`}</div>
+                  <div className="font-medium w-24">{formatHour(slot.hour)}</div>
                   <div className="flex-1 mx-4 bg-neutral-100 h-4">
                     <div
                       className="bg-black h-full"
@@ -553,6 +574,41 @@ export default function StudioAnalyticsPage() {
                   </div>
                 </div>
                 <div className="text-sm font-bold">{city.count} visit{city.count === 1 ? "" : "s"}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Top Pages */}
+      <div className="card border-2 border-black p-6 mb-8">
+        <h2 className="text-xl font-bold mb-4">Top 10 Most Visited Pages</h2>
+        {analytics.topPages.length === 0 ? (
+          <div className="text-neutral-500 text-sm">No page visit data available.</div>
+        ) : (
+          <div className="space-y-2">
+            {analytics.topPages.map((page, index) => (
+              <div key={page.page_path} className="flex items-center gap-4">
+                <div className="w-8 text-sm font-bold text-neutral-600">#{index + 1}</div>
+                <div className="flex-1 font-mono text-sm text-neutral-800 truncate">
+                  {page.page_path}
+                </div>
+                <div className="flex-1 bg-neutral-100 h-6 relative">
+                  <div
+                    className="bg-black h-full flex items-center justify-end pr-2 text-white text-xs font-medium"
+                    style={{
+                      width: `${Math.max(
+                        5,
+                        (page.count / Math.max(...analytics.topPages.map(p => p.count || 1), 1)) * 100
+                      )}%`,
+                    }}
+                  >
+                    {page.count}
+                  </div>
+                </div>
+                <div className="w-24 text-sm text-neutral-600 text-right">
+                  {page.count} visit{page.count === 1 ? "" : "s"}
+                </div>
               </div>
             ))}
           </div>
