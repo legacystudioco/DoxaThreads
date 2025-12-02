@@ -10,6 +10,7 @@ export const runtime = 'nodejs';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json(); // { cart, email?, address?, discount? }
+    const DEFAULT_TAX_RATE = 0.0775; // 7.75% fallback until Stripe Tax is wired
 
     console.log("=== CREATE INTENT DEBUG ===");
     console.log("Cart received:", JSON.stringify(body.cart));
@@ -66,8 +67,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Optional: calculate tax via Stripe (tax is calculated on discounted subtotal)
-    let final_tax_cents = tax_cents;
-    let final_total_cents = subtotal_cents + shipping_cents + tax_cents;
+    const fallback_tax_cents = Math.round(subtotal_cents * DEFAULT_TAX_RATE);
+    let final_tax_cents = fallback_tax_cents;
+    let final_total_cents = subtotal_cents + shipping_cents + final_tax_cents;
     try {
       if (address) {
         const calc = await stripe.tax.calculations.create({
@@ -99,10 +101,16 @@ export async function POST(req: NextRequest) {
         }
       }
     } catch (taxErr: any) {
-      console.error("Stripe tax calculation failed, falling back to 0:", taxErr?.message);
+      console.error("Stripe tax calculation failed, falling back to default rate:", taxErr?.message);
     }
 
-    console.log("Totals calculated:", { subtotal_cents, shipping_cents, tax_cents, total_cents });
+    console.log("Totals calculated:", { 
+      subtotal_cents, 
+      shipping_cents, 
+      tax_cents: final_tax_cents, 
+      total_cents: final_total_cents,
+      used_fallback_tax: final_tax_cents === fallback_tax_cents
+    });
 
     console.log("Creating order in database...");
     const orderData: any = {
