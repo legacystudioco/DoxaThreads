@@ -1,10 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 export default function UnsubscribePage() {
+  return (
+    <Suspense fallback={<LoadingView />}>
+      <UnsubscribeContent />
+    </Suspense>
+  );
+}
+
+function UnsubscribeContent() {
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -129,6 +137,10 @@ export default function UnsubscribePage() {
   }
 
   // Loading state (shouldn't normally be seen since GET redirects handle everything)
+  return <LoadingView />;
+}
+
+function LoadingView() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-6">
       <div className="max-w-md w-full text-center">
