@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { Resend } from "resend";
-import { replaceVariables } from "../utils";
+import { personalizeEmail, addUnsubscribeFooter } from "../utils";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const BATCH_SIZE = 100; // Send in batches of 100
@@ -95,21 +95,29 @@ export async function POST(request: NextRequest) {
           // Send emails in parallel for this batch
           const batchPromises = batch.map(async (contact) => {
             try {
-              // Replace variables in subject and content
-              const personalizedSubject = replaceVariables(
+              // Personalize subject and content
+              const personalizedSubject = personalizeEmail(
                 scheduledEmail.subject,
                 contact
               );
-              const personalizedHtml = replaceVariables(
+              const personalizedHtml = personalizeEmail(
                 scheduledEmail.html_content,
                 contact
+              );
+
+              // Add unsubscribe footer (use contact email as ID if no id field exists)
+              const contactId = (contact as any).id || contact.email;
+              const htmlWithUnsubscribe = addUnsubscribeFooter(
+                personalizedHtml,
+                contact.email,
+                contactId
               );
 
               const { data, error } = await resend.emails.send({
                 from: "Doxa Threads <info@doxa-threads.com>",
                 to: contact.email,
                 subject: personalizedSubject,
-                html: personalizedHtml,
+                html: htmlWithUnsubscribe,
               });
 
               if (error) {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { SendTestEmailRequest, SendTestEmailResponse } from "../types";
-import { isValidEmail, personalizeEmail } from "../utils";
+import { isValidEmail, personalizeEmail, addUnsubscribeFooter } from "../utils";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const EMAIL_FROM = process.env.EMAIL_FROM || "Doxa Threads <info@doxa-threads.com>";
@@ -45,13 +45,16 @@ export async function POST(req: NextRequest): Promise<NextResponse<SendTestEmail
     };
     const personalizedContent = personalizeEmail(htmlContent, testContact);
 
+    // Add unsubscribe footer for preview
+    const contentWithUnsubscribe = addUnsubscribeFooter(personalizedContent, testEmail, "test-contact-id");
+
     // Send test email with proper headers
     const { data, error } = await resend.emails.send({
       from: EMAIL_FROM,
       to: testEmail,
       replyTo: REPLY_TO,
       subject: `[TEST] ${subject}`,
-      html: personalizedContent,
+      html: contentWithUnsubscribe,
       headers: {
         "X-Entity-Ref-ID": `test-${Date.now()}`,
       },

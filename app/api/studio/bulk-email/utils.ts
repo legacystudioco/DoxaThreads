@@ -1,6 +1,9 @@
 // Utility functions for Bulk Email feature
 
 import { Contact } from "./types";
+import crypto from "crypto";
+
+const UNSUBSCRIBE_SECRET = process.env.UNSUBSCRIBE_SECRET || "your-secret-key-change-this";
 
 /**
  * Personalizes email content by replacing template variables with contact data
@@ -68,4 +71,44 @@ export function calculateProgress(
 ): number {
   if (total === 0) return 0;
   return Math.round((current / total) * 100);
+}
+
+/**
+ * Generates a secure unsubscribe token for a contact
+ */
+export function generateUnsubscribeToken(email: string, contactId: string): string {
+  const data = `${email}:${contactId}`;
+  const hmac = crypto.createHmac("sha256", UNSUBSCRIBE_SECRET);
+  hmac.update(data);
+  const signature = hmac.digest("hex");
+
+  // Encode email and contactId with signature
+  const payload = Buffer.from(JSON.stringify({ email, contactId, signature })).toString("base64url");
+  return payload;
+}
+
+/**
+ * Generates an unsubscribe link for a contact
+ */
+export function generateUnsubscribeLink(email: string, contactId: string, baseUrl: string = "https://doxa-threads.com"): string {
+  const token = generateUnsubscribeToken(email, contactId);
+  return `${baseUrl}/api/unsubscribe?token=${token}`;
+}
+
+/**
+ * Adds an unsubscribe footer to HTML email content
+ */
+export function addUnsubscribeFooter(htmlContent: string, email: string, contactId: string): string {
+  const unsubscribeLink = generateUnsubscribeLink(email, contactId);
+
+  const footer = `
+    <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666; font-size: 12px;">
+      <p style="margin: 0 0 10px 0;">You're receiving this email because you signed up for updates from Doxa Threads.</p>
+      <p style="margin: 0;">
+        <a href="${unsubscribeLink}" style="color: #666; text-decoration: underline;">Unsubscribe</a> from these emails
+      </p>
+    </div>
+  `;
+
+  return htmlContent + footer;
 }

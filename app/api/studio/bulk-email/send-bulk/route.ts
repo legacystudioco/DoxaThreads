@@ -6,7 +6,7 @@ import {
   Contact,
   BatchResult,
 } from "../types";
-import { personalizeEmail, batchArray, delay } from "../utils";
+import { personalizeEmail, batchArray, delay, addUnsubscribeFooter } from "../utils";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const RESEND_AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID;
@@ -152,15 +152,19 @@ export async function POST(
       try {
         // Prepare personalized emails for this batch
         const emailPromises = batch.map((contact) => {
+          // Personalize content and subject
           const personalizedContent = personalizeEmail(htmlContent, contact);
           const personalizedSubject = personalizeEmail(subject, contact);
+
+          // Add unsubscribe footer with contact-specific link
+          const contentWithUnsubscribe = addUnsubscribeFooter(personalizedContent, contact.email, contact.id);
 
           return resend.emails.send({
             from: fromEmail,
             to: contact.email,
             replyTo: replyToEmail,
             subject: personalizedSubject,
-            html: personalizedContent,
+            html: contentWithUnsubscribe,
             headers: {
               "X-Entity-Ref-ID": `bulk-${Date.now()}-${contact.id}`,
             },
