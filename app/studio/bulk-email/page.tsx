@@ -63,6 +63,13 @@ export default function BulkEmailPage() {
   const [bulkResults, setBulkResults] = useState<BulkResults | null>(null);
   const [showResults, setShowResults] = useState(false);
 
+  // Scheduling state
+  const [isScheduling, setIsScheduling] = useState(false);
+  const [scheduledDate, setScheduledDate] = useState("");
+  const [scheduledTime, setScheduledTime] = useState("");
+  const [scheduledEmails, setScheduledEmails] = useState<any[]>([]);
+  const [showScheduledList, setShowScheduledList] = useState(false);
+
   // Auth check
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -74,6 +81,7 @@ export default function BulkEmailPage() {
   useEffect(() => {
     if (isAuthenticated) {
       fetchContacts();
+      fetchScheduledEmails();
     }
   }, [isAuthenticated]);
 
@@ -149,6 +157,138 @@ export default function BulkEmailPage() {
       });
     } finally {
       setSendingTest(false);
+    }
+  };
+
+  const fetchScheduledEmails = async () => {
+    try {
+      const response = await fetch("/api/studio/bulk-email/schedule");
+      const data = await response.json();
+
+      if (response.ok) {
+        setScheduledEmails(data.scheduledEmails || []);
+      } else {
+        console.error("Failed to fetch scheduled emails:", data.error);
+      }
+    } catch (error) {
+      console.error("Error fetching scheduled emails:", error);
+    }
+  };
+
+  const handleScheduleEmail = async () => {
+    if (!subject || !htmlContent) {
+      setMessage({
+        type: "error",
+        text: "Please fill in subject and email content",
+      });
+      return;
+    }
+
+    if (!scheduledDate || !scheduledTime) {
+      setMessage({
+        type: "error",
+        text: "Please select both date and time for scheduling",
+      });
+      return;
+    }
+
+    const confirmSchedule = window.confirm(
+      `Are you sure you want to schedule this email for ${scheduledDate} at ${scheduledTime}?\n\nIt will be sent to ${totalContacts} contacts at the scheduled time.`
+    );
+
+    if (!confirmSchedule) {
+      return;
+    }
+
+    try {
+      setIsScheduling(true);
+      setMessage(null);
+
+      const response = await fetch("/api/studio/bulk-email/schedule", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          subject,
+          htmlContent,
+          scheduledDate,
+          scheduledTime,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage({
+          type: "success",
+          text: `Email scheduled successfully for ${scheduledDate} at ${scheduledTime}`,
+        });
+
+        // Clear form on success
+        setSubject("");
+        setHtmlContent("");
+        setScheduledDate("");
+        setScheduledTime("");
+
+        // Refresh scheduled emails list
+        fetchScheduledEmails();
+      } else {
+        setMessage({
+          type: "error",
+          text: data.error || "Failed to schedule email",
+        });
+      }
+    } catch (error) {
+      console.error("Error scheduling email:", error);
+      setMessage({
+        type: "error",
+        text: "Failed to schedule email",
+      });
+    } finally {
+      setIsScheduling(false);
+    }
+  };
+
+  const handleCancelScheduled = async (id: string) => {
+    const confirmCancel = window.confirm(
+      "Are you sure you want to cancel this scheduled email?"
+    );
+
+    if (!confirmCancel) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `/api/studio/bulk-email/schedule?id=${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage({
+          type: "success",
+          text: "Scheduled email cancelled successfully",
+        });
+
+        // Refresh scheduled emails list
+        fetchScheduledEmails();
+      } else {
+        setMessage({
+          type: "error",
+          text: data.error || "Failed to cancel scheduled email",
+        });
+      }
+    } catch (error) {
+      console.error("Error cancelling scheduled email:", error);
+      setMessage({
+        type: "error",
+        text: "Failed to cancel scheduled email",
+      });
     }
   };
 
@@ -467,6 +607,41 @@ export default function BulkEmailPage() {
               />
             </div>
 
+            {/* Scheduling Section */}
+            <div className="mb-6 p-4 bg-background-dark rounded-lg border border-gray-700">
+              <h3 className="text-lg font-semibold mb-3">Schedule Email</h3>
+              <p className="text-sm text-gray-400 mb-4">
+                Schedule this email to be sent at a specific date and time
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium mb-2 text-gray-300">
+                    Date
+                  </label>
+                  <input
+                    type="date"
+                    value={scheduledDate}
+                    onChange={(e) => setScheduledDate(e.target.value)}
+                    min={new Date().toISOString().split("T")[0]}
+                    className="w-full px-3 py-2 rounded-lg focus:outline-none focus:border-accent focus:ring-0 bulk-email-input text-sm"
+                    disabled={sendingBulk || isScheduling}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-2 text-gray-300">
+                    Time
+                  </label>
+                  <input
+                    type="time"
+                    value={scheduledTime}
+                    onChange={(e) => setScheduledTime(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg focus:outline-none focus:border-accent focus:ring-0 bulk-email-input text-sm"
+                    disabled={sendingBulk || isScheduling}
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Action Buttons */}
             <div className="flex flex-col gap-3">
               <button
@@ -478,13 +653,23 @@ export default function BulkEmailPage() {
               </button>
 
               <button
+                onClick={handleScheduleEmail}
+                disabled={isScheduling || sendingBulk || sendingTest || !subject || !htmlContent || !scheduledDate || !scheduledTime || totalContacts === 0}
+                className="btn-secondary w-full bg-blue-600 hover:bg-blue-700"
+              >
+                {isScheduling
+                  ? "Scheduling..."
+                  : `Schedule Email for ${scheduledDate || "Selected Date"}`}
+              </button>
+
+              <button
                 onClick={handleSendBulk}
                 disabled={sendingBulk || sendingTest || !subject || !htmlContent || totalContacts === 0}
                 className="btn w-full"
               >
                 {sendingBulk
                   ? "Sending to Audience..."
-                  : `Send to Entire Audience (${totalContacts} contacts)`}
+                  : `Send Now to Entire Audience (${totalContacts} contacts)`}
               </button>
 
               <button
@@ -542,6 +727,91 @@ export default function BulkEmailPage() {
             </div>
           </div>
         </div>
+
+        {/* Scheduled Emails List */}
+        {scheduledEmails.length > 0 && (
+          <div className="card mt-8">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-serif">Scheduled Emails</h3>
+              <button
+                onClick={fetchScheduledEmails}
+                className="text-sm text-accent hover:text-accent-dark"
+              >
+                Refresh
+              </button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-700">
+                    <th className="text-left py-3 px-4">Subject</th>
+                    <th className="text-left py-3 px-4">Scheduled For</th>
+                    <th className="text-left py-3 px-4">Recipients</th>
+                    <th className="text-left py-3 px-4">Status</th>
+                    <th className="text-left py-3 px-4">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {scheduledEmails.map((email) => (
+                    <tr
+                      key={email.id}
+                      className="border-b border-gray-800 hover:bg-background-dark"
+                    >
+                      <td className="py-3 px-4 max-w-xs truncate">
+                        {email.subject}
+                      </td>
+                      <td className="py-3 px-4">
+                        {new Date(email.scheduled_datetime).toLocaleString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
+                      </td>
+                      <td className="py-3 px-4">{email.total_recipients}</td>
+                      <td className="py-3 px-4">
+                        <span
+                          className={`px-2 py-1 rounded text-xs font-medium ${
+                            email.status === "pending"
+                              ? "bg-blue-900/50 text-blue-300"
+                              : email.status === "sent"
+                              ? "bg-green-900/50 text-green-300"
+                              : email.status === "failed"
+                              ? "bg-red-900/50 text-red-300"
+                              : "bg-gray-700 text-gray-300"
+                          }`}
+                        >
+                          {email.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        {email.status === "pending" && (
+                          <button
+                            onClick={() => handleCancelScheduled(email.id)}
+                            className="text-sm text-red-400 hover:text-red-300"
+                          >
+                            Cancel
+                          </button>
+                        )}
+                        {email.status === "sent" && email.sent_count && (
+                          <span className="text-sm text-gray-400">
+                            Sent: {email.sent_count}
+                          </span>
+                        )}
+                        {email.status === "failed" && (
+                          <span className="text-sm text-red-400">
+                            Failed: {email.failed_count || 0}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
         {/* Contact List Preview */}
         {contacts.length > 0 && (

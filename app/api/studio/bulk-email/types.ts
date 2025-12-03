@@ -65,3 +65,40 @@ export interface BatchProgressUpdate {
   sent: number;
   failed: number;
 }
+
+export interface ScheduledEmail {
+  id: string;
+  subject: string;
+  html_content: string;
+  scheduled_date: string;
+  scheduled_time: string;
+  scheduled_datetime: string;
+  status: 'pending' | 'sent' | 'failed' | 'cancelled';
+  created_at: string;
+  sent_at?: string;
+  total_recipients: number;
+  sent_count?: number;
+  failed_count?: number;
+  error_message?: string;
+  created_by?: string;
+}
+
+export interface ScheduleEmailRequest {
+  subject: string;
+  htmlContent: string;
+  scheduledDate: string; // YYYY-MM-DD format
+  scheduledTime: string; // HH:MM format (24-hour)
+}
+
+export interface ScheduleEmailResponse {
+  success: boolean;
+  message: string;
+  scheduledEmail?: ScheduledEmail;
+  error?: string;
+}
+
+export interface GetScheduledEmailsResponse {
+  success: boolean;
+  scheduledEmails: ScheduledEmail[];
+  error?: string;
+}
