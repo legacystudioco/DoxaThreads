@@ -275,12 +275,12 @@ export default function BulkEmailPage() {
         {/* Message Alert */}
         {message && (
           <div
-            className={`mb-6 p-4 rounded-lg border ${
+            className={`mb-6 p-4 rounded-lg ${
               message.type === "success"
-                ? "bg-green-900/20 border-green-700 text-green-300"
+                ? "bulk-email-alert-success"
                 : message.type === "info"
-                ? "bg-blue-900/20 border-blue-700 text-blue-300"
-                : "bg-red-900/20 border-red-700 text-red-300"
+                ? "bulk-email-alert-info"
+                : "bulk-email-alert-error"
             }`}
           >
             {message.text}
@@ -419,7 +419,7 @@ export default function BulkEmailPage() {
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 placeholder="Enter subject (use {{first_name}} for personalization)"
-                className="w-full px-4 py-3 bg-background-dark border border-gray-700 rounded-lg focus:outline-none focus:border-accent text-white"
+                className="w-full px-4 py-3 rounded-lg focus:outline-none focus:border-accent focus:ring-0 bulk-email-input"
                 disabled={sendingBulk}
               />
             </div>
@@ -462,7 +462,7 @@ export default function BulkEmailPage() {
                 value={testEmail}
                 onChange={(e) => setTestEmail(e.target.value)}
                 placeholder="your-email@gmail.com"
-                className="w-full px-4 py-3 bg-background-dark border border-gray-700 rounded-lg focus:outline-none focus:border-accent text-white"
+                className="w-full px-4 py-3 rounded-lg focus:outline-none focus:border-accent focus:ring-0 bulk-email-input"
                 disabled={sendingBulk}
               />
             </div>
@@ -509,7 +509,7 @@ export default function BulkEmailPage() {
               </button>
             </div>
 
-            <div className="bg-background-dark border border-gray-700 rounded-lg p-6">
+            <div className="bg-[rgba(18,15,12,0.82)] border border-[rgba(243,232,216,0.24)] rounded-lg p-6 bulk-email-preview">
               <div className="mb-4 pb-4 border-b border-gray-700">
                 <p className="text-xs text-gray-500 mb-2">From:</p>
                 <p className="text-sm">Doxa Threads &lt;info@doxa-threads.com&gt;</p>
@@ -529,14 +529,14 @@ export default function BulkEmailPage() {
               )}
 
               <div className="border-t border-gray-700 pt-4">
-                <p className="text-sm text-gray-400 mb-3">Email Body:</p>
+                <p className="text-sm text-[rgba(243,232,216,0.75)] mb-3">Email Body:</p>
                 {htmlContent ? (
                   <div
-                    className="prose prose-invert max-w-none"
+                    className="bulk-email-preview leading-relaxed"
                     dangerouslySetInnerHTML={{ __html: htmlContent }}
                   />
                 ) : (
-                  <p className="text-gray-500">No content entered</p>
+                  <p className="text-[rgba(243,232,216,0.65)]">No content entered</p>
                 )}
               </div>
             </div>

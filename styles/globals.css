@@ -251,6 +251,47 @@
     border-color: rgba(17, 17, 17, 0.12);
   }
 
+  /* BULK EMAIL CONTRAST HELPERS */
+  .bulk-email-alert-success {
+    background: rgba(16, 185, 129, 0.14);
+    border: 1px solid rgba(74, 222, 128, 0.6);
+    color: #e7fff3;
+    font-weight: 600;
+  }
+
+  .bulk-email-alert-error {
+    background: rgba(248, 113, 113, 0.16);
+    border: 1px solid rgba(248, 113, 113, 0.65);
+    color: #ffecec;
+    font-weight: 600;
+  }
+
+  .bulk-email-alert-info {
+    background: rgba(59, 130, 246, 0.16);
+    border: 1px solid rgba(147, 197, 253, 0.6);
+    color: #eaf3ff;
+    font-weight: 600;
+  }
+
+  .bulk-email-input {
+    background: rgba(243, 232, 216, 0.1);
+    border: 1px solid rgba(243, 232, 216, 0.38);
+    color: rgba(243, 232, 216, 0.96);
+    box-shadow: 0 0 0 0 transparent;
+  }
+
+  .bulk-email-input::placeholder {
+    color: rgba(243, 232, 216, 0.68);
+  }
+
+  .bulk-email-preview {
+    color: rgba(243, 232, 216, 0.96);
+  }
+
+  .bulk-email-preview :is(p, li, span, strong, em, a, h1, h2, h3, h4, h5, h6) {
+    color: inherit !important;
+  }
+
   /* HERO SECTION */
   .hero {
     @apply relative overflow-hidden 
