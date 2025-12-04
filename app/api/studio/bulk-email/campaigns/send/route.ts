@@ -251,8 +251,8 @@ export async function POST(req: NextRequest) {
             "X-Entity-Ref-ID": `campaign-${campaign.id}-${contact.id}`,
           },
           tags: [
-            { name: "campaign", value: campaign.id },
-            { name: "campaign_name", value: campaign.name },
+            { name: "campaign_id", value: campaign.id.replace(/-/g, "_") },
+            { name: "campaign_name", value: campaign.name.replace(/[^a-zA-Z0-9_-]/g, "_") },
           ],
         });
 
