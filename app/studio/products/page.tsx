@@ -25,8 +25,10 @@ export default function StudioProductsPage() {
     { id: "tshirt", label: "T-Shirt" },
   ];
 
-  const loadProducts = useCallback(async () => {
-    const { data, error } = await supabase
+  const loadProducts = useCallback(async (skipCache = false) => {
+    console.log(`Loading products... (skipCache: ${skipCache})`);
+
+    let query = supabase
       .from("products")
       .select(`
         *,
@@ -45,9 +47,12 @@ export default function StudioProductsPage() {
       `)
       .order("created_at", { ascending: false });
 
+    const { data, error } = await query;
+
     if (error) {
       console.error("Error loading products:", error);
     } else {
+      console.log(`Loaded ${data?.length || 0} products with variants`);
       setProducts(data || []);
     }
     setLoading(false);
@@ -270,11 +275,21 @@ export default function StudioProductsPage() {
           .from("variants")
           .update({ price_cents: update.price_cents })
           .eq("id", update.id)
+          .select()
       );
 
       const results = await Promise.all(updatePromises);
 
       console.log("Update results:", results);
+
+      // Log detailed results for the first few to see what's happening
+      console.log("First 3 detailed results:", results.slice(0, 3).map(r => ({
+        error: r.error,
+        status: r.status,
+        statusText: r.statusText,
+        count: r.count,
+        data: r.data
+      })));
 
       // Check if any updates failed
       const errors = results.filter(r => r.error);
@@ -283,17 +298,41 @@ export default function StudioProductsPage() {
         throw new Error(`Failed to update ${errors.length} variant(s)`);
       }
 
-      const successCount = results.filter(r => !r.error).length;
+      // Check how many rows were actually affected
+      const rowsAffected = results.reduce((sum, r) => sum + (r.data?.length || 0), 0);
+      console.log(`Rows actually affected in database: ${rowsAffected}`);
+
+      const successCount = results.filter(r => !r.error && r.data && r.data.length > 0).length;
       console.log(`Successfully updated ${successCount} variants`);
 
-      alert(`Successfully updated prices for ${count} product(s) with ${variants.length} total variants`);
+      if (rowsAffected !== variants.length) {
+        console.warn(`WARNING: Expected to update ${variants.length} variants but only ${rowsAffected} were affected`);
+      }
 
-      // Clear modal and selection, reload products
+      // Verify the updates by re-fetching a few variants
+      console.log("Verifying updates in database...");
+      const sampleIds = updates.slice(0, 3).map(u => u.id);
+      const { data: verifyData, error: verifyError } = await supabase
+        .from("variants")
+        .select("id, price_cents")
+        .in("id", sampleIds);
+
+      if (!verifyError && verifyData) {
+        console.log("Verification - sample variants after update:", verifyData);
+        console.log("Expected prices:", updates.slice(0, 3).map(u => ({ id: u.id, price_cents: u.price_cents })));
+      }
+
+      alert(`Successfully updated prices for ${count} product(s).\nUpdated ${rowsAffected} out of ${variants.length} variants.`);
+
+      // Clear modal and selection, reload products with a small delay to ensure DB consistency
       setShowPriceModal(false);
       setPriceAdjustment("");
       setSelectedProducts(new Set());
       setBulkAction("");
-      await loadProducts();
+
+      console.log("Reloading products...");
+      await new Promise(resolve => setTimeout(resolve, 500)); // Small delay for DB replication
+      await loadProducts(true);
     } catch (error: any) {
       alert(`Error updating prices: ${error.message}`);
     } finally {
