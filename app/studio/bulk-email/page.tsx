@@ -66,6 +66,7 @@ export default function BulkEmailPage() {
 
   // Send rate limiting
   const [maxPerHour, setMaxPerHour] = useState("");
+  const [maxPerBatch, setMaxPerBatch] = useState("300");
 
   // Scheduling state
   const [isScheduling, setIsScheduling] = useState(false);
@@ -73,6 +74,12 @@ export default function BulkEmailPage() {
   const [scheduledTime, setScheduledTime] = useState("");
   const [scheduledEmails, setScheduledEmails] = useState<any[]>([]);
   const [showScheduledList, setShowScheduledList] = useState(false);
+
+  // Campaign tracking state
+  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [activeCampaign, setActiveCampaign] = useState<any>(null);
+  const [campaignName, setCampaignName] = useState("");
+  const [showCampaigns, setShowCampaigns] = useState(false);
 
   // Auth check
   useEffect(() => {
@@ -86,6 +93,7 @@ export default function BulkEmailPage() {
     if (isAuthenticated) {
       fetchContacts();
       fetchScheduledEmails();
+      fetchCampaigns();
     }
   }, [isAuthenticated]);
 
@@ -338,39 +346,11 @@ export default function BulkEmailPage() {
       setBulkResults(null);
       setShowResults(false);
 
-      const response = await fetch("/api/studio/bulk-email/send-bulk", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          subject,
-          htmlContent,
-          fromName,
-          ...(rateCapValue ? { maxPerHour: rateCapValue } : {}),
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setBulkResults(data.results);
-        setShowResults(true);
-        setMessage({
-          type: "success",
-          text: `Campaign complete! Sent: ${data.results.sent}, Failed: ${data.results.failed}`,
-        });
-
-        // Clear form on success
-        if (data.results.failed === 0) {
-          setSubject("");
-          setHtmlContent("");
-        }
+      // Use streaming endpoint if rate limiting is enabled, otherwise use regular endpoint
+      if (rateCapValue) {
+        await handleStreamingSend(rateCapValue);
       } else {
-        setMessage({
-          type: "error",
-          text: data.error || "Failed to send bulk emails",
-        });
+        await handleRegularSend();
       }
     } catch (error) {
       console.error("Error sending bulk emails:", error);
@@ -381,6 +361,276 @@ export default function BulkEmailPage() {
     } finally {
       setSendingBulk(false);
       setBulkProgress(null);
+    }
+  };
+
+  const handleStreamingSend = async (rateCapValue: number) => {
+    const response = await fetch("/api/studio/bulk-email/send-bulk-stream", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        subject,
+        htmlContent,
+        fromName,
+        maxPerHour: rateCapValue,
+      }),
+    });
+
+    if (!response.ok || !response.body) {
+      throw new Error("Failed to start streaming");
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+
+      for (const line of lines) {
+        if (line.startsWith("data: ")) {
+          const data = JSON.parse(line.slice(6));
+
+          if (data.type === "initialized") {
+            setBulkProgress({
+              currentBatch: 0,
+              totalBatches: data.batches,
+              sent: 0,
+              failed: 0,
+              percentage: 0,
+            });
+          } else if (data.type === "batch_completed") {
+            setBulkProgress({
+              currentBatch: data.batchNumber,
+              totalBatches: data.totalBatches,
+              sent: data.totalSent,
+              failed: data.totalFailed,
+              percentage: data.progress,
+            });
+          } else if (data.type === "completed") {
+            setBulkResults(data.results);
+            setShowResults(true);
+            setMessage({
+              type: "success",
+              text: `Campaign complete! Sent: ${data.results.sent}, Failed: ${data.results.failed}`,
+            });
+
+            if (data.results.failed === 0) {
+              setSubject("");
+              setHtmlContent("");
+            }
+          } else if (data.type === "error") {
+            setMessage({
+              type: "error",
+              text: data.error || "Failed to send bulk emails",
+            });
+          }
+        }
+      }
+    }
+  };
+
+  const handleRegularSend = async () => {
+    const response = await fetch("/api/studio/bulk-email/send-bulk", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        subject,
+        htmlContent,
+        fromName,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      setBulkResults(data.results);
+      setShowResults(true);
+      setMessage({
+        type: "success",
+        text: `Campaign complete! Sent: ${data.results.sent}, Failed: ${data.results.failed}`,
+      });
+
+      if (data.results.failed === 0) {
+        setSubject("");
+        setHtmlContent("");
+      }
+    } else {
+      setMessage({
+        type: "error",
+        text: data.error || "Failed to send bulk emails",
+      });
+    }
+  };
+
+  // Campaign management functions
+  const fetchCampaigns = async () => {
+    try {
+      const response = await fetch("/api/studio/bulk-email/campaigns");
+      const data = await response.json();
+
+      if (response.ok) {
+        setCampaigns(data.campaigns || []);
+      } else {
+        console.error("Failed to fetch campaigns:", data.error);
+      }
+    } catch (error) {
+      console.error("Error fetching campaigns:", error);
+    }
+  };
+
+  const handleSendBatch = async (isResume = false) => {
+    if (!isResume && !campaignName) {
+      setMessage({
+        type: "error",
+        text: "Please enter a campaign name",
+      });
+      return;
+    }
+
+    if (!subject || !htmlContent) {
+      setMessage({
+        type: "error",
+        text: "Please fill in subject and email content",
+      });
+      return;
+    }
+
+    const batchSize = parseInt(maxPerBatch, 10);
+    if (Number.isNaN(batchSize) || batchSize <= 0) {
+      setMessage({
+        type: "error",
+        text: "Please enter a valid batch size (e.g., 300)",
+      });
+      return;
+    }
+
+    const confirmSend = window.confirm(
+      isResume
+        ? `Resume campaign "${activeCampaign?.name}"?\n\nThis will send up to ${batchSize} emails to recipients who haven't received this campaign yet.`
+        : `Start new campaign "${campaignName}"?\n\nThis will send up to ${batchSize} emails. You can resume later to send more without duplicates.`
+    );
+
+    if (!confirmSend) {
+      return;
+    }
+
+    try {
+      setSendingBulk(true);
+      setMessage(null);
+      setBulkResults(null);
+      setShowResults(false);
+
+      const response = await fetch("/api/studio/bulk-email/campaigns/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          campaignId: isResume ? activeCampaign?.id : undefined,
+          name: campaignName,
+          subject,
+          htmlContent,
+          fromName,
+          maxPerBatch: batchSize,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setActiveCampaign(data.campaign);
+        setMessage({
+          type: "success",
+          text: data.message,
+        });
+
+        setBulkResults({
+          total: data.results.total,
+          sent: data.results.sent,
+          failed: data.results.failed,
+          batches: [],
+          errors: [],
+        });
+        setShowResults(true);
+
+        // Refresh campaigns list
+        fetchCampaigns();
+
+        // Clear form if fully completed
+        if (data.results.remaining === 0) {
+          setCampaignName("");
+          setSubject("");
+          setHtmlContent("");
+          setActiveCampaign(null);
+        }
+      } else {
+        setMessage({
+          type: "error",
+          text: data.error || "Failed to send campaign batch",
+        });
+      }
+    } catch (error) {
+      console.error("Error sending campaign batch:", error);
+      setMessage({
+        type: "error",
+        text: "Failed to send campaign batch",
+      });
+    } finally {
+      setSendingBulk(false);
+    }
+  };
+
+  const handleDeleteCampaign = async (id: string) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this campaign? This will also delete all recipient tracking data."
+    );
+
+    if (!confirmDelete) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `/api/studio/bulk-email/campaigns?id=${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage({
+          type: "success",
+          text: "Campaign deleted successfully",
+        });
+        fetchCampaigns();
+
+        if (activeCampaign?.id === id) {
+          setActiveCampaign(null);
+        }
+      } else {
+        setMessage({
+          type: "error",
+          text: data.error || "Failed to delete campaign",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting campaign:", error);
+      setMessage({
+        type: "error",
+        text: "Failed to delete campaign",
+      });
     }
   };
 
@@ -567,11 +817,81 @@ export default function BulkEmailPage() {
           </div>
         )}
 
+        {/* Campaign Tracking Section */}
+        {activeCampaign && (
+          <div className="card mb-6 border-2 border-accent">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="text-xl font-serif text-accent">Active Campaign</h3>
+                <p className="text-gray-400 mt-1">{activeCampaign.name}</p>
+              </div>
+              <span
+                className={`px-3 py-1 rounded text-sm font-medium ${
+                  activeCampaign.status === "completed"
+                    ? "bg-green-900/50 text-green-300"
+                    : activeCampaign.status === "sending"
+                    ? "bg-blue-900/50 text-blue-300"
+                    : "bg-yellow-900/50 text-yellow-300"
+                }`}
+              >
+                {activeCampaign.status}
+              </span>
+            </div>
+            <div className="grid grid-cols-4 gap-4 mb-4">
+              <div className="bg-background-dark p-3 rounded-lg">
+                <div className="text-xs text-gray-400 mb-1">Total</div>
+                <div className="text-xl font-bold">{activeCampaign.total_recipients || 0}</div>
+              </div>
+              <div className="bg-background-dark p-3 rounded-lg">
+                <div className="text-xs text-gray-400 mb-1">Sent</div>
+                <div className="text-xl font-bold text-green-400">{activeCampaign.sent_count || 0}</div>
+              </div>
+              <div className="bg-background-dark p-3 rounded-lg">
+                <div className="text-xs text-gray-400 mb-1">Failed</div>
+                <div className="text-xl font-bold text-red-400">{activeCampaign.failed_count || 0}</div>
+              </div>
+              <div className="bg-background-dark p-3 rounded-lg">
+                <div className="text-xs text-gray-400 mb-1">Remaining</div>
+                <div className="text-xl font-bold text-accent">
+                  {(activeCampaign.total_recipients || 0) - (activeCampaign.sent_count || 0) - (activeCampaign.failed_count || 0)}
+                </div>
+              </div>
+            </div>
+            {activeCampaign.status !== "completed" && (
+              <button
+                onClick={() => handleSendBatch(true)}
+                disabled={sendingBulk}
+                className="btn w-full"
+              >
+                Resume Campaign (Send Next {maxPerBatch} Emails)
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Email Composer */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Column - Form */}
           <div className="card">
             <h2 className="text-2xl font-serif mb-6">Compose Email</h2>
+
+            {/* Campaign Name */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium mb-2">
+                Campaign Name
+              </label>
+              <input
+                type="text"
+                value={campaignName}
+                onChange={(e) => setCampaignName(e.target.value)}
+                placeholder="e.g., Holiday Sale 2025"
+                className="w-full px-4 py-3 rounded-lg focus:outline-none focus:border-accent focus:ring-0 bulk-email-input"
+                disabled={sendingBulk}
+              />
+              <p className="text-xs text-gray-500 mt-2">
+                Used to track this campaign. You can resume sending to remaining recipients later.
+              </p>
+            </div>
 
             {/* Subject Input */}
             <div className="mb-6">
@@ -684,11 +1004,37 @@ export default function BulkEmailPage() {
               </div>
             </div>
 
-            {/* Send Rate Limit */}
-            <div className="mb-6 p-4 bg-background-dark rounded-lg border border-gray-700">
-              <h3 className="text-lg font-semibold mb-3">Send Rate (optional)</h3>
+            {/* Batch Settings */}
+            <div className="mb-6 p-4 bg-background-dark rounded-lg border border-accent">
+              <h3 className="text-lg font-semibold mb-3 text-accent">Batch Sending (Recommended)</h3>
               <p className="text-sm text-gray-400 mb-4">
-                Cap how many emails to send per hour to warm up the domain (recommended: 200-300/hour for a new URL).
+                Send emails in batches to warm up your domain and avoid spam filters. You can resume later to send more.
+              </p>
+              <div>
+                <label className="block text-xs font-medium mb-2 text-gray-300">
+                  Emails per batch
+                </label>
+                <input
+                  type="number"
+                  min="50"
+                  step="50"
+                  value={maxPerBatch}
+                  onChange={(e) => setMaxPerBatch(e.target.value)}
+                  placeholder="e.g. 300"
+                  className="w-full px-3 py-2 rounded-lg focus:outline-none focus:border-accent focus:ring-0 bulk-email-input text-sm"
+                  disabled={sendingBulk}
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  Recommended: 300 emails per batch. Send one batch, wait an hour, then resume for the next 300.
+                </p>
+              </div>
+            </div>
+
+            {/* Send Rate Limit (Advanced) */}
+            <div className="mb-6 p-4 bg-background-dark rounded-lg border border-gray-700">
+              <h3 className="text-lg font-semibold mb-3">Streaming Send (Advanced)</h3>
+              <p className="text-sm text-gray-400 mb-4">
+                Alternative: Stream emails at a specific rate per hour. Requires keeping browser open.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
                 <div>
@@ -714,7 +1060,7 @@ export default function BulkEmailPage() {
                       : "Set a cap to see estimate"}
                   </p>
                   <p className="mt-1">
-                    Tip: Start low, then raise the cap after a few batches if engagement is good.
+                    Note: Browser must stay open for entire duration.
                   </p>
                 </div>
               </div>
@@ -728,6 +1074,16 @@ export default function BulkEmailPage() {
                 className="btn-secondary w-full"
               >
                 {sendingTest ? "Sending Test..." : "Send Test Email (with personalization example)"}
+              </button>
+
+              <button
+                onClick={() => handleSendBatch(false)}
+                disabled={sendingBulk || sendingTest || !campaignName || !subject || !htmlContent || totalContacts === 0}
+                className="btn w-full"
+              >
+                {sendingBulk
+                  ? "Sending Batch..."
+                  : `Send Batch (${maxPerBatch} emails) - Recommended`}
               </button>
 
               <button
@@ -752,17 +1108,17 @@ export default function BulkEmailPage() {
                 }
                 className="btn-secondary w-full bg-amber-700 hover:bg-amber-800"
               >
-                {sendingBulk ? "Sending..." : "Send With Hourly Cap"}
+                {sendingBulk ? "Sending..." : "Streaming Send (Keep Browser Open)"}
               </button>
 
               <button
                 onClick={handleSendBulk}
                 disabled={sendingBulk || sendingTest || !subject || !htmlContent || totalContacts === 0}
-                className="btn w-full"
+                className="btn-secondary w-full"
               >
                 {sendingBulk
                   ? "Sending to Audience..."
-                  : `Send Now to Entire Audience (${totalContacts} contacts)`}
+                  : `Send All Now (${totalContacts} emails)`}
               </button>
 
               <button
@@ -835,6 +1191,107 @@ export default function BulkEmailPage() {
             </div>
           </div>
         </div>
+
+        {/* Campaign History */}
+        {campaigns.length > 0 && (
+          <div className="card mt-8">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-serif">Campaign History</h3>
+              <button
+                onClick={fetchCampaigns}
+                className="text-sm text-accent hover:text-accent-dark"
+              >
+                Refresh
+              </button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-700">
+                    <th className="text-left py-3 px-4">Campaign Name</th>
+                    <th className="text-left py-3 px-4">Subject</th>
+                    <th className="text-left py-3 px-4">Progress</th>
+                    <th className="text-left py-3 px-4">Status</th>
+                    <th className="text-left py-3 px-4">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {campaigns.map((campaign) => {
+                    const remaining = (campaign.total_recipients || 0) - (campaign.sent_count || 0) - (campaign.failed_count || 0);
+                    const progress = campaign.total_recipients > 0
+                      ? ((campaign.sent_count || 0) / campaign.total_recipients * 100).toFixed(1)
+                      : 0;
+
+                    return (
+                      <tr
+                        key={campaign.id}
+                        className="border-b border-gray-800 hover:bg-background-dark"
+                      >
+                        <td className="py-3 px-4 font-medium">{campaign.name}</td>
+                        <td className="py-3 px-4 max-w-xs truncate">
+                          {campaign.subject}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 bg-gray-700 rounded-full h-2 min-w-[100px]">
+                              <div
+                                className="bg-accent h-2 rounded-full"
+                                style={{ width: `${progress}%` }}
+                              />
+                            </div>
+                            <span className="text-xs text-gray-400 whitespace-nowrap">
+                              {campaign.sent_count || 0}/{campaign.total_recipients || 0}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              campaign.status === "completed"
+                                ? "bg-green-900/50 text-green-300"
+                                : campaign.status === "sending"
+                                ? "bg-blue-900/50 text-blue-300"
+                                : campaign.status === "paused"
+                                ? "bg-yellow-900/50 text-yellow-300"
+                                : "bg-gray-700 text-gray-300"
+                            }`}
+                          >
+                            {campaign.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex gap-2">
+                            {campaign.status !== "completed" && remaining > 0 && (
+                              <button
+                                onClick={() => {
+                                  setActiveCampaign(campaign);
+                                  setCampaignName(campaign.name);
+                                  setSubject(campaign.subject);
+                                  setHtmlContent(campaign.html_content);
+                                  setFromName(campaign.from_name || "Doxa Threads");
+                                  window.scrollTo({ top: 0, behavior: "smooth" });
+                                }}
+                                className="text-sm text-accent hover:text-accent-dark"
+                              >
+                                Resume
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleDeleteCampaign(campaign.id)}
+                              className="text-sm text-red-400 hover:text-red-300"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
         {/* Scheduled Emails List */}
         {scheduledEmails.length > 0 && (

@@ -1,12 +1,19 @@
 import { NextRequest } from "next/server";
 import { Resend } from "resend";
 import { Contact, BatchResult } from "../types";
-import { personalizeEmail, batchArray, delay } from "../utils";
+import { personalizeEmail, batchArray, delay, addUnsubscribeFooter } from "../utils";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const RESEND_AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID;
 const EMAIL_FROM = process.env.EMAIL_FROM || "Doxa Threads <info@doxa-threads.com>";
 const REPLY_TO = process.env.REPLY_TO || "info@doxa-threads.com";
+
+// Extract the email portion from EMAIL_FROM
+const FROM_EMAIL_MATCH = EMAIL_FROM.match(/<(.+)>/);
+const FROM_EMAIL_ADDRESS = FROM_EMAIL_MATCH ? FROM_EMAIL_MATCH[1] : EMAIL_FROM;
+const DEFAULT_FROM_NAME = EMAIL_FROM.includes("<")
+  ? EMAIL_FROM.split("<")[0].trim()
+  : "Doxa Threads";
 
 // Batch configuration
 const BATCH_SIZE = 100;
@@ -40,7 +47,7 @@ export async function POST(req: NextRequest) {
 
         // Parse request body
         const body = await req.json();
-        const { subject, htmlContent, fromName, replyTo } = body;
+        const { subject, htmlContent, fromName, replyTo, maxPerHour } = body;
 
         if (!subject || !htmlContent) {
           sendSSE({
@@ -50,6 +57,11 @@ export async function POST(req: NextRequest) {
           controller.close();
           return;
         }
+
+        // Optional hourly rate limit
+        const rateLimitPerHour = maxPerHour && Number(maxPerHour) > 0 ? Number(maxPerHour) : null;
+        const perEmailDelayMs = rateLimitPerHour ? Math.ceil(3_600_000 / rateLimitPerHour) : 0;
+        const effectiveBatchSize = rateLimitPerHour ? Math.min(BATCH_SIZE, 25) : BATCH_SIZE;
 
         sendSSE({
           type: "started",
@@ -80,7 +92,17 @@ export async function POST(req: NextRequest) {
         }
 
         const contactsData = await contactsResponse.json();
-        const allContacts: Contact[] = contactsData.data?.data || [];
+
+        // Flexibly extract contacts
+        let allContacts: Contact[] = [];
+        if (contactsData?.data?.data) {
+          allContacts = contactsData.data.data;
+        } else if (Array.isArray(contactsData?.data)) {
+          allContacts = contactsData.data;
+        } else if (Array.isArray(contactsData)) {
+          allContacts = contactsData;
+        }
+
         const activeContacts = allContacts.filter(contact => !contact.unsubscribed);
 
         if (activeContacts.length === 0) {
@@ -92,7 +114,7 @@ export async function POST(req: NextRequest) {
           return;
         }
 
-        const contactBatches = batchArray(activeContacts, BATCH_SIZE);
+        const contactBatches = batchArray(activeContacts, effectiveBatchSize);
         const totalBatches = contactBatches.length;
 
         sendSSE({
@@ -110,7 +132,8 @@ export async function POST(req: NextRequest) {
           errors: [] as any[],
         };
 
-        const fromEmail = fromName ? `${fromName} <info@doxa-threads.com>` : EMAIL_FROM;
+        const fromDisplayName = fromName || DEFAULT_FROM_NAME;
+        const fromEmail = `${fromDisplayName} <${FROM_EMAIL_ADDRESS}>`;
         const replyToEmail = replyTo || REPLY_TO;
 
         for (let batchIndex = 0; batchIndex < contactBatches.length; batchIndex++) {
@@ -132,41 +155,96 @@ export async function POST(req: NextRequest) {
           };
 
           try {
-            const emailPromises = batch.map((contact) => {
-              const personalizedContent = personalizeEmail(htmlContent, contact);
-              const personalizedSubject = personalizeEmail(subject, contact);
+            if (rateLimitPerHour) {
+              // Sequential send with enforced delay per email (rate limiting)
+              for (const contact of batch) {
+                const sendStart = Date.now();
+                try {
+                  const personalizedContent = personalizeEmail(htmlContent, contact);
+                  const personalizedSubject = personalizeEmail(subject, contact);
+                  const contentWithUnsubscribe = addUnsubscribeFooter(personalizedContent, contact.email, contact.id);
 
-              return resend.emails.send({
-                from: fromEmail,
-                to: contact.email,
-                replyTo: replyToEmail,
-                subject: personalizedSubject,
-                html: personalizedContent,
-                headers: {
-                  "X-Entity-Ref-ID": `bulk-${Date.now()}-${contact.id}`,
-                },
-                tags: [
-                  { name: "campaign", value: "bulk-email" },
-                  { name: "batch", value: batchNumber.toString() },
-                ],
-              });
-            });
+                  const sendResult = await resend.emails.send({
+                    from: fromEmail,
+                    to: contact.email,
+                    reply_to: replyToEmail,
+                    subject: personalizedSubject,
+                    html: contentWithUnsubscribe,
+                    headers: {
+                      "X-Entity-Ref-ID": `bulk-${Date.now()}-${contact.id}`,
+                    },
+                    tags: [
+                      { name: "campaign", value: "bulk-email" },
+                      { name: "batch", value: batchNumber.toString() },
+                    ],
+                  });
 
-            const batchResults = await Promise.allSettled(emailPromises);
+                  if (sendResult.error) {
+                    batchResult.failed++;
+                    results.failed++;
+                    batchResult.errors?.push({
+                      email: contact.email,
+                      error: sendResult.error,
+                    });
+                  } else {
+                    batchResult.sent++;
+                    results.sent++;
+                  }
+                } catch (error) {
+                  batchResult.failed++;
+                  results.failed++;
+                  batchResult.errors?.push({
+                    email: contact.email,
+                    error: error instanceof Error ? error.message : "Unknown error",
+                  });
+                }
 
-            batchResults.forEach((result, index) => {
-              if (result.status === "fulfilled" && !result.value.error) {
-                batchResult.sent++;
-                results.sent++;
-              } else {
-                batchResult.failed++;
-                results.failed++;
-                batchResult.errors?.push({
-                  email: batch[index].email,
-                  error: result.status === "fulfilled" ? result.value.error : result.reason?.message,
-                });
+                // Enforce per-email pacing
+                const elapsed = Date.now() - sendStart;
+                const waitMs = perEmailDelayMs - elapsed;
+                if (waitMs > 0) {
+                  await delay(waitMs);
+                }
               }
-            });
+            } else {
+              // Parallel send (no rate limiting)
+              const emailPromises = batch.map((contact) => {
+                const personalizedContent = personalizeEmail(htmlContent, contact);
+                const personalizedSubject = personalizeEmail(subject, contact);
+                const contentWithUnsubscribe = addUnsubscribeFooter(personalizedContent, contact.email, contact.id);
+
+                return resend.emails.send({
+                  from: fromEmail,
+                  to: contact.email,
+                  reply_to: replyToEmail,
+                  subject: personalizedSubject,
+                  html: contentWithUnsubscribe,
+                  headers: {
+                    "X-Entity-Ref-ID": `bulk-${Date.now()}-${contact.id}`,
+                  },
+                  tags: [
+                    { name: "campaign", value: "bulk-email" },
+                    { name: "batch", value: batchNumber.toString() },
+                  ],
+                });
+              });
+
+              const batchResults = await Promise.allSettled(emailPromises);
+
+              batchResults.forEach((result, index) => {
+                if (result.status === "fulfilled" && !result.value.error) {
+                  batchResult.sent++;
+                  results.sent++;
+                } else {
+                  batchResult.failed++;
+                  results.failed++;
+                  batchResult.errors?.push({
+                    email: batch[index].email,
+                    error: result.status === "fulfilled" ? result.value.error : result.reason?.message,
+                  });
+                }
+              });
+            }
 
             results.batches.push(batchResult);
 
@@ -186,7 +264,8 @@ export async function POST(req: NextRequest) {
             });
 
             if (batchIndex < contactBatches.length - 1) {
-              await delay(BATCH_DELAY_MS);
+              const waitBetweenBatches = rateLimitPerHour ? Math.max(BATCH_DELAY_MS, perEmailDelayMs) : BATCH_DELAY_MS;
+              await delay(waitBetweenBatches);
             }
           } catch (error) {
             batchResult.failed = batch.length;
