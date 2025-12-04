@@ -105,18 +105,39 @@ export async function POST(
     }
 
     const contactsData = await contactsResponse.json();
-    const allContacts: Contact[] = contactsData.data?.data || [];
+    // Flexibly extract contacts (Resend response shapes can vary)
+    let allContacts: Contact[] = [];
+
+    if (contactsData?.data?.data) {
+      allContacts = contactsData.data.data;
+      console.log("[send-bulk] Using nested structure (data.data.data)");
+    } else if (Array.isArray(contactsData?.data)) {
+      allContacts = contactsData.data;
+      console.log("[send-bulk] Using single-level structure (data)");
+    } else if (Array.isArray(contactsData)) {
+      allContacts = contactsData;
+      console.log("[send-bulk] Using array response");
+    } else {
+      console.warn("[send-bulk] Unexpected contacts response shape", {
+        keys: Object.keys(contactsData || {}),
+        dataKeys: contactsData?.data ? Object.keys(contactsData.data) : [],
+      });
+    }
 
     // Filter out unsubscribed contacts
-    const activeContacts = allContacts.filter(contact => !contact.unsubscribed);
+    const activeContacts = allContacts.filter((contact) => !contact.unsubscribed);
 
     if (activeContacts.length === 0) {
-      console.warn("[send-bulk] No active contacts found in audience");
+      console.warn("[send-bulk] No active contacts found in audience", {
+        totalFetched: allContacts.length,
+        sample: allContacts[0],
+      });
       return NextResponse.json(
         {
           success: false,
           message: "",
           error: "No active contacts found in audience",
+          details: { fetched: allContacts.length },
           results: { total: 0, sent: 0, failed: 0, batches: [], errors: [] },
         },
         { status: 400 }
