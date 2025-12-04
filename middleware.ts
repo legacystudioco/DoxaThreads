@@ -9,6 +9,8 @@ const EXCLUDED_PATHS = [
   '/favicon.ico',
   '/robots.txt',
   '/sitemap.xml',
+  '/wp-admin/',
+  '/wordpress/wp-admin/',
   '/studio/', // Don't track admin visits
 ];
 

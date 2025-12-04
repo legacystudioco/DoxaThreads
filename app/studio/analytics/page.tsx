@@ -126,7 +126,8 @@ export default function StudioAnalyticsPage() {
               const isAdmin = path.startsWith("/studio") || path.startsWith("/admin");
               const isAsset = path.startsWith("/assets/") ||
                 path.match(/\.(png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot|css|js)$/i);
-              return !isAdmin && !isAsset;
+              const isWpProbe = path.includes("/wp-admin/") || path.includes("/wordpress/wp-admin/");
+              return !isAdmin && !isAsset && !isWpProbe;
             })
             .map((visit) => ({
               ...visit,
