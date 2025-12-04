@@ -318,7 +318,7 @@ export default function CartPage() {
 
             {/* Promo Code Section */}
             <div className="mb-6 pb-6 border-b-2 border-black">
-              <label className="block text-sm font-bold mb-2 uppercase tracking-wider">
+              <label className="block text-sm font-bold mb-2 uppercase tracking-wider text-amber-900">
                 Promo Code
               </label>
               {appliedDiscount ? (

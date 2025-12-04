@@ -9,6 +9,7 @@ export default function StorePage() {
   const [products, setProducts] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("adult");
   const [selectedStyle, setSelectedStyle] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -82,23 +83,30 @@ export default function StorePage() {
 
   const filteredProducts = products.filter((product: any) => {
     const style = (product.style || "").toLowerCase();
-    
-    // Filter by category first
+    const title = (product.title || "").toLowerCase();
+    const query = searchQuery.toLowerCase().trim();
+
+    // Filter by search query first
+    if (query && !title.includes(query)) {
+      return false;
+    }
+
+    // Filter by category
     const isYouthProduct = style.includes("youth");
     if (selectedCategory === "adult" && isYouthProduct) return false;
     if (selectedCategory === "kids" && !isYouthProduct) return false;
-    
+
     // Then filter by style
     if (selectedStyle === "all") return true;
-    
+
     if (selectedStyle === "hoodies") return style.includes("hoodie") && !style.includes("youth");
     if (selectedStyle === "crewnecks") return style.includes("crewneck") || style.includes("crew neck");
     if (selectedStyle === "tees") return (style.includes("tee") || style.includes("t-shirt") || style.includes("shirt")) && !style.includes("youth") && !style.includes("longsleeve");
-    
+
     if (selectedStyle === "youth_tees") return style.includes("youth") && (style.includes("tee") || style.includes("t-shirt")) && !style.includes("longsleeve");
     if (selectedStyle === "youth_hoodies") return style.includes("youth") && style.includes("hoodie");
     if (selectedStyle === "youth_longsleeves") return style.includes("youth") && style.includes("longsleeve");
-    
+
     return true;
   });
 
@@ -125,6 +133,39 @@ export default function StorePage() {
         <div className="badge-outline mt-6">
           Made to order in 7–10 business days
         </div>
+      </div>
+
+      {/* Search Box */}
+      <div className="max-w-xl mx-auto mb-8">
+        <div className="relative">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search designs..."
+            className="w-full px-4 py-3 pr-12 border-2 border-black focus:outline-none focus:ring-2 focus:ring-black text-base"
+          />
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+            <svg className="w-5 h-5 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-10 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-black"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
+        {searchQuery && (
+          <p className="text-sm text-neutral-600 mt-2">
+            Showing results for "<span className="font-bold">{searchQuery}</span>"
+          </p>
+        )}
       </div>
 
       {/* Category Tabs (Adult vs Kids) */}
