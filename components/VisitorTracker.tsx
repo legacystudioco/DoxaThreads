@@ -26,10 +26,33 @@ export function VisitorTracker() {
       return;
     }
 
-    // Prevent duplicate tracking of the same path in quick succession
+    // Don't track static assets (images, fonts, favicons, etc.)
+    const isAsset = pathname.startsWith('/assets/') ||
+                   pathname.startsWith('/_next/') ||
+                   pathname.startsWith('/api/') ||
+                   pathname.match(/\.(png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot|css|js|json|xml|txt)$/i);
+
+    if (isAsset) {
+      return;
+    }
+
+    // Prevent duplicate tracking using both ref and sessionStorage
     const pathKey = pathname;
     if (trackedPaths.current.has(pathKey)) {
       return;
+    }
+
+    // Also check sessionStorage for persistence across re-renders
+    const sessionId = getSessionId();
+    const storageKey = `visited_${sessionId}`;
+    const visitedPages = sessionStorage.getItem(storageKey);
+    if (visitedPages) {
+      const visited = JSON.parse(visitedPages);
+      if (visited.includes(pathname)) {
+        // Already tracked this page in this session
+        trackedPaths.current.add(pathKey);
+        return;
+      }
     }
 
     async function trackVisit() {
@@ -104,8 +127,17 @@ export function VisitorTracker() {
           }
         } else {
           console.log("[VisitorTracker] ✅ Successfully tracked visit:", data?.[0]?.id);
-          // Mark this path as tracked for this session
+          // Mark this path as tracked for this session (both in ref and sessionStorage)
           trackedPaths.current.add(pathKey);
+
+          // Persist to sessionStorage
+          const storageKey = `visited_${sessionId}`;
+          const visitedPages = sessionStorage.getItem(storageKey);
+          const visited = visitedPages ? JSON.parse(visitedPages) : [];
+          if (!visited.includes(pathname)) {
+            visited.push(pathname);
+            sessionStorage.setItem(storageKey, JSON.stringify(visited));
+          }
         }
       } catch (error) {
         console.error("[VisitorTracker] Visitor tracking error:", error);
