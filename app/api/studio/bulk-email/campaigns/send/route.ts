@@ -262,8 +262,10 @@ export async function POST(req: NextRequest) {
     // Send all emails in one batch request
     const batchResult = await resend.batch.send(batchEmails);
 
+    console.log("[campaign-send] Batch result:", JSON.stringify(batchResult, null, 2));
+
     if (batchResult.error) {
-      console.error("[campaign-send] Batch send error:", batchResult.error);
+      console.error("[campaign-send] Batch send error:", JSON.stringify(batchResult.error, null, 2));
 
       // Mark all as failed
       await supabase
@@ -276,8 +278,8 @@ export async function POST(req: NextRequest) {
         .in("contact_id", batchContacts.map(c => c.id));
 
       results.failed = batchContacts.length;
-    } else {
-      console.log(`[campaign-send] Batch sent successfully: ${batchResult.data?.data?.length || 0} emails`);
+    } else if (batchResult.data?.data) {
+      console.log(`[campaign-send] Batch sent successfully: ${batchResult.data.data.length} emails`);
 
       // Mark all as sent
       const now = new Date().toISOString();
@@ -291,6 +293,20 @@ export async function POST(req: NextRequest) {
         .in("contact_id", batchContacts.map(c => c.id));
 
       results.sent = batchContacts.length;
+    } else {
+      console.error("[campaign-send] Unexpected batch result structure:", batchResult);
+
+      // Mark all as failed
+      await supabase
+        .from("campaign_recipients")
+        .update({
+          status: "failed",
+          error_message: "Unexpected batch result structure",
+        })
+        .eq("campaign_id", campaign.id)
+        .in("contact_id", batchContacts.map(c => c.id));
+
+      results.failed = batchContacts.length;
     }
 
     // Step 7: Update campaign stats
