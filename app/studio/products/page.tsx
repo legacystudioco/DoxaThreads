@@ -269,25 +269,49 @@ export default function StudioProductsPage() {
         return;
       }
 
-      // Update all variants using Promise.all for parallel updates
-      const updatePromises = updates.map((update) =>
-        supabase
-          .from("variants")
-          .update({ price_cents: update.price_cents })
-          .eq("id", update.id)
-          .select()
-      );
+      // Try a different approach: Update variants sequentially with proper error handling
+      console.log("Starting sequential updates...");
+      const results = [];
+      let successCount = 0;
+      let errorCount = 0;
 
-      const results = await Promise.all(updatePromises);
+      for (let i = 0; i < updates.length; i++) {
+        const update = updates[i];
+
+        try {
+          const { data, error } = await supabase
+            .from("variants")
+            .update({ price_cents: update.price_cents })
+            .eq("id", update.id)
+            .select();
+
+          if (error) {
+            console.error(`Error updating variant ${update.id}:`, error);
+            errorCount++;
+            results.push({ error, data: null });
+          } else {
+            successCount++;
+            results.push({ error: null, data });
+          }
+
+          // Log progress every 100 variants
+          if ((i + 1) % 100 === 0) {
+            console.log(`Progress: ${i + 1}/${updates.length} variants processed (${successCount} successful, ${errorCount} errors)`);
+          }
+        } catch (err) {
+          console.error(`Exception updating variant ${update.id}:`, err);
+          errorCount++;
+          results.push({ error: err, data: null });
+        }
+      }
+
+      console.log(`Update complete: ${successCount} successful, ${errorCount} errors`);
 
       console.log("Update results:", results);
 
       // Log detailed results for the first few to see what's happening
       console.log("First 3 detailed results:", results.slice(0, 3).map(r => ({
         error: r.error,
-        status: r.status,
-        statusText: r.statusText,
-        count: r.count,
         data: r.data
       })));
 
@@ -301,9 +325,6 @@ export default function StudioProductsPage() {
       // Check how many rows were actually affected
       const rowsAffected = results.reduce((sum, r) => sum + (r.data?.length || 0), 0);
       console.log(`Rows actually affected in database: ${rowsAffected}`);
-
-      const successCount = results.filter(r => !r.error && r.data && r.data.length > 0).length;
-      console.log(`Successfully updated ${successCount} variants`);
 
       if (rowsAffected !== variants.length) {
         console.warn(`WARNING: Expected to update ${variants.length} variants but only ${rowsAffected} were affected`);
@@ -332,7 +353,9 @@ export default function StudioProductsPage() {
 
       console.log("Reloading products...");
       await new Promise(resolve => setTimeout(resolve, 500)); // Small delay for DB replication
-      await loadProducts(true);
+
+      // Force a complete page reload to bypass any caching
+      window.location.reload();
     } catch (error: any) {
       alert(`Error updating prices: ${error.message}`);
     } finally {
