@@ -3,6 +3,18 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase-client";
 
+function cleanLocation(value?: string | null) {
+  if (!value) return null;
+  let cleaned = value.replace(/\+/g, " ").trim();
+  try {
+    cleaned = decodeURIComponent(cleaned);
+  } catch {
+    // ignore decode errors and keep original cleaned string
+  }
+  cleaned = cleaned.replace(/\s+/g, " ").trim();
+  return cleaned || null;
+}
+
 interface AnalyticsData {
   totalRevenue: number;
   totalOrders: number;
@@ -107,14 +119,21 @@ export default function StudioAnalyticsPage() {
 
         const { data: visitorData, error: visitorError } = await visitorQuery;
         if (!visitorError && visitorData) {
-          // Filter out admin traffic and asset requests before aggregating
-          visitors = visitorData.filter((visit) => {
-            const path = visit.page_path || "";
-            const isAdmin = path.startsWith("/studio") || path.startsWith("/admin");
-            const isAsset = path.startsWith("/assets/") ||
-              path.match(/\.(png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot|css|js)$/i);
-            return !isAdmin && !isAsset;
-          });
+          // Filter out admin traffic and asset requests before aggregating, then clean location strings
+          visitors = visitorData
+            .filter((visit) => {
+              const path = visit.page_path || "";
+              const isAdmin = path.startsWith("/studio") || path.startsWith("/admin");
+              const isAsset = path.startsWith("/assets/") ||
+                path.match(/\.(png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot|css|js)$/i);
+              return !isAdmin && !isAsset;
+            })
+            .map((visit) => ({
+              ...visit,
+              city: cleanLocation(visit.city),
+              region: cleanLocation(visit.region),
+              country: cleanLocation(visit.country),
+            }));
         } else if (visitorError?.code !== "42P01") {
           console.warn("Visitor analytics error:", visitorError);
         }
