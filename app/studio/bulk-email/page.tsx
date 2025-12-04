@@ -723,6 +723,19 @@ export default function BulkEmailPage() {
                 ) : (
                   <p className="text-[rgba(243,232,216,0.65)]">No content entered</p>
                 )}
+
+                {/* Unsubscribe footer preview */}
+                <div className="mt-6 pt-5 border-t border-gray-700 text-xs text-gray-400">
+                  <p className="mb-2">
+                    You're receiving this email because you signed up for updates from Doxa Threads.
+                  </p>
+                  <p>
+                    <span className="text-[rgba(243,232,216,0.75)] underline">
+                      Unsubscribe
+                    </span>{" "}
+                    (personalized link will be added automatically)
+                  </p>
+                </div>
               </div>
             </div>
           </div>
