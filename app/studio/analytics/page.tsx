@@ -597,8 +597,8 @@ export default function StudioAnalyticsPage() {
           <div className="space-y-2">
             {analytics.topPages.map((page, index) => (
               <div key={page.page_path} className="flex items-center gap-4">
-                <div className="w-8 text-sm font-bold text-neutral-600">#{index + 1}</div>
-                <div className="flex-1 font-mono text-sm text-neutral-800 truncate">
+                <div className="w-8 text-sm font-bold text-[#8B7355]">#{index + 1}</div>
+                <div className="flex-1 font-mono text-sm text-[#8B7355] truncate">
                   {page.page_path}
                 </div>
                 <div className="flex-1 bg-neutral-100 h-6 relative">
@@ -614,7 +614,7 @@ export default function StudioAnalyticsPage() {
                     {page.count}
                   </div>
                 </div>
-                <div className="w-24 text-sm text-neutral-600 text-right">
+                <div className="w-24 text-sm text-[#8B7355] text-right">
                   {page.count} visit{page.count === 1 ? "" : "s"}
                 </div>
               </div>
