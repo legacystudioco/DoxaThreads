@@ -13,6 +13,13 @@ const RESEND_AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID;
 const EMAIL_FROM = process.env.EMAIL_FROM || "Doxa Threads <info@doxa-threads.com>";
 const REPLY_TO = process.env.REPLY_TO || "info@doxa-threads.com";
 
+// Extract the email portion from EMAIL_FROM (supports both "Name <email>" and raw email formats)
+const FROM_EMAIL_MATCH = EMAIL_FROM.match(/<(.+)>/);
+const FROM_EMAIL_ADDRESS = FROM_EMAIL_MATCH ? FROM_EMAIL_MATCH[1] : EMAIL_FROM;
+const DEFAULT_FROM_NAME = EMAIL_FROM.includes("<")
+  ? EMAIL_FROM.split("<")[0].trim()
+  : "Doxa Threads";
+
 // Batch configuration
 const BATCH_SIZE = 100;
 const BATCH_DELAY_MS = 1000; // 1 second between batches
@@ -142,7 +149,8 @@ export async function POST(
       errors: [] as any[],
     };
 
-    const fromEmail = fromName ? `${fromName} <info@doxa-threads.com>` : EMAIL_FROM;
+    const fromDisplayName = fromName || DEFAULT_FROM_NAME;
+    const fromEmail = `${fromDisplayName} <${FROM_EMAIL_ADDRESS}>`;
     const replyToEmail = replyTo || REPLY_TO;
 
     for (let batchIndex = 0; batchIndex < contactBatches.length; batchIndex++) {

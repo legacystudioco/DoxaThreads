@@ -7,6 +7,13 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const EMAIL_FROM = process.env.EMAIL_FROM || "Doxa Threads <info@doxa-threads.com>";
 const REPLY_TO = process.env.REPLY_TO || "info@doxa-threads.com";
 
+// Extract the email portion from EMAIL_FROM (supports both "Name <email>" and raw email formats)
+const FROM_EMAIL_MATCH = EMAIL_FROM.match(/<(.+)>/);
+const FROM_EMAIL_ADDRESS = FROM_EMAIL_MATCH ? FROM_EMAIL_MATCH[1] : EMAIL_FROM;
+const DEFAULT_FROM_NAME = EMAIL_FROM.includes("<")
+  ? EMAIL_FROM.split("<")[0].trim()
+  : "Doxa Threads";
+
 export async function POST(req: NextRequest): Promise<NextResponse<SendTestEmailResponse>> {
   try {
     if (!RESEND_API_KEY) {
@@ -17,7 +24,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<SendTestEmail
     }
 
     const body: SendTestEmailRequest = await req.json();
-    const { testEmail, subject, htmlContent } = body;
+    const { testEmail, subject, htmlContent, fromName } = body;
 
     if (!testEmail || !subject || !htmlContent) {
       return NextResponse.json(
@@ -48,9 +55,14 @@ export async function POST(req: NextRequest): Promise<NextResponse<SendTestEmail
     // Add unsubscribe footer for preview
     const contentWithUnsubscribe = addUnsubscribeFooter(personalizedContent, testEmail, "test-contact-id");
 
+    // Build from header using provided name if available
+    const fromHeader = fromName
+      ? `${fromName} <${FROM_EMAIL_ADDRESS}>`
+      : EMAIL_FROM;
+
     // Send test email with proper headers
     const { data, error } = await resend.emails.send({
-      from: EMAIL_FROM,
+      from: fromHeader,
       to: testEmail,
       replyTo: REPLY_TO,
       subject: `[TEST] ${subject}`,

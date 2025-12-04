@@ -40,6 +40,7 @@ export default function BulkEmailPage() {
   const [subject, setSubject] = useState("");
   const [htmlContent, setHtmlContent] = useState("");
   const [testEmail, setTestEmail] = useState("");
+  const [fromName, setFromName] = useState("Doxa Threads");
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [totalContacts, setTotalContacts] = useState(0);
   const [loadingContacts, setLoadingContacts] = useState(true);
@@ -136,6 +137,7 @@ export default function BulkEmailPage() {
           testEmail,
           subject,
           htmlContent,
+          fromName,
         }),
       });
 
@@ -344,6 +346,7 @@ export default function BulkEmailPage() {
         body: JSON.stringify({
           subject,
           htmlContent,
+          fromName,
           ...(rateCapValue ? { maxPerHour: rateCapValue } : {}),
         }),
       });
@@ -585,6 +588,24 @@ export default function BulkEmailPage() {
               />
             </div>
 
+            {/* From Name */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium mb-2">
+                From Name
+              </label>
+              <input
+                type="text"
+                value={fromName}
+                onChange={(e) => setFromName(e.target.value)}
+                placeholder="Doxa Threads"
+                className="w-full px-4 py-3 rounded-lg focus:outline-none focus:border-accent focus:ring-0 bulk-email-input"
+                disabled={sendingBulk}
+              />
+              <p className="text-xs text-gray-500 mt-2">
+                This is what recipients will see as the sender (e.g., “Doxa Threads”).
+              </p>
+            </div>
+
             {/* Rich Text Editor */}
             <div className="mb-6">
               <label className="block text-sm font-medium mb-2">
@@ -769,7 +790,9 @@ export default function BulkEmailPage() {
             <div className="bg-[rgba(18,15,12,0.82)] border border-[rgba(243,232,216,0.24)] rounded-lg p-6 bulk-email-preview">
               <div className="mb-4 pb-4 border-b border-gray-700">
                 <p className="text-xs text-gray-500 mb-2">From:</p>
-                <p className="text-sm">Doxa Threads &lt;info@doxa-threads.com&gt;</p>
+                <p className="text-sm">
+                  {fromName || "Doxa Threads"} &lt;info@doxa-threads.com&gt;
+                </p>
               </div>
 
               {subject ? (

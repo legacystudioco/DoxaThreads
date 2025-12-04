@@ -20,6 +20,7 @@ export interface SendTestEmailRequest {
   testEmail: string;
   subject: string;
   htmlContent: string;
+  fromName?: string;
 }
 
 export interface SendTestEmailResponse {
