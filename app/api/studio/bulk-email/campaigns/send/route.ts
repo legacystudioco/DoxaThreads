@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 import { Contact } from "../../types";
-import { personalizeEmail, delay, addUnsubscribeFooter } from "../../utils";
+import { personalizeEmail, addUnsubscribeFooter } from "../../utils";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -220,7 +220,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Step 6: Send emails
+    // Step 6: Send emails using batch API
     const results = {
       total: batchContacts.length,
       sent: 0,
@@ -231,75 +231,66 @@ export async function POST(req: NextRequest) {
     const fromEmail = `${fromDisplayName} <${FROM_EMAIL_ADDRESS}>`;
     const replyToEmail = REPLY_TO;
 
-    for (const contact of batchContacts) {
-      try {
-        const personalizedContent = personalizeEmail(campaign.html_content, contact);
-        const personalizedSubject = personalizeEmail(campaign.subject, contact);
-        const contentWithUnsubscribe = addUnsubscribeFooter(
-          personalizedContent,
-          contact.email,
-          contact.id
-        );
+    // Prepare batch emails
+    const batchEmails = batchContacts.map((contact) => {
+      const personalizedContent = personalizeEmail(campaign.html_content, contact);
+      const personalizedSubject = personalizeEmail(campaign.subject, contact);
+      const contentWithUnsubscribe = addUnsubscribeFooter(
+        personalizedContent,
+        contact.email,
+        contact.id
+      );
 
-        const sendResult = await resend.emails.send({
-          from: fromEmail,
-          to: contact.email,
-          reply_to: replyToEmail,
-          subject: personalizedSubject,
-          html: contentWithUnsubscribe,
-          headers: {
-            "X-Entity-Ref-ID": `campaign-${campaign.id}-${contact.id}`,
-          },
-          tags: [
-            { name: "campaign_id", value: campaign.id.replace(/-/g, "_") },
-            { name: "campaign_name", value: campaign.name.replace(/[^a-zA-Z0-9_-]/g, "_") },
-          ],
-        });
+      return {
+        from: fromEmail,
+        to: contact.email,
+        reply_to: replyToEmail,
+        subject: personalizedSubject,
+        html: contentWithUnsubscribe,
+        headers: {
+          "X-Entity-Ref-ID": `campaign-${campaign.id}-${contact.id}`,
+        },
+        tags: [
+          { name: "campaign_id", value: campaign.id.replace(/-/g, "_") },
+          { name: "campaign_name", value: campaign.name.replace(/[^a-zA-Z0-9_-]/g, "_") },
+        ],
+      };
+    });
 
-        if (sendResult.error) {
-          console.error(`[campaign-send] Failed to send to ${contact.email}:`, sendResult.error);
-          results.failed++;
+    console.log(`[campaign-send] Sending batch of ${batchEmails.length} emails...`);
 
-          // Update recipient record as failed
-          await supabase
-            .from("campaign_recipients")
-            .update({
-              status: "failed",
-              error_message: JSON.stringify(sendResult.error),
-            })
-            .eq("campaign_id", campaign.id)
-            .eq("contact_id", contact.id);
-        } else {
-          results.sent++;
+    // Send all emails in one batch request
+    const batchResult = await resend.batch.send(batchEmails);
 
-          // Update recipient record as sent
-          await supabase
-            .from("campaign_recipients")
-            .update({
-              status: "sent",
-              sent_at: new Date().toISOString(),
-              resend_email_id: sendResult.data?.id,
-            })
-            .eq("campaign_id", campaign.id)
-            .eq("contact_id", contact.id);
-        }
+    if (batchResult.error) {
+      console.error("[campaign-send] Batch send error:", batchResult.error);
 
-        // Small delay between sends (1 second)
-        await delay(1000);
-      } catch (error) {
-        console.error(`[campaign-send] Error sending to ${contact.email}:`, error);
-        results.failed++;
+      // Mark all as failed
+      await supabase
+        .from("campaign_recipients")
+        .update({
+          status: "failed",
+          error_message: JSON.stringify(batchResult.error),
+        })
+        .eq("campaign_id", campaign.id)
+        .in("contact_id", batchContacts.map(c => c.id));
 
-        // Update recipient record as failed
-        await supabase
-          .from("campaign_recipients")
-          .update({
-            status: "failed",
-            error_message: error instanceof Error ? error.message : "Unknown error",
-          })
-          .eq("campaign_id", campaign.id)
-          .eq("contact_id", contact.id);
-      }
+      results.failed = batchContacts.length;
+    } else {
+      console.log(`[campaign-send] Batch sent successfully: ${batchResult.data?.data?.length || 0} emails`);
+
+      // Mark all as sent
+      const now = new Date().toISOString();
+      await supabase
+        .from("campaign_recipients")
+        .update({
+          status: "sent",
+          sent_at: now,
+        })
+        .eq("campaign_id", campaign.id)
+        .in("contact_id", batchContacts.map(c => c.id));
+
+      results.sent = batchContacts.length;
     }
 
     // Step 7: Update campaign stats
