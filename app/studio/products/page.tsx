@@ -233,7 +233,7 @@ export default function StudioProductsPage() {
       // Get all variants for selected products
       const { data: variants, error: fetchError } = await supabase
         .from("variants")
-        .select("id, price_cents")
+        .select("id, price_cents, product_id")
         .in("product_id", productIds);
 
       if (fetchError) throw fetchError;
@@ -244,11 +244,17 @@ export default function StudioProductsPage() {
         return;
       }
 
+      console.log(`Found ${variants.length} variants for ${productIds.length} products`);
+      console.log("Variants:", variants);
+
       // Update each variant's price by the adjustment amount
       const updates = variants.map((variant) => ({
         id: variant.id,
-        price_cents: variant.price_cents + adjustmentCents
+        price_cents: variant.price_cents + adjustmentCents,
+        old_price: variant.price_cents
       }));
+
+      console.log("Updates to apply:", updates);
 
       // Validate that no prices go below 0
       const invalidPrices = updates.filter(u => u.price_cents < 0);
@@ -258,15 +264,27 @@ export default function StudioProductsPage() {
         return;
       }
 
-      // Update all variants
-      for (const update of updates) {
-        const { error } = await supabase
+      // Update all variants using Promise.all for parallel updates
+      const updatePromises = updates.map((update) =>
+        supabase
           .from("variants")
           .update({ price_cents: update.price_cents })
-          .eq("id", update.id);
+          .eq("id", update.id)
+      );
 
-        if (error) throw error;
+      const results = await Promise.all(updatePromises);
+
+      console.log("Update results:", results);
+
+      // Check if any updates failed
+      const errors = results.filter(r => r.error);
+      if (errors.length > 0) {
+        console.error("Update errors:", errors);
+        throw new Error(`Failed to update ${errors.length} variant(s)`);
       }
+
+      const successCount = results.filter(r => !r.error).length;
+      console.log(`Successfully updated ${successCount} variants`);
 
       alert(`Successfully updated prices for ${count} product(s) with ${variants.length} total variants`);
 
