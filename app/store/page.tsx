@@ -40,7 +40,7 @@ export default function StorePage() {
     async function fetchProducts() {
       const supa = createClient();
       
-      // Fetch products from Supabase
+      // Fetch products from Supabase - use store_sort_order for proper arrangement
       const { data, error } = await supa
         .from("products")
         .select(`
@@ -60,7 +60,7 @@ export default function StorePage() {
           )
         `)
         .eq("active", true)
-        .order("created_at", { ascending: false });
+        .order("store_sort_order", { ascending: true, nullsFirst: false });
 
       if (error) {
         console.error("Error fetching products:", error);
