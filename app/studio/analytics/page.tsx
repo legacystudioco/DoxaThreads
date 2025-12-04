@@ -92,12 +92,14 @@ export default function StudioAnalyticsPage() {
         country?: string | null;
         session_id?: string | null;
         page_path?: string | null;
+        ip_address?: string | null;
+        user_agent?: string | null;
       }[] = [];
 
       try {
         let visitorQuery = supa
           .from("visitor_events")
-          .select("created_at, city, region, country, session_id, page_path");
+          .select("created_at, city, region, country, session_id, page_path, ip_address, user_agent");
 
         if (startDate) {
           visitorQuery = visitorQuery.gte("created_at", startDate.toISOString());
@@ -105,7 +107,14 @@ export default function StudioAnalyticsPage() {
 
         const { data: visitorData, error: visitorError } = await visitorQuery;
         if (!visitorError && visitorData) {
-          visitors = visitorData;
+          // Filter out admin traffic and asset requests before aggregating
+          visitors = visitorData.filter((visit) => {
+            const path = visit.page_path || "";
+            const isAdmin = path.startsWith("/studio") || path.startsWith("/admin");
+            const isAsset = path.startsWith("/assets/") ||
+              path.match(/\.(png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot|css|js)$/i);
+            return !isAdmin && !isAsset;
+          });
         } else if (visitorError?.code !== "42P01") {
           console.warn("Visitor analytics error:", visitorError);
         }
@@ -113,10 +122,24 @@ export default function StudioAnalyticsPage() {
         console.warn("Visitor analytics fetch failed:", visitorFetchError);
       }
 
-      // Calculate active visitors (last 5 minutes)
+      // Build a consistent session key so middleware/client inserts dedupe by session or IP/UA
+      const getSessionKey = (visit: typeof visitors[number]) => {
+        const ip = visit.ip_address?.trim();
+        const ua = visit.user_agent?.trim();
+        if (ip || ua) {
+          return `${ip || "no-ip"}|${ua || "no-ua"}`;
+        }
+        const sessionId = visit.session_id?.trim();
+        if (sessionId) return sessionId;
+        return `anon-${visit.page_path || "unknown"}-${visit.created_at}`;
+      };
+
+      const uniqueVisitors = new Set(visitors.map(getSessionKey));
+
+      // Calculate active visitors (last 5 minutes) - unique sessions only
       const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
       const recentVisitors = visitors.filter(v => new Date(v.created_at) >= fiveMinutesAgo);
-      const uniqueActiveSessions = new Set(recentVisitors.map(v => v.session_id).filter(Boolean));
+      const uniqueActiveSessions = new Set(recentVisitors.map(getSessionKey));
       const activeVisitors = uniqueActiveSessions.size;
 
       // Calculate basic metrics
@@ -207,28 +230,33 @@ export default function StudioAnalyticsPage() {
         .sort((a, b) => a.date.localeCompare(b.date));
 
       // Visitor metrics aggregation
-      const visitorDayMap = new Map<string, number>();
+      const visitorDayMap = new Map<string, Set<string>>();
       visitors.forEach((visit) => {
         const visitDate = new Date(visit.created_at);
         const dateStr = visitDate.toISOString().split("T")[0];
-        visitorDayMap.set(dateStr, (visitorDayMap.get(dateStr) || 0) + 1);
+        const sessionKey = getSessionKey(visit);
+        if (!visitorDayMap.has(dateStr)) {
+          visitorDayMap.set(dateStr, new Set());
+        }
+        visitorDayMap.get(dateStr)!.add(sessionKey);
       });
 
       const visitorsByDay = Array.from(visitorDayMap.entries())
-        .map(([date, count]) => ({ date, count }))
+        .map(([date, sessions]) => ({ date, count: sessions.size }))
         .sort((a, b) => a.date.localeCompare(b.date));
 
-      const hourlyCounts = Array.from({ length: 24 }, () => 0);
+      const hourlyCounts = Array.from({ length: 24 }, () => new Set<string>());
       visitors.forEach((visit) => {
         const hour = new Date(visit.created_at).getHours();
-        hourlyCounts[hour] += 1;
+        hourlyCounts[hour].add(getSessionKey(visit));
       });
       const peakHours = hourlyCounts
-        .map((count, hour) => ({ hour, count }))
+        .map((sessions, hour) => ({ hour, count: sessions.size }))
         .sort((a, b) => b.count - a.count || a.hour - b.hour)
         .slice(0, 5);
 
       const cityMap = new Map<string, { city: string; region?: string; country?: string; count: number }>();
+      const citySessionMap = new Map<string, Set<string>>();
       visitors.forEach((visit) => {
         const keyParts = [
           visit.city || "Unknown City",
@@ -236,9 +264,17 @@ export default function StudioAnalyticsPage() {
           visit.country || "",
         ];
         const key = keyParts.join("|");
+        const sessionKey = getSessionKey(visit);
+        if (!citySessionMap.has(key)) {
+          citySessionMap.set(key, new Set());
+        }
+        const sessionSet = citySessionMap.get(key)!;
         const existing = cityMap.get(key);
         if (existing) {
-          existing.count += 1;
+          if (!sessionSet.has(sessionKey)) {
+            existing.count += 1;
+            sessionSet.add(sessionKey);
+          }
         } else {
           cityMap.set(key, {
             city: visit.city || "Unknown City",
@@ -246,12 +282,13 @@ export default function StudioAnalyticsPage() {
             country: visit.country || undefined,
             count: 1,
           });
+          sessionSet.add(sessionKey);
         }
       });
       const topCities = Array.from(cityMap.values()).sort((a, b) => b.count - a.count).slice(0, 5);
 
-      // Top pages calculation (filter out assets like images, fonts, etc.)
-      const pageMap = new Map<string, number>();
+      // Top pages calculation (filter out assets like images, fonts, etc.) using unique sessions per page
+      const pageMap = new Map<string, Set<string>>();
       visitors.forEach((visit) => {
         const page = visit.page_path || "/";
 
@@ -261,11 +298,15 @@ export default function StudioAnalyticsPage() {
                        page.match(/\.(png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot|css|js)$/i);
 
         if (!isAsset) {
-          pageMap.set(page, (pageMap.get(page) || 0) + 1);
+          const sessionKey = getSessionKey(visit);
+          if (!pageMap.has(page)) {
+            pageMap.set(page, new Set());
+          }
+          pageMap.get(page)!.add(sessionKey);
         }
       });
       const topPages = Array.from(pageMap.entries())
-        .map(([page_path, count]) => ({ page_path, count }))
+        .map(([page_path, sessions]) => ({ page_path, count: sessions.size }))
         .sort((a, b) => b.count - a.count)
         .slice(0, 10);
 
@@ -284,7 +325,7 @@ export default function StudioAnalyticsPage() {
         pendingOrders,
         todayRevenue,
         todayOrders: todayOrders.length,
-        totalVisitors: visitors.length,
+        totalVisitors: uniqueVisitors.size,
         activeVisitors,
         visitorsByDay,
         peakHours,

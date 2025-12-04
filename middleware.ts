@@ -5,6 +5,7 @@ import type { NextRequest } from 'next/server';
 const EXCLUDED_PATHS = [
   '/api/',
   '/_next/',
+  '/assets/',
   '/favicon.ico',
   '/robots.txt',
   '/sitemap.xml',
@@ -33,8 +34,9 @@ export async function middleware(req: NextRequest) {
 
   // Skip tracking for excluded paths
   const shouldSkip = EXCLUDED_PATHS.some(path => pathname.startsWith(path));
+  const isAssetRequest = pathname.match(/\.(png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot|css|js)$/i);
   
-  if (!shouldSkip) {
+  if (!shouldSkip && !isAssetRequest) {
     // Track visitor asynchronously (don't await to avoid slowing down requests)
     trackVisitor(req).catch(err => {
       console.error('Visitor tracking error:', err);
