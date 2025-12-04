@@ -257,58 +257,72 @@ export async function POST(req: NextRequest) {
       };
     });
 
-    console.log(`[campaign-send] Sending batch of ${batchEmails.length} emails...`);
-    console.log("[campaign-send] First email sample:", JSON.stringify(batchEmails[0], null, 2));
-
-    // Send all emails in one batch request
-    const batchResult = await resend.batch.send(batchEmails);
-
-    console.log("[campaign-send] Batch result:", JSON.stringify(batchResult, null, 2));
-
-    if (batchResult.error) {
-      console.error("[campaign-send] Batch send error:", JSON.stringify(batchResult.error, null, 2));
-
-      // Mark all as failed
-      await supabase
-        .from("campaign_recipients")
-        .update({
-          status: "failed",
-          error_message: JSON.stringify(batchResult.error),
-        })
-        .eq("campaign_id", campaign.id)
-        .in("contact_id", batchContacts.map(c => c.id));
-
-      results.failed = batchContacts.length;
-    } else if (batchResult.data?.data) {
-      console.log(`[campaign-send] Batch sent successfully: ${batchResult.data.data.length} emails`);
-
-      // Mark all as sent
-      const now = new Date().toISOString();
-      await supabase
-        .from("campaign_recipients")
-        .update({
-          status: "sent",
-          sent_at: now,
-        })
-        .eq("campaign_id", campaign.id)
-        .in("contact_id", batchContacts.map(c => c.id));
-
-      results.sent = batchContacts.length;
-    } else {
-      console.error("[campaign-send] Unexpected batch result structure:", batchResult);
-
-      // Mark all as failed
-      await supabase
-        .from("campaign_recipients")
-        .update({
-          status: "failed",
-          error_message: "Unexpected batch result structure",
-        })
-        .eq("campaign_id", campaign.id)
-        .in("contact_id", batchContacts.map(c => c.id));
-
-      results.failed = batchContacts.length;
+    // Resend batch API has a 100 email limit, so split into chunks
+    const BATCH_SIZE = 100;
+    const chunks = [];
+    for (let i = 0; i < batchEmails.length; i += BATCH_SIZE) {
+      chunks.push({
+        emails: batchEmails.slice(i, i + BATCH_SIZE),
+        contacts: batchContacts.slice(i, i + BATCH_SIZE),
+      });
     }
+
+    console.log(`[campaign-send] Sending ${batchEmails.length} emails in ${chunks.length} chunks of ${BATCH_SIZE}...`);
+
+    // Send each chunk
+    for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
+      const chunk = chunks[chunkIndex];
+      console.log(`[campaign-send] Sending chunk ${chunkIndex + 1}/${chunks.length} (${chunk.emails.length} emails)...`);
+
+      const batchResult = await resend.batch.send(chunk.emails);
+
+      if (batchResult.error) {
+        console.error(`[campaign-send] Chunk ${chunkIndex + 1} error:`, JSON.stringify(batchResult.error, null, 2));
+
+        // Mark chunk as failed
+        await supabase
+          .from("campaign_recipients")
+          .update({
+            status: "failed",
+            error_message: JSON.stringify(batchResult.error),
+          })
+          .eq("campaign_id", campaign.id)
+          .in("contact_id", chunk.contacts.map(c => c.id));
+
+        results.failed += chunk.contacts.length;
+      } else if (batchResult.data?.data) {
+        console.log(`[campaign-send] Chunk ${chunkIndex + 1} sent successfully: ${batchResult.data.data.length} emails`);
+
+        // Mark chunk as sent
+        const now = new Date().toISOString();
+        await supabase
+          .from("campaign_recipients")
+          .update({
+            status: "sent",
+            sent_at: now,
+          })
+          .eq("campaign_id", campaign.id)
+          .in("contact_id", chunk.contacts.map(c => c.id));
+
+        results.sent += chunk.contacts.length;
+      } else {
+        console.error(`[campaign-send] Chunk ${chunkIndex + 1} unexpected result:`, batchResult);
+
+        // Mark chunk as failed
+        await supabase
+          .from("campaign_recipients")
+          .update({
+            status: "failed",
+            error_message: "Unexpected batch result structure",
+          })
+          .eq("campaign_id", campaign.id)
+          .in("contact_id", chunk.contacts.map(c => c.id));
+
+        results.failed += chunk.contacts.length;
+      }
+    }
+
+    console.log(`[campaign-send] All chunks complete. Sent: ${results.sent}, Failed: ${results.failed}`);
 
     // Step 7: Update campaign stats
     const totalSent = sentContactIds.size + results.sent;
