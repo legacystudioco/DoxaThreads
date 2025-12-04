@@ -258,6 +258,7 @@ export async function POST(req: NextRequest) {
     });
 
     console.log(`[campaign-send] Sending batch of ${batchEmails.length} emails...`);
+    console.log("[campaign-send] First email sample:", JSON.stringify(batchEmails[0], null, 2));
 
     // Send all emails in one batch request
     const batchResult = await resend.batch.send(batchEmails);
