@@ -345,7 +345,7 @@ export default function CartPage() {
                       onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
                       onKeyPress={(e) => e.key === "Enter" && applyPromoCode()}
                       placeholder="Enter code"
-                      className="flex-1 px-3 py-2 border-2 border-black focus:outline-none focus:ring-2 focus:ring-black uppercase"
+                      className="flex-1 px-3 py-2 border-2 border-black focus:outline-none focus:ring-2 focus:ring-black uppercase text-amber-900 placeholder:text-amber-900/40"
                       disabled={promoLoading}
                     />
                     <button
