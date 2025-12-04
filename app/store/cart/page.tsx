@@ -17,17 +17,30 @@ export default function CartPage() {
   const [variantDetails, setVariantDetails] = useState<Map<string, any>>(new Map());
   const [loading, setLoading] = useState(true);
 
+  // Promo code state
+  const [promoCode, setPromoCode] = useState("");
+  const [appliedDiscount, setAppliedDiscount] = useState<any>(null);
+  const [promoError, setPromoError] = useState("");
+  const [promoLoading, setPromoLoading] = useState(false);
+
   useEffect(() => {
     async function loadCart() {
       const raw = localStorage.getItem("cart");
       const cartItems: CartItem[] = raw ? JSON.parse(raw) : [];
       setItems(cartItems);
 
+      // Load saved discount
+      const savedDiscount = localStorage.getItem("appliedDiscount");
+      if (savedDiscount) {
+        setAppliedDiscount(JSON.parse(savedDiscount));
+        setPromoCode(JSON.parse(savedDiscount).code);
+      }
+
       // Fetch variant details from Supabase
       if (cartItems.length > 0) {
         const supabase = createClient();
         const variantIds = cartItems.map(item => item.variantId);
-        
+
         const { data, error } = await supabase
           .from("variants")
           .select(`
@@ -85,6 +98,49 @@ export default function CartPage() {
     window.dispatchEvent(new Event("cartUpdated"));
   };
 
+  const applyPromoCode = async () => {
+    if (!promoCode.trim()) {
+      setPromoError("Please enter a promo code");
+      return;
+    }
+
+    setPromoLoading(true);
+    setPromoError("");
+
+    try {
+      const response = await fetch("/api/discount/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: promoCode.trim() }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.valid) {
+        setAppliedDiscount(data.discount);
+        localStorage.setItem("appliedDiscount", JSON.stringify(data.discount));
+        setPromoError("");
+      } else {
+        setPromoError(data.error || "Invalid promo code");
+        setAppliedDiscount(null);
+        localStorage.removeItem("appliedDiscount");
+      }
+    } catch (error) {
+      setPromoError("Failed to validate promo code");
+      setAppliedDiscount(null);
+      localStorage.removeItem("appliedDiscount");
+    } finally {
+      setPromoLoading(false);
+    }
+  };
+
+  const removePromoCode = () => {
+    setPromoCode("");
+    setAppliedDiscount(null);
+    setPromoError("");
+    localStorage.removeItem("appliedDiscount");
+  };
+
   // Calculate totals
   const subtotal = items.reduce((sum, item) => {
     const variantData = variantDetails.get(item.variantId);
@@ -93,6 +149,15 @@ export default function CartPage() {
     }
     return sum;
   }, 0);
+
+  // Calculate discount amount
+  const discountAmount = appliedDiscount
+    ? appliedDiscount.type === "percentage"
+      ? Math.floor((subtotal * appliedDiscount.value) / 100)
+      : appliedDiscount.value * 100 // Convert dollars to cents
+    : 0;
+
+  const totalAfterDiscount = Math.max(0, subtotal - discountAmount);
 
   if (loading) {
     return (
@@ -251,11 +316,64 @@ export default function CartPage() {
           <div className="card sticky top-24">
             <h2 className="text-xl font-bold mb-6 uppercase tracking-wider">Order Summary</h2>
 
+            {/* Promo Code Section */}
+            <div className="mb-6 pb-6 border-b-2 border-black">
+              <label className="block text-sm font-bold mb-2 uppercase tracking-wider">
+                Promo Code
+              </label>
+              {appliedDiscount ? (
+                <div className="flex items-center justify-between p-3 bg-green-50 border-2 border-green-600">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span className="font-bold text-sm">{appliedDiscount.code}</span>
+                  </div>
+                  <button
+                    onClick={removePromoCode}
+                    className="text-sm text-red-600 hover:underline font-medium"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={promoCode}
+                      onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                      onKeyPress={(e) => e.key === "Enter" && applyPromoCode()}
+                      placeholder="Enter code"
+                      className="flex-1 px-3 py-2 border-2 border-black focus:outline-none focus:ring-2 focus:ring-black uppercase"
+                      disabled={promoLoading}
+                    />
+                    <button
+                      onClick={applyPromoCode}
+                      disabled={promoLoading}
+                      className="btn-secondary px-4"
+                    >
+                      {promoLoading ? "..." : "Apply"}
+                    </button>
+                  </div>
+                  {promoError && (
+                    <p className="text-xs text-red-600 mt-2">{promoError}</p>
+                  )}
+                </div>
+              )}
+            </div>
+
             <div className="space-y-3 mb-6 pb-6 border-b-2 border-black">
               <div className="flex justify-between text-sm">
                 <span>Subtotal ({items.reduce((sum, i) => sum + i.qty, 0)} items)</span>
                 <span className="font-medium">${(subtotal / 100).toFixed(2)}</span>
               </div>
+              {appliedDiscount && (
+                <div className="flex justify-between text-sm text-green-600">
+                  <span>Discount ({appliedDiscount.code})</span>
+                  <span className="font-medium">-${(discountAmount / 100).toFixed(2)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-sm">
                 <span>Shipping</span>
                 <span className="font-medium">Calculated at checkout</span>
@@ -268,7 +386,7 @@ export default function CartPage() {
 
             <div className="flex justify-between text-lg font-bold mb-6">
               <span>Estimated Total</span>
-              <span>${(subtotal / 100).toFixed(2)}</span>
+              <span>${(totalAfterDiscount / 100).toFixed(2)}</span>
             </div>
 
             <Link href="/store/checkout" className="btn w-full mb-3">
