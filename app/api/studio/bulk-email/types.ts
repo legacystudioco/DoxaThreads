@@ -35,6 +35,7 @@ export interface SendBulkEmailRequest {
   htmlContent: string;
   fromName?: string;
   replyTo?: string;
+  maxPerHour?: number;
 }
 
 export interface BatchResult {

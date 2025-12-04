@@ -63,6 +63,9 @@ export default function BulkEmailPage() {
   const [bulkResults, setBulkResults] = useState<BulkResults | null>(null);
   const [showResults, setShowResults] = useState(false);
 
+  // Send rate limiting
+  const [maxPerHour, setMaxPerHour] = useState("");
+
   // Scheduling state
   const [isScheduling, setIsScheduling] = useState(false);
   const [scheduledDate, setScheduledDate] = useState("");
@@ -292,7 +295,7 @@ export default function BulkEmailPage() {
     }
   };
 
-  const handleSendBulk = async () => {
+  const handleSendBulk = async (options?: { useRateCap?: boolean }) => {
     if (!subject || !htmlContent) {
       setMessage({
         type: "error",
@@ -301,8 +304,25 @@ export default function BulkEmailPage() {
       return;
     }
 
+    const rateCapValue =
+      options?.useRateCap && maxPerHour
+        ? parseInt(maxPerHour, 10)
+        : undefined;
+
+    if (options?.useRateCap) {
+      if (!rateCapValue || Number.isNaN(rateCapValue) || rateCapValue <= 0) {
+        setMessage({
+          type: "error",
+          text: "Enter a valid hourly send cap (e.g., 200)",
+        });
+        return;
+      }
+    }
+
     const confirmSend = window.confirm(
-      `Are you sure you want to send this email to ${totalContacts} contacts?\n\nThis action cannot be undone.\n\nEmails will be personalized with each recipient's data.`
+      `Are you sure you want to send this email to ${totalContacts} contacts?${
+        rateCapValue ? `\n\nHourly cap: ${rateCapValue} emails/hour.` : ""
+      }\n\nThis action cannot be undone.\n\nEmails will be personalized with each recipient's data.`
     );
 
     if (!confirmSend) {
@@ -324,6 +344,7 @@ export default function BulkEmailPage() {
         body: JSON.stringify({
           subject,
           htmlContent,
+          ...(rateCapValue ? { maxPerHour: rateCapValue } : {}),
         }),
       });
 
@@ -642,6 +663,42 @@ export default function BulkEmailPage() {
               </div>
             </div>
 
+            {/* Send Rate Limit */}
+            <div className="mb-6 p-4 bg-background-dark rounded-lg border border-gray-700">
+              <h3 className="text-lg font-semibold mb-3">Send Rate (optional)</h3>
+              <p className="text-sm text-gray-400 mb-4">
+                Cap how many emails to send per hour to warm up the domain (recommended: 200-300/hour for a new URL).
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
+                <div>
+                  <label className="block text-xs font-medium mb-2 text-gray-300">
+                    Max emails per hour
+                  </label>
+                  <input
+                    type="number"
+                    min="50"
+                    step="25"
+                    value={maxPerHour}
+                    onChange={(e) => setMaxPerHour(e.target.value)}
+                    placeholder="e.g. 250"
+                    className="w-full px-3 py-2 rounded-lg focus:outline-none focus:border-accent focus:ring-0 bulk-email-input text-sm"
+                    disabled={sendingBulk || isScheduling}
+                  />
+                </div>
+                <div className="text-xs text-gray-500">
+                  <p>
+                    Approx duration:{" "}
+                    {maxPerHour && !Number.isNaN(parseInt(maxPerHour, 10)) && parseInt(maxPerHour, 10) > 0
+                      ? `${Math.ceil(totalContacts / Math.max(1, parseInt(maxPerHour, 10)))} hour(s)`
+                      : "Set a cap to see estimate"}
+                  </p>
+                  <p className="mt-1">
+                    Tip: Start low, then raise the cap after a few batches if engagement is good.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Action Buttons */}
             <div className="flex flex-col gap-3">
               <button
@@ -660,6 +717,21 @@ export default function BulkEmailPage() {
                 {isScheduling
                   ? "Scheduling..."
                   : `Schedule Email for ${scheduledDate || "Selected Date"}`}
+              </button>
+
+              <button
+                onClick={() => handleSendBulk({ useRateCap: true })}
+                disabled={
+                  sendingBulk ||
+                  sendingTest ||
+                  !subject ||
+                  !htmlContent ||
+                  totalContacts === 0 ||
+                  !maxPerHour
+                }
+                className="btn-secondary w-full bg-amber-700 hover:bg-amber-800"
+              >
+                {sendingBulk ? "Sending..." : "Send With Hourly Cap"}
               </button>
 
               <button

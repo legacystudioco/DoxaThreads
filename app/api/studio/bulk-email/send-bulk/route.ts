@@ -50,7 +50,7 @@ export async function POST(
 
     // Parse request body
     const body: SendBulkEmailRequest = await req.json();
-    const { subject, htmlContent, fromName, replyTo } = body;
+    const { subject, htmlContent, fromName, replyTo, maxPerHour } = body;
 
     if (!subject || !htmlContent) {
       return NextResponse.json(
@@ -118,11 +118,20 @@ export async function POST(
 
     console.log(`[send-bulk] Found ${activeContacts.length} active contacts (${allContacts.length - activeContacts.length} unsubscribed)`);
 
+    // Optional hourly rate limit
+    const rateLimitPerHour = maxPerHour && Number(maxPerHour) > 0 ? Number(maxPerHour) : null;
+    const perEmailDelayMs = rateLimitPerHour ? Math.ceil(3_600_000 / rateLimitPerHour) : 0;
+    const effectiveBatchSize = rateLimitPerHour ? Math.min(BATCH_SIZE, 25) : BATCH_SIZE;
+
     // Step 2: Split contacts into batches
-    const contactBatches = batchArray(activeContacts, BATCH_SIZE);
+    const contactBatches = batchArray(activeContacts, effectiveBatchSize);
     const totalBatches = contactBatches.length;
 
-    console.log(`[send-bulk] Split into ${totalBatches} batches of ${BATCH_SIZE}`);
+    console.log(
+      `[send-bulk] Split into ${totalBatches} batches of ${effectiveBatchSize}${
+        rateLimitPerHour ? ` with hourly cap ${rateLimitPerHour}/hr (~${perEmailDelayMs}ms between sends)` : ""
+      }`
+    );
 
     // Step 3: Send emails in batches
     const results = {
@@ -150,71 +159,117 @@ export async function POST(
       };
 
       try {
-        // Prepare personalized emails for this batch
-        const emailPromises = batch.map((contact) => {
-          // Personalize content and subject
-          const personalizedContent = personalizeEmail(htmlContent, contact);
-          const personalizedSubject = personalizeEmail(subject, contact);
+        if (rateLimitPerHour) {
+          // Sequential send with enforced delay per email
+          for (const contact of batch) {
+            const sendStart = Date.now();
+            try {
+              const personalizedContent = personalizeEmail(htmlContent, contact);
+              const personalizedSubject = personalizeEmail(subject, contact);
+              const contentWithUnsubscribe = addUnsubscribeFooter(personalizedContent, contact.email, contact.id);
 
-          // Add unsubscribe footer with contact-specific link
-          const contentWithUnsubscribe = addUnsubscribeFooter(personalizedContent, contact.email, contact.id);
+              const sendResult = await resend.emails.send({
+                from: fromEmail,
+                to: contact.email,
+                replyTo: replyToEmail,
+                subject: personalizedSubject,
+                html: contentWithUnsubscribe,
+                headers: {
+                  "X-Entity-Ref-ID": `bulk-${Date.now()}-${contact.id}`,
+                },
+                tags: [
+                  { name: "campaign", value: "bulk-email" },
+                  { name: "batch", value: batchNumber.toString() },
+                ],
+              });
 
-          return resend.emails.send({
-            from: fromEmail,
-            to: contact.email,
-            replyTo: replyToEmail,
-            subject: personalizedSubject,
-            html: contentWithUnsubscribe,
-            headers: {
-              "X-Entity-Ref-ID": `bulk-${Date.now()}-${contact.id}`,
-            },
-            tags: [
-              {
-                name: "campaign",
-                value: "bulk-email",
+              if (sendResult.error) {
+                console.error(`[send-bulk] Failed to send to ${contact.email}:`, sendResult.error);
+                batchResult.failed++;
+                results.failed++;
+                batchResult.errors?.push({
+                  email: contact.email,
+                  error: sendResult.error,
+                });
+              } else {
+                batchResult.sent++;
+                results.sent++;
+              }
+            } catch (error) {
+              console.error(`[send-bulk] Error sending to ${contact.email}:`, error);
+              batchResult.failed++;
+              results.failed++;
+              batchResult.errors?.push({
+                email: contact.email,
+                error: error instanceof Error ? error.message : "Unknown error",
+              });
+            }
+
+            // Enforce per-email pacing
+            const elapsed = Date.now() - sendStart;
+            const waitMs = perEmailDelayMs - elapsed;
+            if (waitMs > 0) {
+              await delay(waitMs);
+            }
+          }
+        } else {
+          // Prepare personalized emails for this batch (concurrent send)
+          const emailPromises = batch.map((contact) => {
+            const personalizedContent = personalizeEmail(htmlContent, contact);
+            const personalizedSubject = personalizeEmail(subject, contact);
+            const contentWithUnsubscribe = addUnsubscribeFooter(personalizedContent, contact.email, contact.id);
+
+            return resend.emails.send({
+              from: fromEmail,
+              to: contact.email,
+              replyTo: replyToEmail,
+              subject: personalizedSubject,
+              html: contentWithUnsubscribe,
+              headers: {
+                "X-Entity-Ref-ID": `bulk-${Date.now()}-${contact.id}`,
               },
-              {
-                name: "batch",
-                value: batchNumber.toString(),
-              },
-            ],
+              tags: [
+                { name: "campaign", value: "bulk-email" },
+                { name: "batch", value: batchNumber.toString() },
+              ],
+            });
           });
-        });
 
-        // Send all emails in this batch concurrently
-        const batchResults = await Promise.allSettled(emailPromises);
+          // Send all emails in this batch concurrently
+          const batchResults = await Promise.allSettled(emailPromises);
 
-        // Process results
-        batchResults.forEach((result, index) => {
-          if (result.status === "fulfilled") {
-            if (result.value.error) {
+          // Process results
+          batchResults.forEach((result, index) => {
+            if (result.status === "fulfilled") {
+              if (result.value.error) {
+                console.error(
+                  `[send-bulk] Failed to send to ${batch[index].email}:`,
+                  result.value.error
+                );
+                batchResult.failed++;
+                results.failed++;
+                batchResult.errors?.push({
+                  email: batch[index].email,
+                  error: result.value.error,
+                });
+              } else {
+                batchResult.sent++;
+                results.sent++;
+              }
+            } else {
               console.error(
-                `[send-bulk] Failed to send to ${batch[index].email}:`,
-                result.value.error
+                `[send-bulk] Promise rejected for ${batch[index].email}:`,
+                result.reason
               );
               batchResult.failed++;
               results.failed++;
               batchResult.errors?.push({
                 email: batch[index].email,
-                error: result.value.error,
+                error: result.reason?.message || "Unknown error",
               });
-            } else {
-              batchResult.sent++;
-              results.sent++;
             }
-          } else {
-            console.error(
-              `[send-bulk] Promise rejected for ${batch[index].email}:`,
-              result.reason
-            );
-            batchResult.failed++;
-            results.failed++;
-            batchResult.errors?.push({
-              email: batch[index].email,
-              error: result.reason?.message || "Unknown error",
-            });
-          }
-        });
+          });
+        }
 
         console.log(
           `[send-bulk] Batch ${batchNumber} complete: ${batchResult.sent} sent, ${batchResult.failed} failed`
@@ -229,8 +284,9 @@ export async function POST(
 
         // Wait between batches (except for last batch)
         if (batchIndex < contactBatches.length - 1) {
-          console.log(`[send-bulk] Waiting ${BATCH_DELAY_MS}ms before next batch...`);
-          await delay(BATCH_DELAY_MS);
+          const waitBetweenBatches = rateLimitPerHour ? Math.max(BATCH_DELAY_MS, perEmailDelayMs) : BATCH_DELAY_MS;
+          console.log(`[send-bulk] Waiting ${waitBetweenBatches}ms before next batch...`);
+          await delay(waitBetweenBatches);
         }
       } catch (error) {
         console.error(`[send-bulk] Batch ${batchNumber} exception:`, error);
