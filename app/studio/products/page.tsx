@@ -15,6 +15,8 @@ export default function StudioProductsPage() {
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
   const [styleFilter, setStyleFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [showPriceModal, setShowPriceModal] = useState(false);
+  const [priceAdjustment, setPriceAdjustment] = useState<string>("");
 
   const categories = [
     { id: "all", label: "All" },
@@ -141,6 +143,12 @@ export default function StudioProductsPage() {
       return;
     }
 
+    // If action is "change-price", show modal instead of processing immediately
+    if (bulkAction === "change-price") {
+      setShowPriceModal(true);
+      return;
+    }
+
     const productIds = Array.from(selectedProducts);
     const count = productIds.length;
 
@@ -199,6 +207,80 @@ export default function StudioProductsPage() {
   const clearSelection = () => {
     setSelectedProducts(new Set());
     setBulkAction("");
+  };
+
+  const handleBulkPriceChange = async () => {
+    const adjustment = parseFloat(priceAdjustment);
+
+    if (isNaN(adjustment) || adjustment === 0) {
+      alert("Please enter a valid price adjustment amount (positive to increase, negative to decrease)");
+      return;
+    }
+
+    const adjustmentCents = Math.round(adjustment * 100);
+    const productIds = Array.from(selectedProducts);
+    const count = productIds.length;
+
+    const confirmMessage = `${adjustment > 0 ? 'Increase' : 'Decrease'} base price by $${Math.abs(adjustment).toFixed(2)} for ${count} product(s)? All variant prices will be adjusted accordingly.`;
+
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    setIsBulkProcessing(true);
+
+    try {
+      // Get all variants for selected products
+      const { data: variants, error: fetchError } = await supabase
+        .from("variants")
+        .select("id, price_cents")
+        .in("product_id", productIds);
+
+      if (fetchError) throw fetchError;
+
+      if (!variants || variants.length === 0) {
+        alert("No variants found for selected products");
+        setIsBulkProcessing(false);
+        return;
+      }
+
+      // Update each variant's price by the adjustment amount
+      const updates = variants.map((variant) => ({
+        id: variant.id,
+        price_cents: variant.price_cents + adjustmentCents
+      }));
+
+      // Validate that no prices go below 0
+      const invalidPrices = updates.filter(u => u.price_cents < 0);
+      if (invalidPrices.length > 0) {
+        alert(`Error: Price adjustment would result in negative prices for some variants. Please use a smaller decrease.`);
+        setIsBulkProcessing(false);
+        return;
+      }
+
+      // Update all variants
+      for (const update of updates) {
+        const { error } = await supabase
+          .from("variants")
+          .update({ price_cents: update.price_cents })
+          .eq("id", update.id);
+
+        if (error) throw error;
+      }
+
+      alert(`Successfully updated prices for ${count} product(s) with ${variants.length} total variants`);
+
+      // Clear modal and selection, reload products
+      setShowPriceModal(false);
+      setPriceAdjustment("");
+      setSelectedProducts(new Set());
+      setBulkAction("");
+      await loadProducts();
+    } catch (error: any) {
+      alert(`Error updating prices: ${error.message}`);
+    } finally {
+      setIsBulkProcessing(false);
+    }
   };
 
   if (authLoading || loading) {
@@ -283,6 +365,7 @@ export default function StudioProductsPage() {
               <option value="">Select action...</option>
               <option value="activate">Set Active</option>
               <option value="deactivate">Set Inactive</option>
+              <option value="change-price">Change Price</option>
               <option value="delete">Delete</option>
             </select>
             <button
@@ -347,6 +430,7 @@ export default function StudioProductsPage() {
                 <th>Slug</th>
                 <th>Style</th>
                 <th>Print Cost</th>
+                <th>Retail Price</th>
                 <th>Images/Variants</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -373,6 +457,23 @@ export default function StudioProductsPage() {
                   <td className="text-sm">{product.style || "—"}</td>
                   <td className="font-medium">
                     ${(product.print_cost_cents / 100).toFixed(2)}
+                  </td>
+                  <td className="font-medium">
+                    {product.variants && product.variants.length > 0 ? (
+                      <>
+                        ${(Math.min(...product.variants.map((v: any) => v.price_cents)) / 100).toFixed(2)}
+                        {product.variants.length > 1 &&
+                          Math.min(...product.variants.map((v: any) => v.price_cents)) !==
+                          Math.max(...product.variants.map((v: any) => v.price_cents)) && (
+                          <span className="text-xs text-neutral-600">
+                            {" - $"}
+                            {(Math.max(...product.variants.map((v: any) => v.price_cents)) / 100).toFixed(2)}
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      "—"
+                    )}
                   </td>
                   <td className="text-sm">
                     {product.product_images?.length || 0} images / {product.variants?.length || 0} variants
@@ -420,6 +521,70 @@ export default function StudioProductsPage() {
           <strong>✅ Connected to Supabase:</strong> All changes sync with your database in real-time!
         </p>
       </div>
+
+      {/* Price Change Modal */}
+      {showPriceModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+            <h2 className="text-2xl font-bold mb-4">Bulk Price Change</h2>
+            <p className="text-neutral-600 mb-6">
+              Enter the amount to adjust prices. Use positive numbers to increase prices or negative numbers to decrease them.
+              All variant prices will be adjusted by the same amount.
+            </p>
+
+            <div className="mb-6">
+              <label className="block text-sm font-semibold mb-2">
+                Price Adjustment Amount
+              </label>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-bold">$</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={priceAdjustment}
+                  onChange={(e) => setPriceAdjustment(e.target.value)}
+                  placeholder="e.g., 5.00 or -3.50"
+                  className="input flex-1 text-lg"
+                  autoFocus
+                />
+              </div>
+              <p className="text-xs text-neutral-500 mt-2">
+                Example: Enter "5" to increase all prices by $5.00, or "-3" to decrease by $3.00
+              </p>
+            </div>
+
+            <div className="bg-neutral-50 border border-neutral-200 rounded p-4 mb-6">
+              <h3 className="font-semibold mb-2 text-sm">How it works:</h3>
+              <ul className="text-sm text-neutral-700 space-y-1">
+                <li>• Base prices and larger sizes will all be adjusted by the same amount</li>
+                <li>• If a shirt is $25 and 2XL is $27, adding $5 makes them $30 and $32</li>
+                <li>• The price difference between sizes stays the same</li>
+                <li>• Affects {selectedProducts.size} selected product(s)</li>
+              </ul>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowPriceModal(false);
+                  setPriceAdjustment("");
+                }}
+                className="btn-secondary flex-1"
+                disabled={isBulkProcessing}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBulkPriceChange}
+                className="btn flex-1 disabled:opacity-50"
+                disabled={isBulkProcessing || !priceAdjustment}
+              >
+                {isBulkProcessing ? "Processing..." : "Apply Change"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
