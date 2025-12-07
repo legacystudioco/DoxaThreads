@@ -43,12 +43,11 @@ export async function GET(req: NextRequest): Promise<NextResponse<GetContactsRes
 
     const data = await response.json();
 
-    // Debug logging - let's see what Resend actually returns
-    console.log("[get-contacts] Raw response from Resend:", JSON.stringify(data, null, 2));
+    // Debug logging (keep output small to avoid noisy logs)
     console.log("[get-contacts] Response structure:", {
-      hasData: !!data.data,
-      dataKeys: data.data ? Object.keys(data.data) : [],
-      topLevelKeys: Object.keys(data),
+      hasData: !!data?.data,
+      dataKeys: data?.data ? Object.keys(data.data) : [],
+      topLevelKeys: Object.keys(data || {}),
     });
 
     // Try different possible response structures from Resend
@@ -75,7 +74,12 @@ export async function GET(req: NextRequest): Promise<NextResponse<GetContactsRes
     const totalContacts = activeContacts.length;
 
     console.log("[get-contacts] Active contacts (after filtering):", totalContacts);
-    console.log("[get-contacts] Sample contact:", activeContacts[0]);
+    if (activeContacts[0]) {
+      console.log("[get-contacts] Sample contact:", {
+        email: activeContacts[0].email,
+        unsubscribed: activeContacts[0].unsubscribed,
+      });
+    }
 
     return NextResponse.json({
       success: true,
