@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 
-export default function ConfirmNewsletterPage() {
+function NewsletterConfirmContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
 
@@ -129,5 +129,24 @@ export default function ConfirmNewsletterPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ConfirmNewsletterPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="container mx-auto px-4 py-16">
+          <div className="max-w-2xl mx-auto">
+            <div className="card text-center py-12">
+              <div className="spinner mx-auto mb-4"></div>
+              <p className="text-[rgba(30,42,68,0.8)]">Loading your confirmation…</p>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <NewsletterConfirmContent />
+    </Suspense>
   );
 }
