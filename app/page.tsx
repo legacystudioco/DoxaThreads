@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase-client";
 import Link from "next/link";
 import Image from "next/image";
+import NewsletterPopup from "@/components/NewsletterPopup";
 
 export default function Home() {
   const [products, setProducts] = useState<any[]>([]);
@@ -49,6 +50,7 @@ export default function Home() {
 
   return (
     <>
+      <NewsletterPopup />
       {/* Hero Section - extended to top to eliminate gap */}
       <section className="hero relative min-h-[18vh] overflow-hidden bg-[radial-gradient(ellipse_at_center,rgba(110,90,60,0.04)_0%,rgba(0,0,0,0)_55%,rgba(0,0,0,0.10)_100%),linear-gradient(to_bottom,#24211B,#1A1713)] bg-no-repeat bg-cover -mt-12 lg:-mt-16 pt-12 lg:pt-16">
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
