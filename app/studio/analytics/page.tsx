@@ -305,7 +305,7 @@ export default function StudioAnalyticsPage() {
           sessionSet.add(sessionKey);
         }
       });
-      const topCities = Array.from(cityMap.values()).sort((a, b) => b.count - a.count).slice(0, 5);
+      const topCities = Array.from(cityMap.values()).sort((a, b) => b.count - a.count);
 
       // Top pages calculation (filter out assets like images, fonts, etc.) using unique sessions per page
       const pageMap = new Map<string, Set<string>>();

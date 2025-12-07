@@ -6,6 +6,58 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 const DISCOUNT_CODE = "DOXA-WELCOME";
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const RESEND_AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID;
+
+async function syncToResendAudience(email: string) {
+  if (!RESEND_API_KEY || !RESEND_AUDIENCE_ID) {
+    console.warn("[newsletter-confirm] Skipping Resend sync: missing RESEND_API_KEY or RESEND_AUDIENCE_ID");
+    return null;
+  }
+
+  try {
+    const response = await fetch(
+      `https://api.resend.com/audiences/${RESEND_AUDIENCE_ID}/contacts`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          unsubscribed: false,
+        }),
+      }
+    );
+
+    const data = await response.json().catch(() => ({}));
+
+    // If the contact already exists in the audience, treat as success
+    if (!response.ok) {
+      const message: string = data?.error || data?.message || "";
+      const looksLikeDuplicate = /already exists|duplicate/i.test(message);
+
+      if (response.status === 409 || response.status === 422 || looksLikeDuplicate) {
+        console.log(`[newsletter-confirm] Contact already exists in Resend audience: ${email}`);
+        return null;
+      }
+
+      console.error("[newsletter-confirm] Failed to add contact to Resend audience", {
+        status: response.status,
+        data,
+      });
+      return null;
+    }
+
+    const contactId = data?.data?.id || data?.id || null;
+    console.log(`[newsletter-confirm] Synced contact to Resend audience: ${email} (id: ${contactId ?? "unknown"})`);
+    return contactId;
+  } catch (error) {
+    console.error("[newsletter-confirm] Error syncing contact to Resend audience", error);
+    return null;
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -36,6 +88,8 @@ export async function POST(req: NextRequest) {
 
     // Check if already confirmed
     if (subscriber.confirmed) {
+      await syncToResendAudience(subscriber.email);
+
       // If already sent the code, just return it
       if (subscriber.discount_code_sent && subscriber.discount_code) {
         return NextResponse.json({
@@ -64,6 +118,8 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
+
+    await syncToResendAudience(subscriber.email);
 
     // Send welcome email with discount code
     await sendWelcomeEmail(subscriber.email, DISCOUNT_CODE);
