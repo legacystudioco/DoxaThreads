@@ -47,9 +47,23 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
       if (error) {
         console.error("Error fetching product:", error);
       }
-      
+
       setProduct(data);
       setLoading(false);
+
+      // Track ViewContent event for Meta Pixel
+      if (data && typeof window !== "undefined" && window.fbq) {
+        const firstVariant = data.variants?.find((v: any) => v.active);
+        const price = firstVariant ? firstVariant.price_cents / 100 : 0;
+
+        window.fbq("track", "ViewContent", {
+          content_name: data.title,
+          content_ids: [data.id],
+          content_type: "product",
+          value: price,
+          currency: "USD",
+        });
+      }
     }
 
     fetchProduct();
@@ -235,7 +249,7 @@ function ProductClient({ product, variants, images }: any) {
 
   const handleAddToCart = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!selectedVariant) {
       alert("Please select a size and color");
       return;
@@ -244,19 +258,19 @@ function ProductClient({ product, variants, images }: any) {
     // Get existing cart
     const raw = localStorage.getItem("cart");
     const cart = raw ? JSON.parse(raw) : [];
-    
+
     // Get the selected variant data
     const selectedVariantData = variants.find((v: any) => v.id === selectedVariant);
-    
+
     // Check if variant already in cart
     const existingIndex = cart.findIndex((item: any) => item.variantId === selectedVariant);
-    
+
     if (existingIndex >= 0) {
       cart[existingIndex].qty += qty;
     } else {
-      cart.push({ 
-        variantId: selectedVariant, 
-        qty, 
+      cart.push({
+        variantId: selectedVariant,
+        qty,
         productTitle: product.title,
         selectedColor: selectedColor ? {
           name: selectedColor,
@@ -265,12 +279,24 @@ function ProductClient({ product, variants, images }: any) {
         selectedSize: selectedSize
       });
     }
-    
+
     localStorage.setItem("cart", JSON.stringify(cart));
-    
+
+    // Track AddToCart event for Meta Pixel
+    if (selectedVariantData && typeof window !== "undefined" && window.fbq) {
+      const price = selectedVariantData.price_cents / 100;
+      window.fbq("track", "AddToCart", {
+        content_name: product.title,
+        content_ids: [product.id],
+        content_type: "product",
+        value: price * qty,
+        currency: "USD",
+      });
+    }
+
     // Dispatch custom event to update cart badge
     window.dispatchEvent(new Event("cartUpdated"));
-    
+
     // Show success message
     const colorText = selectedColor ? ` (${selectedColor})` : "";
     alert(`Added ${qty}x ${product.title} - Size ${selectedSize}${colorText} to cart!`);

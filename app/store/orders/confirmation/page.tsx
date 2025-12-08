@@ -12,7 +12,7 @@ function OrderConfirmationContent() {
   useEffect(() => {
     const paymentIntent = searchParams?.get("payment_intent");
     const orderId = searchParams?.get("order_id");
-    
+
     if (paymentIntent) {
       // Clear cart
       localStorage.removeItem("cart");
@@ -22,6 +22,18 @@ function OrderConfirmationContent() {
           .then((data) => {
             if (data?.order) {
               setOrder(data);
+
+              // Track Purchase event for Meta Pixel
+              if (typeof window !== "undefined" && window.fbq) {
+                const contentIds = data.items?.map((item: any) => item.variant_id) || [];
+                window.fbq("track", "Purchase", {
+                  value: data.order.total_cents / 100,
+                  currency: "USD",
+                  content_type: "product",
+                  content_ids: contentIds,
+                  num_items: data.items?.reduce((sum: number, item: any) => sum + (item.qty || 0), 0) || 0,
+                });
+              }
             }
             setStatus("success");
           })

@@ -222,6 +222,11 @@ export default function CheckoutPage() {
       return;
     }
 
+    // Track InitiateCheckout event for Meta Pixel
+    if (typeof window !== "undefined" && window.fbq) {
+      window.fbq("track", "InitiateCheckout");
+    }
+
     setLoading(false);
   }, []);
 
