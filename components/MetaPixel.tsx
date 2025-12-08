@@ -2,6 +2,7 @@
 
 import { useEffect, Suspense } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import Script from "next/script";
 
 declare global {
   interface Window {
@@ -13,38 +14,6 @@ declare global {
 function MetaPixelInner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-
-  useEffect(() => {
-    // Initialize Meta Pixel
-    if (typeof window !== "undefined" && !window.fbq) {
-      (function (f: any, b: any, e: any, v: any, n: any, t: any, s: any) {
-        if (f.fbq) return;
-        n = f.fbq = function () {
-          n.callMethod
-            ? n.callMethod.apply(n, arguments)
-            : n.queue.push(arguments);
-        };
-        if (!f._fbq) f._fbq = n;
-        n.push = n;
-        n.loaded = true;
-        n.version = "2.0";
-        n.queue = [];
-        t = b.createElement(e);
-        t.async = true;
-        t.src = v;
-        s = b.getElementsByTagName(e)[0];
-        s.parentNode.insertBefore(t, s);
-      })(
-        window,
-        document,
-        "script",
-        "https://connect.facebook.net/en_US/fbevents.js"
-      );
-
-      window.fbq("init", "2253529748448994");
-      window.fbq("track", "PageView");
-    }
-  }, []);
 
   useEffect(() => {
     // Track page views on route changes
@@ -59,9 +28,30 @@ function MetaPixelInner() {
 export function MetaPixel() {
   return (
     <>
+      {/* Meta Pixel Base Code */}
+      <Script
+        id="meta-pixel"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            !function(f,b,e,v,n,t,s)
+            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+            n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)}(window, document,'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+            fbq('init', '2253529748448994');
+            fbq('track', 'PageView');
+          `,
+        }}
+      />
+
       <Suspense fallback={null}>
         <MetaPixelInner />
       </Suspense>
+
       {/* Meta Pixel noscript fallback */}
       <noscript>
         <img
