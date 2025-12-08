@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Header } from "@/components/Header";
 import { VisitorTracker } from "@/components/VisitorTracker";
+import { MetaPixel } from "@/components/MetaPixel";
 
 export const metadata: Metadata = {
   title: "DOXA Threads | Greek for Glory",
@@ -20,6 +21,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         {/* Visitor tracking component */}
         <VisitorTracker />
+
+        {/* Meta Pixel tracking */}
+        <MetaPixel />
         
         {/* Top announcement bar - Tan background with brown text */}
         <div className="bg-[var(--paper)] text-[#6E5A3C] text-center py-2 text-[11px] font-semibold uppercase tracking-[0.16em] border-b border-brand-accent">
