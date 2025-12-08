@@ -21,6 +21,14 @@ export function createClient() {
       autoRefreshToken: true,     // refresh tokens automatically
       detectSessionInUrl: true,   // handle OAuth redirects
     },
+    global: {
+      headers: {
+        'X-Client-Info': 'doxa-threads-visitor-tracker'
+      }
+    },
+    db: {
+      schema: 'public'
+    }
   });
 
   // Only cache in browser

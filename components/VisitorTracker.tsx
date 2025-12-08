@@ -65,6 +65,13 @@ export function VisitorTracker() {
 
         const supabase = createClient();
 
+        // DIAGNOSTIC: Check what role we're using
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log("[VisitorTracker] Auth session:", session ? "AUTHENTICATED" : "ANONYMOUS (anon role)");
+
+        // Try a direct INSERT with explicit error logging
+        console.log("[VisitorTracker] About to attempt INSERT with role:", session ? "authenticated" : "anon");
+
         // Get location data from ipapi.co (free tier: 30k requests/month)
         let locationData: any = null;
         try {
