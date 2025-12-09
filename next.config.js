@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  images: { 
-    remotePatterns: [{ protocol: 'https', hostname: '**' }] 
+  images: {
+    remotePatterns: [{ protocol: 'https', hostname: '**' }],
+    unoptimized: true, // Disable image optimization to avoid Vercel billing limits
   },
   typescript: {
     ignoreBuildErrors: true,
