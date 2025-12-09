@@ -50,10 +50,18 @@ export default function PrivacyPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-bold mb-4">5. Cookies</h2>
+            <h2 className="text-2xl font-bold mb-4">5. Cookies, Tracking & Advertising</h2>
+            <p className="mb-4">
+              We use cookies and similar tracking technologies — including Facebook Pixel — to collect information about your browsing behaviour, interactions, and purchases on this website. This data may include page views, product interactions, session duration, purchase events, and device/browser information.
+            </p>
+            <p className="mb-2 font-semibold">Purpose:</p>
+            <ul className="list-disc pl-6 mb-4">
+              <li>Analytics — to understand how visitors use our site and optimize performance.</li>
+              <li>Advertising & Retargeting — to show relevant ads and ads based on past visits or actions.</li>
+            </ul>
+            <p className="mb-2 font-semibold">Third-Parties:</p>
             <p>
-              We use cookies to enhance your experience on our website. You can choose to disable cookies through your 
-              browser settings, but this may limit your ability to use certain features of our site.
+              Data collected may be shared with third-party partners, including Meta (Facebook), to enable these analytics and advertising services.
             </p>
           </section>
 

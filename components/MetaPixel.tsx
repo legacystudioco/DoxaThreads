@@ -51,17 +51,6 @@ export function MetaPixel() {
       <Suspense fallback={null}>
         <MetaPixelInner />
       </Suspense>
-
-      {/* Meta Pixel noscript fallback */}
-      <noscript>
-        <img
-          height="1"
-          width="1"
-          style={{ display: "none" }}
-          src="https://www.facebook.com/tr?id=2253529748448994&ev=PageView&noscript=1"
-          alt=""
-        />
-      </noscript>
     </>
   );
 }
