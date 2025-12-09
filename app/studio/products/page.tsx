@@ -24,7 +24,8 @@ export default function StudioProductsPage() {
     L: "",
     XL: "",
     "2XL": "",
-    "3XL": ""
+    "3XL": "",
+    "4XL": ""
   });
 
   const categories = [
@@ -500,7 +501,8 @@ export default function StudioProductsPage() {
         L: "",
         XL: "",
         "2XL": "",
-        "3XL": ""
+        "3XL": "",
+        "4XL": ""
       });
       setSelectedProducts(new Set());
       setBulkAction("");
@@ -874,7 +876,8 @@ export default function StudioProductsPage() {
                     L: "",
                     XL: "",
                     "2XL": "",
-                    "3XL": ""
+                    "3XL": "",
+                    "4XL": ""
                   });
                 }}
                 className="btn-secondary flex-1"
