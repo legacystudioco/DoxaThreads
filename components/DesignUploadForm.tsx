@@ -854,12 +854,11 @@ export default function DesignUploadForm({
 
     if (uploadError) throw uploadError;
 
-    const { data: signed, error: signError } = await supabase.storage
+    const { data: publicUrl } = supabase.storage
       .from("product-images")
-      .createSignedUrl(filePath, 60 * 60 * 24 * 365);
+      .getPublicUrl(filePath);
 
-    if (signError) throw signError;
-    return signed.signedUrl;
+    return publicUrl.publicUrl;
   };
 
   const generateAssets = useCallback(async () => {
