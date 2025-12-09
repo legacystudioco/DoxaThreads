@@ -17,6 +17,15 @@ export default function StudioProductsPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [showPriceModal, setShowPriceModal] = useState(false);
   const [priceAdjustment, setPriceAdjustment] = useState<string>("");
+  const [showSizePriceModal, setShowSizePriceModal] = useState(false);
+  const [sizePrices, setSizePrices] = useState<Record<string, string>>({
+    S: "",
+    M: "",
+    L: "",
+    XL: "",
+    "2XL": "",
+    "3XL": ""
+  });
 
   const categories = [
     { id: "all", label: "All" },
@@ -151,6 +160,12 @@ export default function StudioProductsPage() {
     // If action is "change-price", show modal instead of processing immediately
     if (bulkAction === "change-price") {
       setShowPriceModal(true);
+      return;
+    }
+
+    // If action is "set-size-prices", show size price modal instead of processing immediately
+    if (bulkAction === "set-size-prices") {
+      setShowSizePriceModal(true);
       return;
     }
 
@@ -363,6 +378,145 @@ export default function StudioProductsPage() {
     }
   };
 
+  const handleBulkSizePriceChange = async () => {
+    // Validate that at least one size has a price entered
+    const filledSizes = Object.entries(sizePrices).filter(([_, price]) => price && price.trim() !== "");
+
+    if (filledSizes.length === 0) {
+      alert("Please enter at least one size price");
+      return;
+    }
+
+    // Validate all entered prices are valid numbers
+    const invalidPrices = filledSizes.filter(([_, price]) => {
+      const num = parseFloat(price);
+      return isNaN(num) || num < 0;
+    });
+
+    if (invalidPrices.length > 0) {
+      alert("Please enter valid prices (must be 0 or greater)");
+      return;
+    }
+
+    const productIds = Array.from(selectedProducts);
+    const count = productIds.length;
+
+    // Build confirmation message showing which sizes will be updated
+    const sizeList = filledSizes.map(([size, price]) => `${size}: $${parseFloat(price).toFixed(2)}`).join(", ");
+    const confirmMessage = `Set specific prices for ${count} product(s)?\n\nPrices to set: ${sizeList}\n\nThis will update all selected products to these exact prices for the specified sizes.`;
+
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    setIsBulkProcessing(true);
+
+    try {
+      // Get all variants for selected products
+      const { data: variants, error: fetchError } = await supabase
+        .from("variants")
+        .select("id, size, price_cents, product_id")
+        .in("product_id", productIds);
+
+      if (fetchError) throw fetchError;
+
+      if (!variants || variants.length === 0) {
+        alert("No variants found for selected products");
+        setIsBulkProcessing(false);
+        return;
+      }
+
+      console.log(`Found ${variants.length} variants for ${productIds.length} products`);
+
+      // Create a map of size to price in cents
+      const sizePriceMap = new Map<string, number>();
+      filledSizes.forEach(([size, price]) => {
+        sizePriceMap.set(size, Math.round(parseFloat(price) * 100));
+      });
+
+      // Filter variants that match the sizes we're updating
+      const variantsToUpdate = variants.filter(v => sizePriceMap.has(v.size));
+
+      if (variantsToUpdate.length === 0) {
+        alert("No variants found matching the specified sizes");
+        setIsBulkProcessing(false);
+        return;
+      }
+
+      console.log(`Updating ${variantsToUpdate.length} variants across ${productIds.length} products`);
+
+      // Update each variant to the specified price for its size
+      const results = [];
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (let i = 0; i < variantsToUpdate.length; i++) {
+        const variant = variantsToUpdate[i];
+        const newPrice = sizePriceMap.get(variant.size);
+
+        try {
+          const { data, error } = await supabase
+            .from("variants")
+            .update({ price_cents: newPrice })
+            .eq("id", variant.id)
+            .select();
+
+          if (error) {
+            console.error(`Error updating variant ${variant.id}:`, error);
+            errorCount++;
+            results.push({ error, data: null });
+          } else {
+            successCount++;
+            results.push({ error: null, data });
+          }
+
+          // Log progress every 50 variants
+          if ((i + 1) % 50 === 0) {
+            console.log(`Progress: ${i + 1}/${variantsToUpdate.length} variants processed (${successCount} successful, ${errorCount} errors)`);
+          }
+        } catch (err) {
+          console.error(`Exception updating variant ${variant.id}:`, err);
+          errorCount++;
+          results.push({ error: err, data: null });
+        }
+      }
+
+      console.log(`Update complete: ${successCount} successful, ${errorCount} errors`);
+
+      // Check if any updates failed
+      const errors = results.filter(r => r.error);
+      if (errors.length > 0) {
+        console.error("Update errors:", errors);
+        throw new Error(`Failed to update ${errors.length} variant(s)`);
+      }
+
+      alert(`Successfully set size-specific prices for ${count} product(s).\nUpdated ${successCount} variants.`);
+
+      // Clear modal and selection
+      setShowSizePriceModal(false);
+      setSizePrices({
+        S: "",
+        M: "",
+        L: "",
+        XL: "",
+        "2XL": "",
+        "3XL": ""
+      });
+      setSelectedProducts(new Set());
+      setBulkAction("");
+
+      console.log("Reloading products...");
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Force a complete page reload to bypass any caching
+      window.location.reload();
+    } catch (error: any) {
+      alert(`Error updating prices: ${error.message}`);
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <div className="container mx-auto px-4 py-16">
@@ -446,6 +600,7 @@ export default function StudioProductsPage() {
               <option value="activate">Set Active</option>
               <option value="deactivate">Set Inactive</option>
               <option value="change-price">Change Price</option>
+              <option value="set-size-prices">Set Size Prices</option>
               <option value="delete">Delete</option>
             </select>
             <button
@@ -660,6 +815,79 @@ export default function StudioProductsPage() {
                 disabled={isBulkProcessing || !priceAdjustment}
               >
                 {isBulkProcessing ? "Processing..." : "Apply Change"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Set Size Prices Modal */}
+      {showSizePriceModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold mb-4">Set Size-Specific Prices</h2>
+            <p className="text-neutral-600 mb-6">
+              Set exact prices for specific sizes. All selected products will be updated to these prices for the sizes you specify.
+              You don't need to fill in all sizes - only enter prices for the sizes you want to update.
+            </p>
+
+            <div className="space-y-4 mb-6">
+              {Object.keys(sizePrices).map((size) => (
+                <div key={size} className="flex items-center gap-3">
+                  <label className="w-12 text-sm font-semibold text-neutral-700">
+                    {size}:
+                  </label>
+                  <div className="flex items-center gap-2 flex-1">
+                    <span className="text-xl font-bold">$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={sizePrices[size]}
+                      onChange={(e) => setSizePrices(prev => ({ ...prev, [size]: e.target.value }))}
+                      placeholder="e.g., 28.99"
+                      className="input flex-1"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-neutral-50 border border-neutral-200 rounded p-4 mb-6">
+              <h3 className="font-semibold mb-2 text-sm">How it works:</h3>
+              <ul className="text-sm text-neutral-700 space-y-1">
+                <li>• Enter the exact price you want for each size</li>
+                <li>• All selected products will be set to these exact prices</li>
+                <li>• Example: If you set M to $25.00, all M sizes will become $25.00</li>
+                <li>• You can leave sizes blank if you don't want to change them</li>
+                <li>• Affects {selectedProducts.size} selected product(s)</li>
+              </ul>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowSizePriceModal(false);
+                  setSizePrices({
+                    S: "",
+                    M: "",
+                    L: "",
+                    XL: "",
+                    "2XL": "",
+                    "3XL": ""
+                  });
+                }}
+                className="btn-secondary flex-1"
+                disabled={isBulkProcessing}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBulkSizePriceChange}
+                className="btn flex-1 disabled:opacity-50"
+                disabled={isBulkProcessing}
+              >
+                {isBulkProcessing ? "Processing..." : "Apply Prices"}
               </button>
             </div>
           </div>
