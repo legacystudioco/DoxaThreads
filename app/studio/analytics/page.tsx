@@ -109,15 +109,42 @@ export default function StudioAnalyticsPage() {
       }[] = [];
 
       try {
-        let visitorQuery = supa
-          .from("visitor_events")
-          .select("created_at, city, region, country, session_id, page_path, ip_address, user_agent");
+        // Fetch visitor data in batches to overcome 1000 row Supabase limit
+        let allVisitorData: any[] = [];
+        let page = 0;
+        const pageSize = 1000;
+        let hasMore = true;
 
-        if (startDate) {
-          visitorQuery = visitorQuery.gte("created_at", startDate.toISOString());
+        while (hasMore) {
+          let visitorQuery = supa
+            .from("visitor_events")
+            .select("created_at, city, region, country, session_id, page_path, ip_address, user_agent")
+            .order("created_at", { ascending: false })
+            .range(page * pageSize, (page + 1) * pageSize - 1);
+
+          if (startDate) {
+            visitorQuery = visitorQuery.gte("created_at", startDate.toISOString());
+          }
+
+          const { data: pageData, error: pageError } = await visitorQuery;
+
+          if (pageError) {
+            console.error("Error fetching visitor page:", pageError);
+            break;
+          }
+
+          if (pageData && pageData.length > 0) {
+            allVisitorData = allVisitorData.concat(pageData);
+            hasMore = pageData.length === pageSize; // Continue if we got a full page
+            page++;
+          } else {
+            hasMore = false;
+          }
         }
 
-        const { data: visitorData, error: visitorError } = await visitorQuery;
+        const visitorData = allVisitorData;
+        const visitorError = null;
+
         if (!visitorError && visitorData) {
           // Filter out admin traffic and asset requests before aggregating, then clean location strings
           visitors = visitorData
