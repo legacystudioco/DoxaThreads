@@ -160,7 +160,7 @@ const MULTI_VIEW_PRODUCT_TYPES: Set<ProductTypeKey> = new Set([
 ]);
 
 const isMultiViewProduct = (type: ProductTypeKey) => MULTI_VIEW_PRODUCT_TYPES.has(type);
-const isHoodieType = (type: ProductTypeKey) => type === "hoodie" || type === "youth_hoodie";
+const isHoodieType = (type: ProductTypeKey) => type === "hoodie"; // Only adult hoodies have strings, not youth
 
 const compositeLayout: Record<
   ProductTypeKey,
@@ -342,16 +342,16 @@ const PRODUCT_GROUP_OFFSET_DEFAULTS: Record<ProductTypeKey, { front: { x: number
     back: { x: 634, y: 0 },
   },
   youth_tee: {
-    front: { x: -248, y: 357 },
-    back: { x: 323, y: 0 },
+    front: { x: -23, y: 202 },
+    back: { x: 115, y: 80 },
   },
   youth_hoodie: {
-    front: { x: -317, y: 426 },
-    back: { x: 253, y: 0 },
+    front: { x: -23, y: 184 },
+    back: { x: 98, y: 46 },
   },
   youth_longsleeve: {
-    front: { x: -248, y: 357 },
-    back: { x: 323, y: 0 },
+    front: { x: -6, y: 184 },
+    back: { x: 150, y: 46 },
   },
 };
 
