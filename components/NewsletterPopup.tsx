@@ -97,7 +97,7 @@ export default function NewsletterPopup() {
           {/* Close button */}
           <button
             onClick={handleClose}
-            className="absolute top-4 right-4 text-[rgba(30,42,68,0.6)] hover:text-[var(--ink-black)] transition-colors"
+            className="absolute top-2 right-2 text-[rgba(30,42,68,0.6)] hover:text-[var(--ink-black)] transition-colors z-10"
             aria-label="Close"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
