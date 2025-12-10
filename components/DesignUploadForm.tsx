@@ -88,17 +88,14 @@ const PRODUCT_TYPES = {
     label: "Youth T-Shirt",
     folder: "Youth/Tees",
     colors: [
-      { name: "Cactus", filePrefix: "Cactus", hex: "#6B8E23" },
-      { name: "Caribbean Mist", filePrefix: "Caribbean_Mist", hex: "#A7D8DE" },
-      { name: "Cement", filePrefix: "Cement", hex: "#9E9E9E" },
-      { name: "Daisy Mist", filePrefix: "Daisy_Mist", hex: "#FFF8DC" },
-      { name: "Dusty Rose", filePrefix: "Dusty_Rose", hex: "#DCAE96" },
-      { name: "Navy Mist", filePrefix: "Navy_Mist", hex: "#4A5C7A" },
-      { name: "Pink Lemonade", filePrefix: "Pink_Lemonade", hex: "#FFB6C1" },
       { name: "Black", filePrefix: "Black", hex: "#000000" },
+      { name: "Daisy", filePrefix: "Daisy", hex: "#FFF8DC" },
+      { name: "Gray", filePrefix: "Gray", hex: "#9E9E9E" },
+      { name: "Navy", filePrefix: "Navy", hex: "#000080" },
+      { name: "Pink Lemonade", filePrefix: "Pink Lemonade", hex: "#FFB6C1" },
       { name: "Red", filePrefix: "Red", hex: "#DC143C" },
       { name: "Royal", filePrefix: "Royal", hex: "#4169E1" },
-      { name: "Blue", filePrefix: "Blue", hex: "#0000FF" },
+      { name: "White", filePrefix: "White", hex: "#FFFFFF" },
     ],
     defaultPricing: [
       { size: "YXS", price: 24.99, weight: 3.5 },
@@ -114,17 +111,11 @@ const PRODUCT_TYPES = {
     folder: "Youth/Hoodies",
     colors: [
       { name: "Black", filePrefix: "Black", hex: "#000000" },
-      { name: "Daisy", filePrefix: "Daisy", hex: "#FFF8DC" },
-      { name: "Dark Heather", filePrefix: "Dark_Heather", hex: "#4A4A4A" },
-      { name: "Forest Green", filePrefix: "Forest_Green", hex: "#228B22" },
-      { name: "Light Pink", filePrefix: "Light_Pink", hex: "#FFB6C1" },
-      { name: "Maroon", filePrefix: "Maroon", hex: "#800000" },
-      { name: "Military Green", filePrefix: "Military_Green", hex: "#5A5F4A" },
-      { name: "Pink Lemonade", filePrefix: "Pink_Lemonade", hex: "#FFB6C1" },
+      { name: "Grey", filePrefix: "Grey", hex: "#9E9E9E" },
+      { name: "Navy", filePrefix: "Navy", hex: "#000080" },
+      { name: "Pink", filePrefix: "Pink", hex: "#FFC0CB" },
       { name: "Red", filePrefix: "Red", hex: "#DC143C" },
-      { name: "Sport Grey", filePrefix: "Sport_Grey", hex: "#B8B8B8" },
       { name: "Royal", filePrefix: "Royal", hex: "#4169E1" },
-      { name: "Sand", filePrefix: "Sand", hex: "#D7C4A0" },
       { name: "White", filePrefix: "White", hex: "#FFFFFF" },
     ],
     defaultPricing: [
@@ -141,15 +132,10 @@ const PRODUCT_TYPES = {
     folder: "Youth/Longsleeve",
     colors: [
       { name: "Black", filePrefix: "Black", hex: "#000000" },
-      { name: "Carolina Blue", filePrefix: "Carolina_Blue", hex: "#56A0D3" },
-      { name: "Forest Green", filePrefix: "Forest_Green", hex: "#228B22" },
-      { name: "Gold", filePrefix: "Gold", hex: "#FFD700" },
-      { name: "Irish Green", filePrefix: "Irish_Green", hex: "#009A49" },
+      { name: "Blue", filePrefix: "Blue", hex: "#0000FF" },
+      { name: "Grey", filePrefix: "Grey", hex: "#9E9E9E" },
       { name: "Navy", filePrefix: "Navy", hex: "#000080" },
-      { name: "Purple", filePrefix: "Purple", hex: "#800080" },
       { name: "Red", filePrefix: "Red", hex: "#DC143C" },
-      { name: "Royal", filePrefix: "Royal", hex: "#4169E1" },
-      { name: "Sport Grey", filePrefix: "Sport_Grey", hex: "#B8B8B8" },
       { name: "White", filePrefix: "White", hex: "#FFFFFF" },
     ],
     defaultPricing: [
@@ -660,7 +646,7 @@ export default function DesignUploadForm({
         return view === "back" ? `${base}Back.png` : `${base}Front.png`;
       }
       case "youth_longsleeve": {
-        const base = `/assets/Blanks/${config.folder}/Y-Longsleeve-${encodedPrefix}-`;
+        const base = `/assets/Blanks/${config.folder}/Y-LS Tee-${encodedPrefix}-`;
         return view === "back" ? `${base}Back.png` : `${base}Front.png`;
       }
       default:
