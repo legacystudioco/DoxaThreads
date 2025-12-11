@@ -97,20 +97,6 @@ export default function Home() {
       </section>
 
       <div className="container mx-auto px-4 py-16 lg:py-24">
-        {/* What is DOXA */} 
-        <section className="mb-16 text-black">
-          <h2 className="text-3xl lg:text-4xl font-bold tracking-tight text-center mb-6 flex items-center justify-center gap-3">
-            <span>What Is</span>
-            <Image src="/assets/Doxa_Logo.png" alt="DOXA" width={160} height={48} className="h-11 w-auto" />
-            <span>?</span>
-          </h2>
-          <div className="max-w-4xl mx-auto space-y-4 text-center text-black">
-            <p>DOXA (δόξα) — Greek for glory. The visible presence of God.</p>
-            <p>American Traditional art meets sacred symbolism. Premium streetwear built to honor the craft.</p>
-            <p className="text-[rgba(30,42,68,0.8)]">Designed to last. Made to mean something.</p>
-          </div>
-        </section>
-
         {/* Featured Products */}
         <section className="mb-20">
           {/* Desktop layout: side-by-side, Mobile: centered stack */}
@@ -198,6 +184,20 @@ export default function Home() {
               </Link>
             </div>
           )}
+        </section>
+
+        {/* What is DOXA */} 
+        <section className="mb-16 text-black">
+          <h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-center mb-7 flex items-center justify-center gap-3">
+            <span>What Is</span>
+            <Image src="/assets/Doxa_Logo.png" alt="DOXA" width={160} height={48} className="h-12 sm:h-14 w-auto" />
+            <span>?</span>
+          </h2>
+          <div className="max-w-4xl mx-auto space-y-5 text-center text-black">
+            <p className="text-lg sm:text-xl">DOXA (δόξα) — Greek for glory. The visible presence of God.</p>
+            <p className="text-lg sm:text-xl">American Traditional art meets sacred symbolism. Premium streetwear built to honor the craft.</p>
+            <p className="text-lg sm:text-xl text-[rgba(30,42,68,0.8)]">Designed to last. Made to mean something.</p>
+          </div>
         </section>
 
         {/* Call to Action */}
