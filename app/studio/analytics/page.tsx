@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase-client";
 
 function cleanLocation(value?: string | null) {
@@ -431,6 +432,9 @@ export default function StudioAnalyticsPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Link href="/studio/analytics/google-analytics" className="text-sm px-4 py-2 border-2 border-black bg-white hover:bg-neutral-100">
+            Google Analytics
+          </Link>
           <button
             onClick={() => setTimeRange("24h")}
             className={`text-sm px-4 py-2 border-2 border-black ${
