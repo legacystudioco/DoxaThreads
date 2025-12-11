@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase-client";
 import Link from "next/link";
 import Image from "next/image";
-import { ImageZoom } from "@/components/ImageZoom";
 
 export default function StorePage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -232,44 +231,38 @@ export default function StorePage() {
               !firstImage.url.includes('example.com');
 
             return (
-              <div key={product.id} className="product-card group">
-                <Link 
-                  href={`/store/products/${product.slug}`}
-                  className="block"
-                >
-                  <div className="product-image">
-                    {hasValidImage ? (
-                      <ImageZoom
-                        src={firstImage.url}
-                        alt={firstImage.alt || product.title}
+              <Link 
+                key={product.id} 
+                href={`/store/products/${product.slug}`}
+                className="product-card group"
+              >
+                <div className="product-image">
+                  {hasValidImage ? (
+                    <Image
+                      src={firstImage.url}
+                      alt={firstImage.alt || product.title}
+                      width={600}
+                      height={600}
+                      className="w-full h-full object-contain bg-transparent"
+                    />
+                  ) : (
+                    <>
+                      {/* Placeholder until product imagery is uploaded */}
+                      <Image
+                        src="/placeholders/product-square.svg"
+                        alt="Placeholder for upcoming product imagery"
                         width={600}
                         height={600}
                         className="w-full h-full object-contain bg-transparent"
                       />
-                    ) : (
-                      <>
-                        {/* Placeholder until product imagery is uploaded */}
-                        <Image
-                          src="/placeholders/product-square.svg"
-                          alt="Placeholder for upcoming product imagery"
-                          width={600}
-                          height={600}
-                          className="w-full h-full object-contain bg-transparent"
-                        />
-                      </>
-                    )}
-                  </div>
-                </Link>
-                <Link 
-                  href={`/store/products/${product.slug}`}
-                  className="block"
-                >
-                  <h3 className="product-title">{product.title}</h3>
-                  <p className="product-price">
-                    From ${(minPrice / 100).toFixed(2)}
-                  </p>
-                </Link>
-              </div>
+                    </>
+                  )}
+                </div>
+                <h3 className="product-title">{product.title}</h3>
+                <p className="product-price">
+                  From ${(minPrice / 100).toFixed(2)}
+                </p>
+              </Link>
             );
           })}
         </div>

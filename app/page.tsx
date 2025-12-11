@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase-client";
 import Link from "next/link";
 import Image from "next/image";
-import { ImageZoom } from "@/components/ImageZoom";
 import NewsletterPopup from "@/components/NewsletterPopup";
 
 export default function Home() {
@@ -162,7 +161,7 @@ export default function Home() {
                     >
                       <div className="product-image">
                         {hasValidImage ? (
-                        <ImageZoom
+                        <Image
                           src={firstImage.url}
                           alt={firstImage.alt || product.title}
                           width={600}
