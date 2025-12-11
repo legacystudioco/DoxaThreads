@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { VariantPicker } from "@/components/VariantPicker";
 import { ColorSwatch } from "@/components/ColorSwatch";
+import { ImageZoom } from "@/components/ImageZoom";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase-client";
 
@@ -578,13 +579,12 @@ function ProductClient({ product, variants, images }: any) {
           {/* Main Product Image */}
           <div className="border-2 border-brand-accent overflow-hidden aspect-square mb-6 flex items-center justify-center" style={{ backgroundColor: '#F3E8D8' }}>
             {displayImage ? (
-              <Image 
-                src={displayImage.url} 
-                alt={displayImage.alt ?? `${product.title} (${imageView} view)`} 
-                width={800} 
+              <ImageZoom
+                src={displayImage.url}
+                alt={displayImage.alt ?? `${product.title} (${imageView} view)`}
+                width={800}
                 height={800}
                 className="w-full h-full object-contain"
-                style={{ mixBlendMode: 'multiply' }}
               />
             ) : (
               <>
@@ -682,6 +682,11 @@ function ProductClient({ product, variants, images }: any) {
               Add to Cart
             </button>
 
+            {/* Shipping Info */}
+            <p className="text-center text-sm text-neutral-600 -mt-3">
+              Ships free in the US for orders $75+
+            </p>
+
             {/* Product Features */}
             <div className="grid grid-cols-2 gap-4 pt-6 border-t border-brand-accent">
               <div className="text-center">
@@ -760,7 +765,7 @@ function ProductClient({ product, variants, images }: any) {
                   <strong>Shipping:</strong> Free shipping on orders over $75
                 </p>
                 <p>
-                  <strong>Returns:</strong> 30-day return policy with free size exchanges.
+                  <strong>Returns:</strong> 14-day size exchange only.
                 </p>
               </div>
             </details>

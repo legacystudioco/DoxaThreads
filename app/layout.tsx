@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Header } from "@/components/Header";
 import { VisitorTracker } from "@/components/VisitorTracker";
 import { MetaPixel } from "@/components/MetaPixel";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 
 export const metadata: Metadata = {
   title: "DOXA Threads | Greek for Glory",
@@ -24,6 +25,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
         {/* Meta Pixel tracking */}
         <MetaPixel />
+
+        {/* Google Analytics 4 */}
+        <GoogleAnalytics />
         
         {/* Top announcement bar - Tan background with brown text */}
         <div className="bg-[var(--paper)] text-[#6E5A3C] text-center py-2 text-[11px] font-semibold uppercase tracking-[0.16em] border-b border-brand-accent">

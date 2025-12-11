@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase-client";
 import Link from "next/link";
 import Image from "next/image";
+import { ImageZoom } from "@/components/ImageZoom";
 
 export default function StorePage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -231,42 +232,44 @@ export default function StorePage() {
               !firstImage.url.includes('example.com');
 
             return (
-              <Link 
-                key={product.id} 
-                href={`/store/products/${product.slug}`}
-                className="product-card group"
-              >
-                <div className="product-image">
-                  {hasValidImage ? (
-                    <Image
-                      src={firstImage.url}
-                      alt={firstImage.alt || product.title}
-                      width={600}
-                      height={600}
-                      className="w-full h-full object-contain bg-transparent"
-                      onError={(e) => {
-                        // Fallback if image fails to load
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  ) : (
-                    <>
-                      {/* Placeholder until product imagery is uploaded */}
-                      <Image
-                        src="/placeholders/product-square.svg"
-                        alt="Placeholder for upcoming product imagery"
+              <div key={product.id} className="product-card group">
+                <Link 
+                  href={`/store/products/${product.slug}`}
+                  className="block"
+                >
+                  <div className="product-image">
+                    {hasValidImage ? (
+                      <ImageZoom
+                        src={firstImage.url}
+                        alt={firstImage.alt || product.title}
                         width={600}
                         height={600}
                         className="w-full h-full object-contain bg-transparent"
                       />
-                    </>
-                  )}
-                </div>
-                <h3 className="product-title">{product.title}</h3>
-                <p className="product-price">
-                  From ${(minPrice / 100).toFixed(2)}
-                </p>
-              </Link>
+                    ) : (
+                      <>
+                        {/* Placeholder until product imagery is uploaded */}
+                        <Image
+                          src="/placeholders/product-square.svg"
+                          alt="Placeholder for upcoming product imagery"
+                          width={600}
+                          height={600}
+                          className="w-full h-full object-contain bg-transparent"
+                        />
+                      </>
+                    )}
+                  </div>
+                </Link>
+                <Link 
+                  href={`/store/products/${product.slug}`}
+                  className="block"
+                >
+                  <h3 className="product-title">{product.title}</h3>
+                  <p className="product-price">
+                    From ${(minPrice / 100).toFixed(2)}
+                  </p>
+                </Link>
+              </div>
             );
           })}
         </div>
@@ -321,7 +324,7 @@ export default function StorePage() {
               </div>
               <h4 className="font-bold text-sm uppercase tracking-wider mb-2">Easy Returns</h4>
               <p className="text-sm text-neutral-600">
-                30-day returns. Free size exchanges.
+                14-day size exchange only.
               </p>
             </div>
           </div>

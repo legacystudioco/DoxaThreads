@@ -80,7 +80,7 @@ export default function ContactPage() {
             </summary>
             <div className="p-4 border-t border-brand-accent text-sm text-neutral-600">
               <p>
-                30 days. Free size exchanges. Items must be unworn and in original condition.
+                14-day size exchange only. Items must be unworn, unwashed, and in original condition with tags attached.
               </p>
             </div>
           </details>

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase-client";
 import Link from "next/link";
 import Image from "next/image";
+import { ImageZoom } from "@/components/ImageZoom";
 import NewsletterPopup from "@/components/NewsletterPopup";
 
 export default function Home() {
@@ -83,18 +84,32 @@ export default function Home() {
                 <span className="hidden sm:inline">Greek for Glory. Worn with honor. Backed by faith.</span>
               </p>
               {/* Side-by-side buttons on all screen sizes, smaller on mobile */}
-              <div className="flex flex-row gap-2 justify-center mt-2">
-                <Link href="/store" className="btn px-4 py-2 text-xs sm:px-5 sm:py-3 sm:text-sm whitespace-nowrap">
+              <div className="flex flex-row gap-2 justify-center mt-2 w-full px-4">
+                <Link href="/store" className="btn px-4 py-2 text-xs sm:px-5 sm:py-3 sm:text-sm whitespace-nowrap flex-1 text-center">
                   Shop the Collection
-                </Link>
-                <Link href="/about" className="btn-secondary px-4 py-2 text-xs sm:px-5 sm:py-3 sm:text-sm whitespace-nowrap">
-                  Our Story
                 </Link>
               </div>
             </div>
           </div>
         </div>
       </section>
+
+      {/* Scroll Down Indicator */}
+      <div className="flex justify-center -mt-8 mb-4 relative z-20 pointer-events-none">
+        <svg
+          className="w-6 h-6 text-[#6E5A3C] animate-bounce"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          strokeWidth={2.5}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M19 14l-7 7m0 0l-7-7m7 7V3"
+          />
+        </svg>
+      </div>
 
       <div className="container mx-auto px-4 py-16 lg:py-24">
         {/* Featured Products */}
@@ -137,42 +152,47 @@ export default function Home() {
                   !firstImage.url.includes('example.com');
 
                 return (
-                  <Link 
-                    key={product.id} 
-                    href={`/store/products/${product.slug}`} 
+                  <div 
+                    key={product.id}
                     className="product-card group"
                   >
-                    <div className="product-image">
-                      {hasValidImage ? (
-                      <Image
-                        src={firstImage.url}
-                        alt={firstImage.alt || product.title}
-                        width={600}
-                        height={600}
-                        className="w-full h-full object-contain bg-transparent"
-                        onError={(e) => {
-                          // Fallback if image fails to load
-                          e.currentTarget.style.display = 'none';
-                        }}
-                      />
-                      ) : (
-                        <>
-                          {/* Placeholder until product imagery is uploaded */}
-                          <Image
-                            src="/placeholders/product-square.svg"
-                            alt="Placeholder for upcoming product imagery"
-                            width={600}
-                            height={600}
-                            className="w-full h-full object-contain bg-transparent"
-                          />
-                        </>
-                      )}
-                    </div>
-                    <h3 className="product-title">{product.title}</h3>
-                    <p className="product-price">
-                      From ${(minPrice / 100).toFixed(2)}
-                    </p>
-                  </Link>
+                    <Link 
+                      href={`/store/products/${product.slug}`} 
+                      className="block"
+                    >
+                      <div className="product-image">
+                        {hasValidImage ? (
+                        <ImageZoom
+                          src={firstImage.url}
+                          alt={firstImage.alt || product.title}
+                          width={600}
+                          height={600}
+                          className="w-full h-full object-contain bg-transparent"
+                        />
+                        ) : (
+                          <>
+                            {/* Placeholder until product imagery is uploaded */}
+                            <Image
+                              src="/placeholders/product-square.svg"
+                              alt="Placeholder for upcoming product imagery"
+                              width={600}
+                              height={600}
+                              className="w-full h-full object-contain bg-transparent"
+                            />
+                          </>
+                        )}
+                      </div>
+                    </Link>
+                    <Link 
+                      href={`/store/products/${product.slug}`} 
+                      className="block"
+                    >
+                      <h3 className="product-title">{product.title}</h3>
+                      <p className="product-price">
+                        From ${(minPrice / 100).toFixed(2)}
+                      </p>
+                    </Link>
+                  </div>
                 );
               })}
             </div>
